@@ -84,8 +84,8 @@ document.addEventListener("DOMContentLoaded", () => {
             
             /* Combine pop-in and spin animations */
             animation: 
-                introPop 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-                coolSpin 1.8s cubic-bezier(0.4, 0, 0.2, 1) 1s forwards;
+           introPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    coolSpin 1.8s cubic-bezier(0.4, 0, 0.2, 1) 1.2s forwards;
         }
 
         /* Pop the image into existence */
