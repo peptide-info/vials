@@ -1,19 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
     // 1. DYNAMIC ASSET DICTIONARY
-    // TIP: Check your GitHub repo to ensure these file names perfectly match case-by-case (all lowercase here)
+    // Appending '?v=1' forces the browser to bypass any old cached broken images
     const ASSET_MAP = {
-        'retatrutide': 'https://peptide-info.github.io/vials/assets/retatrutide.jpg',
-        'selank':      'https://peptide-info.github.io/vials/assets/default.png',
-        'cjc':         'https://peptide-info.github.io/vials/assets/default.png',
-        'bpc':         'https://peptide-info.github.io/vials/assets/default.png',
-        'bac':         'https://peptide-info.github.io/vials/assets/default.png',
-        'pt':          'https://peptide-info.github.io/vials/assets/default.png'
+        'retatrutide': 'https://peptide-info.github.io/vials/assets/retatrutide.jpg?v=1',
+        'selank':      'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'cjc':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'bpc':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'bac':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'pt':          'https://peptide-info.github.io/vials/assets/default.png?v=1'
     };
 
-    const DEFAULT_LOGO = 'https://peptide-info.github.io/vials/assets/default.png'; 
+    const DEFAULT_LOGO = 'https://peptide-info.github.io/vials/assets/default.png?v=1'; 
 
-    // 2. BULLETPROOF FILENAME EXTRACTION
-    // Grabs just the very end of the URL (e.g., "retatrutide-10mg.html")
+    // 2. FILENAME EXTRACTION
     const urlParts = window.location.pathname.split('/');
     const currentFilename = urlParts[urlParts.length - 1].toLowerCase();
     
@@ -26,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 3. Inject CSS (Unchanged, but kept unified)
+    // 3. Inject CSS (Adding forced display constraints to the wrapper)
     const styles = `
         .home-btn {
             position: fixed; top: 15px; left: 15px; width: 36px; height: 36px;
@@ -40,12 +39,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         .splash-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: #0d1117; display: flex; align-items: center;
-            justify-content: center; z-index: 10000; opacity: 1;
+            background-color: #0d1117 !important; display: flex !important; 
+            align-items: center !important; justify-content: center !important; 
+            z-index: 10000 !important; opacity: 1;
             transition: opacity 0.6s ease-out;
         }
         .splash-logo {
-            width: 180px; height: auto; transform: scale(0);
+            width: 220px !important; /* Bumped size up slightly */
+            height: auto !important; 
+            display: block !important;
+            transform: scale(0);
             animation: 
                 introPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
                 coolSpin 1.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
@@ -66,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     homeButton.innerHTML = "🏠";
     document.body.insertBefore(homeButton, document.body.firstChild);
 
-    // 5. Create Splash Screen with Fallback Text Handling
+    // 5. Create Splash Screen
     const splashContainer = document.createElement("div");
     splashContainer.className = "splash-overlay";
 
@@ -74,12 +77,12 @@ document.addEventListener("DOMContentLoaded", () => {
     imgElement.src = logoUrl; 
     imgElement.className = "splash-logo";
     
-    // FAIL-SAFE: If the image fails to load entirely, show text so the screen isn't just stuck black
+    // If it STILL somehow fails, this text will instantly let us know
     imgElement.onerror = function() {
         this.style.display = 'none';
         const fallbackText = document.createElement('div');
         fallbackText.style.color = '#c9d1d9';
-        fallbackText.style.fontSize = '1.5rem';
+        fallbackText.style.fontSize = '1.4rem';
         fallbackText.style.fontWeight = 'bold';
         fallbackText.innerText = '✨ Loading Protocol ✨';
         splashContainer.appendChild(fallbackText);
