@@ -22,7 +22,7 @@
             max-width: 500px;
         }
 
-        /* Clean, vibrant header */
+        /* Clean, vibrant rainbow header */
         h1 { 
             font-size: 2rem;
             text-align: center;
@@ -46,7 +46,7 @@
             margin-bottom: 16px; 
             border-radius: 12px; 
             background: #161b22;
-            padding: 1px; /* Creates the space for the gradient border to show through */
+            padding: 1px; /* Creates space for the gradient border to show through */
             background-image: linear-gradient(45deg, #ff595e, #ffca3a, #8ac926, #1982c4, #6a4c93);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -73,7 +73,6 @@
             text-decoration: none; 
             font-weight: 600; 
             font-size: 1.15rem; 
-            text-transform: capitalize; 
             width: 100%;
             display: flex;
             align-items: center;
@@ -134,8 +133,33 @@
                 }
 
                 validFiles.forEach(file => {
-                    // Clean up display text formatting
-                    const displayName = file.name.replace('.html', '').replace('-', ' ');
+                    // 1. Strip out the .html extension and convert all hyphens to spaces
+                    let rawName = file.name.replace('.html', '').replace(/-/g, ' ');
+                    
+                    // 2. Process each individual word for advanced string styling
+                    let displayName = rawName.split(' ').map(word => {
+                        let lowerWord = word.toLowerCase();
+
+                        // Force "with" to "w/"
+                        if (lowerWord === 'with') {
+                            return 'w/';
+                        }
+
+                        // Force correct biological metric capitalization (e.g., 5mg, 3ml)
+                        if (lowerWord.endsWith('mg')) {
+                            return lowerWord.slice(0, -2) + 'mg'; // Keeps numbers, forces lowercase "mg"
+                        }
+                        if (lowerWord.endsWith('ml')) {
+                            return lowerWord.slice(0, -2) + 'mL'; // Keeps numbers, forces mixed-case "mL"
+                        }
+
+                        // Fall back to standard length-based rule
+                        if (word.length <= 3) {
+                            return word.toUpperCase(); // Full acronyms (BAC, CJC, NO, DAC)
+                        } else {
+                            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(); // Proper title case
+                        }
+                    }).join(' ');
                     
                     // Build cards wrapped with the inner container for the gradient effect
                     htmlString += `
