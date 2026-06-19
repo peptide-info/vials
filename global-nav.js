@@ -1,28 +1,25 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. DYNAMIC ASSET DICTIONARY
-    // Maps a keyword found in the filename to its specific image inside your assets folder
+    // 1. DYNAMIC ASSET DICTIONARY (Updated with absolute web paths)
     const ASSET_MAP = {
-        'retatrutide': '../assets/retatrutide.jpg',
-        'selank':      '../assets/default.png',
-        'cjc':         '../assets/default.png',
-        'bpc':         '../assets/default.png',
-        'bac':         '../assets/default.png',
-        'pt':          '../assets/default.png'
+        'retatrutide': 'https://peptide-info.github.io/vials/assets/retatrutide.jpg',
+        'selank':      'https://peptide-info.github.io/vials/assets/default.png',
+        'cjc':         'https://peptide-info.github.io/vials/assets/default.png',
+        'bpc':         'https://peptide-info.github.io/vials/assets/default.png',
+        'bac':         'https://peptide-info.github.io/vials/assets/default.png',
+        'pt':          'https://peptide-info.github.io/vials/assets/default.png'
     };
 
-    // Your default fallback image if no keywords match
-    const DEFAULT_LOGO = '../assets/default.png'; 
+    // Your absolute default fallback image
+    const DEFAULT_LOGO = 'https://peptide-info.github.io/vials/assets/default.png'; 
 
     // 2. DETECT THE CURRENT PEPTIDE
-    // Grab the current webpage filename (e.g., "retatrutide-10mg.html") in lowercase
     const currentFilename = window.location.pathname.toLowerCase();
-    let logoUrl = DEFAULT_LOGO; // Start with the fallback
+    let logoUrl = DEFAULT_LOGO; 
 
-    // Loop through our map and check if the filename contains any of our target keywords
     for (const [keyword, assetPath] of Object.entries(ASSET_MAP)) {
         if (currentFilename.includes(keyword)) {
-            logoUrl = assetPath; // Found a match! Use the specific asset
-            break; // Stop looking once we find the first match
+            logoUrl = assetPath; 
+            break; 
         }
     }
 
@@ -71,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
             transition: opacity 0.6s ease-out;
         }
 
-        /* THE ANIMATED PNG */
+        /* THE ANIMATED IMAGE */
         .splash-logo {
             width: 180px;
             height: auto;
@@ -98,18 +95,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 4. Create and inject the floating home button
     const homeButton = document.createElement("a");
-    homeButton.href = "../index.html";
+    // Hardcoding this URL ensures the home button works reliably anywhere
+    homeButton.href = 'https://peptide-info.github.io/vials/index.html';
     homeButton.className = "home-btn";
     homeButton.title = "Back to Directory";
     homeButton.innerHTML = "🏠";
     document.body.insertBefore(homeButton, document.body.firstChild);
 
-    // 5. Create and inject the Splash Screen elements using the dynamic logoUrl
+    // 5. Create and inject the Splash Screen elements
     const splashContainer = document.createElement("div");
     splashContainer.className = "splash-overlay";
 
     const imgElement = document.createElement("img");
-    imgElement.src = logoUrl; // This is now dynamic!
+    imgElement.src = logoUrl; 
     imgElement.className = "splash-logo";
     imgElement.alt = "Loading...";
 
