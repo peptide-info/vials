@@ -143,5 +143,5 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             splashContainer.remove();
         }, 600);
-    }, 2300);
+    }, 3300);
 });
