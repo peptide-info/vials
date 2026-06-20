@@ -194,12 +194,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 600);
     }, 3300);
 
-    // ==========================================
+  // ==========================================
     // 7. POPUP SCRIPT LAUNCHER LOGIC
     // ==========================================
     let isCalcScriptLoaded = false;
 
     calcButton.addEventListener("click", () => {
+        // 🌟 CRITICAL FIX: Share the current page's defaults globally before calling the popup function
+        window.activeCalcDefaults = calcDefaults;
+
         // If script was already downloaded, pass event cleanly to open the modal layout
         if (isCalcScriptLoaded) {
             if (typeof window.openPeptideCalculator === "function") {
