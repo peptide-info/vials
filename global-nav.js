@@ -3,10 +3,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const ASSET_MAP = {
         'retatrutide': 'https://peptide-info.github.io/vials/assets/retatrutide.jpg?v=1',
         'selank':      'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'cjc':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'bpc':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'bac':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'pt':          'https://peptide-info.github.io/vials/assets/default.png?v=1'
+        'cjc':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'bpc':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'bac':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'pt':           'https://peptide-info.github.io/vials/assets/default.png?v=1'
     };
 
     // Your absolute default fallback image
@@ -25,13 +25,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 3. Inject CSS for both the home button AND the splash animation
+    // 3. Inject CSS for the navigation bar container, buttons, and splash animation
     const styles = `
-        /* FLOATING HOME BUTTON */
-        .home-btn {
+        /* FLOATING NAVIGATION LAYER CONTAINER */
+        .header-nav-container {
             position: fixed;
             top: 15px;
             left: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 9999;
+        }
+
+        /* FIXED BUTTON ELEMENTS BASE */
+        .home-btn, .nav-calc-btn {
             width: 36px;
             height: 36px;
             background: #161b22;
@@ -43,10 +51,12 @@ document.addEventListener("DOMContentLoaded", () => {
             text-decoration: none;
             font-size: 1.1rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            z-index: 9999;
+            cursor: pointer;
+            box-sizing: border-box;
+            padding: 0;
             transition: transform 0.2s ease, border-color 0.2s ease;
         }
-        .home-btn:hover {
+        .home-btn:hover, .nav-calc-btn:hover {
             transform: scale(1.05);
             border-color: #58a6ff;
         }
@@ -54,14 +64,13 @@ document.addEventListener("DOMContentLoaded", () => {
             body { padding-top: 50px !important; }
         }
 
-        /* NEW! TRANSLUCENT SPLASH SCREEN OVERLAY */
+        /* TRANSLUCENT SPLASH SCREEN OVERLAY */
         .splash-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            /* Changes from solid to 85% opacity, so the page behind is visible */
             background-color: rgba(13, 17, 23, 0.85); 
             backdrop-filter: blur(5px); /* Adds a cool iOS-style frosted glass blur */
             display: grid; /* Grid is better for absolute centering */
@@ -71,9 +80,8 @@ document.addEventListener("DOMContentLoaded", () => {
             transition: opacity 0.6s ease-out;
         }
 
-        /* NEW! DYNAMICALLY SIZED ANIMATED IMAGE */
+        /* DYNAMICALLY SIZED ANIMATED IMAGE */
         .splash-logo {
-            /* Now sets size dynamically based on the width of the viewport (vw) */
             width: 70vw !important; 
             max-width: 400px !important; /* Prevents it from getting too large on desktop */
             height: auto !important;
@@ -84,8 +92,8 @@ document.addEventListener("DOMContentLoaded", () => {
             
             /* Combine pop-in and spin animations */
             animation: 
-           introPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-    coolSpin 1.8s cubic-bezier(0.4, 0, 0.2, 1) 1.2s forwards;
+               introPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+               coolSpin 1.8s cubic-bezier(0.4, 0, 0.2, 1) 1.2s forwards;
         }
 
         /* Pop the image into existence */
@@ -105,14 +113,27 @@ document.addEventListener("DOMContentLoaded", () => {
     styleSheet.innerText = styles;
     document.head.appendChild(styleSheet);
 
-    // 4. Create and inject the floating home button
+    // 4. Create Navigation wrapper block
+    const navContainer = document.createElement("div");
+    navContainer.className = "header-nav-container";
+
+    // Create the floating home button
     const homeButton = document.createElement("a");
-    // Hardcoding this URL ensures the home button works reliably anywhere
     homeButton.href = 'https://peptide-info.github.io/vials/index.html';
     homeButton.className = "home-btn";
     homeButton.title = "Back to Directory";
     homeButton.innerHTML = "🏠";
-    document.body.insertBefore(homeButton, document.body.firstChild);
+
+    // Create the new calculator button
+    const calcButton = document.createElement("button");
+    calcButton.className = "nav-calc-btn";
+    calcButton.title = "Open Dosing Calculator";
+    calcButton.innerHTML = "🧮";
+
+    // Assemble buttons into top bar container layout
+    navContainer.appendChild(homeButton);
+    navContainer.appendChild(calcButton);
+    document.body.insertBefore(navContainer, document.body.firstChild);
 
     // 5. Create and inject the Splash Screen elements
     const splashContainer = document.createElement("div");
@@ -144,4 +165,37 @@ document.addEventListener("DOMContentLoaded", () => {
             splashContainer.remove();
         }, 600);
     }, 3300);
+
+    // ==========================================
+    // 7. POPUP SCRIPT LAUNCHER LOGIC
+    // ==========================================
+    let isCalcScriptLoaded = false;
+
+    calcButton.addEventListener("click", () => {
+        // If script was already downloaded, pass event cleanly to open the modal layout
+        if (isCalcScriptLoaded) {
+            if (typeof window.openPeptideCalculator === "function") {
+                window.openPeptideCalculator();
+            }
+            return;
+        }
+
+        // Dynamically fetch and download your calculator asset logic code
+        console.log("Initializing toolkit setup module injection...");
+        const calcScript = document.createElement("script");
+        calcScript.src = "https://peptide-info.github.io/vials/js/calculator-popup.js";
+        
+        calcScript.onload = () => {
+            isCalcScriptLoaded = true;
+            if (typeof window.openPeptideCalculator === "function") {
+                window.openPeptideCalculator();
+            }
+        };
+
+        calcScript.onerror = () => {
+            alert("Failed to load calculator tool. Please check your connection or repository paths.");
+        };
+
+        document.body.appendChild(calcScript);
+    });
 });
