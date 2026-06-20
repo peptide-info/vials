@@ -5,33 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Available Protocols</title>
     <style>
-        /* Modern Dark/Sleek Base */
+        /* Modern Minimalist Dark Design */
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
             margin: 0;
-            padding: 40px 20px; 
+            padding: 60px 20px; 
             background-color: #0d1117; 
             color: #c9d1d9; 
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
         .container {
             width: 100%;
-            max-width: 500px;
+            max-width: 540px;
         }
 
-        /* Clean, vibrant rainbow header */
+        /* Subtle Sleek Header */
         h1 { 
-            font-size: 2rem;
+            font-size: 2.2rem;
             text-align: center;
-            margin-bottom: 30px;
-            background: linear-gradient(45deg, #ff595e, #ffca3a, #8ac926, #1982c4, #6a4c93);
+            margin-bottom: 35px;
+            background: linear-gradient(135deg, #ff9aa2, #ffb7b2, #ffdac1, #e2f0cb, #b5ead7, #c7ceea);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.75px;
         }
 
         ul { 
@@ -40,63 +42,85 @@
             margin: 0;
         }
 
-        /* Rainbow Card Container */
+        /* Micro-Gradient Border Wrapper */
         li { 
             position: relative;
-            margin-bottom: 16px; 
-            border-radius: 12px; 
+            margin-bottom: 14px; 
+            border-radius: 14px; 
             background: #161b22;
-            padding: 1px; /* Creates space for the gradient border to show through */
-            background-image: linear-gradient(45deg, #ff595e, #ffca3a, #8ac926, #1982c4, #6a4c93);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            padding: 1px; 
+            background-image: linear-gradient(135deg, rgba(255,154,162,0.3) 0%, rgba(199,206,234,0.3) 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-image 0.2s ease, box-shadow 0.2s ease;
         }
 
-        /* Inner card content wrapper */
+        /* Card Inner Content */
         .card-inner {
             background: #161b22;
-            border-radius: 11px;
-            padding: 16px;
+            border-radius: 13px;
+            padding: 18px 20px;
             display: flex;
             align-items: center;
+            gap: 14px;
         }
 
-        /* Smooth hover/pop effect */
+        /* Hover Interaction Layers */
         li:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(25, 130, 196, 0.4);
+            transform: translateY(-2px);
+            background-image: linear-gradient(135deg, #ff9aa2 0%, #c7ceea 100%);
+            box-shadow: 0 8px 30px rgba(199, 206, 234, 0.15);
         }
 
-        /* Protocol Links styling */
+        /* Dynamic Indicator Badges */
+        .badge-icon {
+            font-size: 1.3rem;
+            background: rgba(255, 255, 255, 0.05);
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+
+        /* Link System Alignment */
         a { 
             color: #f0f6fc; 
             text-decoration: none; 
             font-weight: 600; 
-            font-size: 1.15rem; 
+            font-size: 1.1rem; 
             width: 100%;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            letter-spacing: -0.2px;
         }
 
-        /* Tiny indicator arrow on the right */
+        /* Clean Functional Indicator Arrow */
         a::after {
             content: "→";
             font-size: 1.2rem;
-            color: #58a6ff;
-            transition: transform 0.2s ease;
+            color: #8b949e;
+            transition: transform 0.2s ease, color 0.2s ease;
+            padding-left: 10px;
         }
 
         li:hover a::after {
-            transform: translateX(4px);
+            transform: translateX(3px);
+            color: #f0f6fc;
         }
 
-        /* Status messages */
+        /* Asynchronous Feedback States */
         .status {
             text-align: center;
             color: #8b949e;
-            font-style: italic;
-            padding: 20px;
+            font-weight: 500;
+            padding: 40px;
+            background: #161b22;
+            border-radius: 14px;
+            border: 1px dashed rgba(255,255,255,0.1);
         }
     </style>
 </head>
@@ -104,7 +128,7 @@
 
     <div class="container">
         <h1>Protocol Directory</h1>
-        <ul id="file-list"><li class="status">Loading available files...</li></ul>
+        <ul id="file-list"><li class="status">Loading data engine components...</li></ul>
     </div>
 
     <script>
@@ -112,11 +136,19 @@
         const GITHUB_REPO = 'vials';
         const FOLDER_PATH = 'peptides'; 
 
+        // Dynamic badge router based on content identifiers
+        function getBadgeIcon(filename) {
+            const name = filename.toLowerCase();
+            if (name.includes('bac') || name.includes('water')) return '💧';
+            if (name.includes('cjc') || name.includes('bpc') || name.includes('ipamorelin')) return '🧬';
+            return '🧪'; // Master catch-all asset
+        }
+
         async function loadFiles() {
             const listElement = document.getElementById('file-list');
             try {
                 const response = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FOLDER_PATH}`);
-                if (!response.ok) throw new Error('Failed to fetch folder contents');
+                if (!response.ok) throw new Error('Failed to reach GitHub database resources');
                 
                 const data = await response.json();
                 let htmlString = '';
@@ -128,43 +160,41 @@
                 );
 
                 if (validFiles.length === 0) {
-                    listElement.innerHTML = '<li class="status">No HTML protocols found in the folder.</li>';
+                    listElement.innerHTML = '<li class="status">No HTML protocols found in target workspace.</li>';
                     return;
                 }
 
                 validFiles.forEach(file => {
-                    // 1. Strip out the .html extension and convert all hyphens to spaces
+                    // Extract badge matching rules
+                    const itemIcon = getBadgeIcon(file.name);
+
+                    // Clean the path strings cleanly
                     let rawName = file.name.replace('.html', '').replace(/-/g, ' ');
                     
-                    // 2. Process each individual word for advanced string styling
                     let displayName = rawName.split(' ').map(word => {
                         let lowerWord = word.toLowerCase();
 
-                        // Force "with" to "w/"
-                        if (lowerWord === 'with') {
-                            return 'w/';
-                        }
+                        if (lowerWord === 'with') return 'w/';
 
-                        // Force correct biological metric capitalization (e.g., 5mg, 3ml)
+                        // Normalize common scientific unit blocks layout
                         if (lowerWord.endsWith('mg')) {
-                            return lowerWord.slice(0, -2) + 'mg'; // Keeps numbers, forces lowercase "mg"
+                            return lowerWord.slice(0, -2) + 'mg';
                         }
                         if (lowerWord.endsWith('ml')) {
-                            return lowerWord.slice(0, -2) + 'mL'; // Keeps numbers, forces mixed-case "mL"
+                            return lowerWord.slice(0, -2) + 'mL';
                         }
 
-                        // Fall back to standard length-based rule
                         if (word.length <= 3) {
-                            return word.toUpperCase(); // Full acronyms (BAC, CJC, NO, DAC)
+                            return word.toUpperCase();
                         } else {
-                            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(); // Proper title case
+                            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
                         }
                     }).join(' ');
                     
-                    // Build cards wrapped with the inner container for the gradient effect
                     htmlString += `
                         <li>
                             <div class="card-inner">
+                                <span class="badge-icon">${itemIcon}</span>
                                 <a href="${FOLDER_PATH}/${file.name}">${displayName}</a>
                             </div>
                         </li>`;
@@ -172,7 +202,7 @@
 
                 listElement.innerHTML = htmlString;
             } catch (error) {
-                listElement.innerHTML = `<li class="status" style="color:#ff7b72;">Error: ${error.message}</li>`;
+                listElement.innerHTML = `<li class="status" style="color:#ff7b72; border-color: rgba(255,123,114,0.2);">Error: ${error.message}</li>`;
             }
         }
 
