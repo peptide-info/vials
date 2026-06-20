@@ -488,16 +488,27 @@
         if (window.activeCalcDefaults) {
             const defs = window.activeCalcDefaults;
             
+            // Re-verify element references are fresh
+            const targetInputs = {
+                mg1: document.getElementById('pop_mg_1'),
+                ml1: document.getElementById('pop_ml_1'),
+                dose1: document.getElementById('pop_dose_1'),
+                unit1: document.getElementById('pop_unit_1'),
+                mg2: document.getElementById('pop_mg_2'),
+                dose2: document.getElementById('pop_dose_2'),
+                unit2: document.getElementById('pop_unit_2')
+            };
+            
             // Apply to Tab 1 (Standard)
-            if (inputs.mg1) inputs.mg1.value = defs.mg;
-            if (inputs.ml1) inputs.ml1.value = defs.ml;
-            if (inputs.dose1) inputs.dose1.value = defs.dose;
-            if (inputs.unit1) inputs.unit1.value = defs.unit;
+            if (targetInputs.mg1) targetInputs.mg1.value = defs.mg;
+            if (targetInputs.ml1) targetInputs.ml1.value = defs.ml;
+            if (targetInputs.dose1) targetInputs.dose1.value = defs.dose;
+            if (targetInputs.unit1) targetInputs.unit1.value = defs.unit;
             
             // Apply to Tab 2 (Reverse)
-            if (inputs.mg2) inputs.mg2.value = defs.mg;
-            if (inputs.dose2) inputs.dose2.value = defs.dose;
-            if (inputs.unit2) inputs.unit2.value = defs.unit;
+            if (targetInputs.mg2) targetInputs.mg2.value = defs.mg;
+            if (targetInputs.dose2) targetInputs.dose2.value = defs.dose;
+            if (targetInputs.unit2) targetInputs.unit2.value = defs.unit;
         }
 
         overlay.classList.add("active");
