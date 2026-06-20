@@ -108,20 +108,22 @@ document.addEventListener("DOMContentLoaded", () => {
             transition: opacity 0.6s ease-out;
         }
 
-        /* DYNAMICALLY SIZED ANIMATED IMAGE */
+       /* DYNAMICALLY SIZED ANIMATED IMAGE */
         .splash-logo {
             width: 70vw !important; 
-            max-width: 400px !important; /* Prevents it from getting too large on desktop */
+            max-width: 400px !important; 
             height: auto !important;
-            object-fit: contain; /* Ensures the image doesn't stretch weirdly */
+            object-fit: contain; 
             
             display: block !important;
             transform: scale(0);
             
-            /* Combine pop-in and spin animations */
             animation: 
                introPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
                coolSpin 1.8s cubic-bezier(0.4, 0, 0.2, 1) 1.2s forwards;
+
+            /* 🌟 THE INSTANT SKIP FIX: Pass clicks straight through the artwork to the background wrapper */
+            pointer-events: none; 
         }
 
         /* Pop the image into existence */
