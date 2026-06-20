@@ -480,10 +480,26 @@
         if(e.target === overlay) closePopup();
     });
 
-    // ==========================================
+// ==========================================
     // 5. GLOBAL EXPOSURE HOOK (Called by Nav file)
     // ==========================================
     window.openPeptideCalculator = function() {
+        // Read defaults passed from the nav file if they exist
+        if (window.activeCalcDefaults) {
+            const defs = window.activeCalcDefaults;
+            
+            // Apply to Tab 1 (Standard)
+            if (inputs.mg1) inputs.mg1.value = defs.mg;
+            if (inputs.ml1) inputs.ml1.value = defs.ml;
+            if (inputs.dose1) inputs.dose1.value = defs.dose;
+            if (inputs.unit1) inputs.unit1.value = defs.unit;
+            
+            // Apply to Tab 2 (Reverse)
+            if (inputs.mg2) inputs.mg2.value = defs.mg;
+            if (inputs.dose2) inputs.dose2.value = defs.dose;
+            if (inputs.unit2) inputs.unit2.value = defs.unit;
+        }
+
         overlay.classList.add("active");
         calculateStandard();
         calculateReverse();
