@@ -54,14 +54,12 @@
             transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-image 0.2s ease, box-shadow 0.2s ease;
         }
 
-        /* Card Inner Content */
+        /* Card Inner Content Box */
         .card-inner {
             background: #161b22;
             border-radius: 13px;
-            padding: 18px 20px;
             display: flex;
             align-items: center;
-            gap: 14px;
         }
 
         /* Hover Interaction Layers */
@@ -69,6 +67,28 @@
             transform: translateY(-2px);
             background-image: linear-gradient(135deg, #ff9aa2 0%, #c7ceea 100%);
             box-shadow: 0 8px 30px rgba(199, 206, 234, 0.15);
+        }
+
+        /* THE HITBOX FIX: Anchor stretches to fill 100% of the container box area */
+        .protocol-link { 
+            color: #f0f6fc; 
+            text-decoration: none; 
+            font-weight: 600; 
+            font-size: 1.1rem; 
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            letter-spacing: -0.2px;
+            padding: 18px 20px; 
+            border-radius: 13px;
+        }
+
+        /* Align badge and text inline inside the link hook setup */
+        .link-content {
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
 
         /* Dynamic Indicator Badges */
@@ -85,21 +105,8 @@
             flex-shrink: 0;
         }
 
-        /* Link System Alignment */
-        a { 
-            color: #f0f6fc; 
-            text-decoration: none; 
-            font-weight: 600; 
-            font-size: 1.1rem; 
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            letter-spacing: -0.2px;
-        }
-
         /* Clean Functional Indicator Arrow */
-        a::after {
+        .protocol-link::after {
             content: "→";
             font-size: 1.2rem;
             color: #8b949e;
@@ -107,7 +114,7 @@
             padding-left: 10px;
         }
 
-        li:hover a::after {
+        li:hover .protocol-link::after {
             transform: translateX(3px);
             color: #f0f6fc;
         }
@@ -136,11 +143,17 @@
         const GITHUB_REPO = 'vials';
         const FOLDER_PATH = 'peptides'; 
 
-        // Dynamic badge router based on content identifiers
+        // Dynamic badge router logic using only Water and DNA helix elements
         function getBadgeIcon(filename) {
             const name = filename.toLowerCase();
-            if (name.includes('bac') || name.includes('water')) return '💧';
-            return '🧪'; // Master catch-all asset
+            
+            // If the item identifies as mixing solution/water elements
+            if (name.includes('bac') || name.includes('water')) {
+                return '💧';
+            }
+            
+            // Default baseline fallback for all active items
+            return '🧬'; 
         }
 
         async function loadFiles() {
@@ -164,10 +177,10 @@
                 }
 
                 validFiles.forEach(file => {
-                    // Extract badge matching rules
+                    // Extract corresponding emoji badge value selection
                     const itemIcon = getBadgeIcon(file.name);
 
-                    // Clean the path strings cleanly
+                    // Clean string adjustments out seamlessly
                     let rawName = file.name.replace('.html', '').replace(/-/g, ' ');
                     
                     let displayName = rawName.split(' ').map(word => {
@@ -175,7 +188,7 @@
 
                         if (lowerWord === 'with') return 'w/';
 
-                        // Normalize common scientific unit blocks layout
+                        // Normalize common structural metrics layouts
                         if (lowerWord.endsWith('mg')) {
                             return lowerWord.slice(0, -2) + 'mg';
                         }
@@ -190,11 +203,16 @@
                         }
                     }).join(' ');
                     
+                    // Render fully block-wrapped structural content layouts
                     htmlString += `
                         <li>
                             <div class="card-inner">
-                                <span class="badge-icon">${itemIcon}</span>
-                                <a href="${FOLDER_PATH}/${file.name}">${displayName}</a>
+                                <a href="${FOLDER_PATH}/${file.name}" class="protocol-link">
+                                    <div class="link-content">
+                                        <span class="badge-icon">${itemIcon}</span>
+                                        <span>${displayName}</span>
+                                    </div>
+                                </a>
                             </div>
                         </li>`;
                 });
