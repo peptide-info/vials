@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     navContainer.appendChild(calcButton);
     document.body.insertBefore(navContainer, document.body.firstChild);
 
-    // 5. Create and inject the Splash Screen elements
+  // 5. Create and inject the Splash Screen elements
     const splashContainer = document.createElement("div");
     splashContainer.className = "splash-overlay";
 
@@ -186,12 +186,27 @@ document.addEventListener("DOMContentLoaded", () => {
     splashContainer.appendChild(imgElement);
     document.body.appendChild(splashContainer);
 
-    // 6. TIMING ENGINE: Let it spin, fade out, then destroy
-    setTimeout(() => {
+    // --- NEW: SKIPPABLE INTERACTION ENGINE ---
+    // Function to handle the clean exit animation
+    function dismissSplash() {
         splashContainer.style.opacity = "0";
         setTimeout(() => {
             splashContainer.remove();
-        }, 600);
+        }, 600); // Matches the 0.6s CSS transition fade-out
+    }
+
+    // Dismiss if the user clicks anywhere on the splash overlay background
+    splashContainer.addEventListener("click", () => {
+        dismissSplash();
+    });
+    // ------------------------------------------
+
+    // 6. TIMING ENGINE: Automatic fallback if they don't click to skip
+    setTimeout(() => {
+        // Only run if the container hasn't been manually removed yet
+        if (document.body.contains(splashContainer)) {
+            dismissSplash();
+        }
     }, 3300);
 
   // ==========================================
