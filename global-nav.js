@@ -12,19 +12,47 @@ document.addEventListener("DOMContentLoaded", () => {
     // Your absolute default fallback image
     const DEFAULT_LOGO = 'https://peptide-info.github.io/vials/assets/default.png?v=1'; 
 
-    // 2. DETECT THE CURRENT PEPTIDE (Bulletproof check)
+// ==========================================
+    // 2. PEPTIDE CONFIGURATION ARRAY (Add New Pages Here)
+    // ==========================================
+    const PEPTIDE_CONFIGS = [
+        { filename: 'bac-water-3ml',                  mg: '',  ml: '',  dose: '',    unit: 'mg' },
+        { filename: 'bpc-157-5mg',                    mg: 5,   ml: 2,   dose: 375,   unit: 'mcg' },
+        { filename: 'cjc-1295-no-dac-with-ipamorelin',mg: 10,  ml: 2,   dose: 200,   unit: 'mcg' },
+        { filename: 'pt-141-10mg',                    mg: 10,  ml: 1,   dose: 1,     unit: 'mg' },
+        { filename: 'retatrutide-10mg',               mg: 10,  ml: 1,   dose: 2,     unit: 'mg' },
+        { filename: 'retatrutide-30mg',               mg: 30,  ml: 3,   dose: 6,     unit: 'mg' },
+        { filename: 'selank-5mg',                     mg: 5,   ml: 2,   dose: 250,   unit: 'mcg' }
+    ];
+
+    // ABSOLUTE SYSTEM FALLBACKS (If a page isn't in the list above)
+    let calcDefaults = { mg: 5, ml: 2, dose: 2, unit: 'mg' }; 
+    let logoUrl = DEFAULT_LOGO;
+
+    // AUTOMATIC DETECTION ENGINE
     const urlParts = window.location.pathname.split('/');
     const currentFilename = urlParts[urlParts.length - 1].toLowerCase();
-    
-    let logoUrl = DEFAULT_LOGO; // Start with the fallback
 
-    for (const [keyword, assetPath] of Object.entries(ASSET_MAP)) {
-        if (currentFilename.includes(keyword)) {
-            logoUrl = assetPath; // Found a match! Use the specific asset
-            break; // Stop looking once we find the first match
-        }
+    // Find the matching configuration block for defaults
+    const matchedConfig = PEPTIDE_CONFIGS.find(config => currentFilename.includes(config.filename.toLowerCase()));
+    if (matchedConfig) {
+        calcDefaults = { 
+            mg: matchedConfig.mg, 
+            ml: matchedConfig.ml, 
+            dose: matchedConfig.dose, 
+            unit: matchedConfig.unit 
+        };
     }
 
+    // Find the matching logo asset from your existing ASSET_MAP
+    for (const [keyword, assetPath] of Object.entries(ASSET_MAP)) {
+        if (currentFilename.includes(keyword)) {
+            logoUrl = assetPath;
+            break;
+        }
+    }
+    // ==========================================
+    
     // 3. Inject CSS for the navigation bar container, buttons, and splash animation
     const styles = `
         /* FLOATING NAVIGATION LAYER CONTAINER */
