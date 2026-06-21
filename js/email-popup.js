@@ -1,6 +1,6 @@
 (function() {
     // 1. CONFIGURATION
-    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzbrHhT4XS1w063rWdNjZPzSgXPt53n4Trg43QmuVKTTX-F-uodJbjmTN8OE24cfe0/exec";
+    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwskooWjBzHKpAoQkjWKU9ubVs2MV799YCnw3cqrelAq5Dfkjas93KdPrAtmDtEgqN7/exec";
 
     // 2. Inject Modal Stylesheets
     const modalStyles = `
@@ -88,7 +88,7 @@
     document.getElementById("closeEmailModalBtn").addEventListener("click", closeModal);
     overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
 
-   // 5. Transmission Fetch Pipeline
+ // 5. Transmission Fetch Pipeline
     document.getElementById("submitEmailModalBtn").addEventListener("click", () => {
         const emailInput = document.getElementById("modalRecipient").value;
         const subjectInput = document.getElementById("modalSubject").value;
@@ -105,7 +105,7 @@
         statusMsg.style.color = "#58a6ff";
         statusMsg.innerText = "Dispatching cloud email process...";
 
-        // We only need to send the Email and the Page URL
+        // Send the email address and current page URL
         const formPayload = new URLSearchParams();
         formPayload.append("email", emailInput);
         formPayload.append("subject", subjectInput);
@@ -129,5 +129,4 @@
 
     window.openEmailModal = openModal;
 })();
-    window.openEmailModal = openModal;
 })();
