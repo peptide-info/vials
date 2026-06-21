@@ -66,28 +66,29 @@ document.addEventListener("DOMContentLoaded", () => {
             z-index: 9999;
         }
 
-        /* FIXED BUTTON ELEMENTS BASE */
-        .home-btn, .nav-calc-btn, .nav-email-btn {
-            width: 36px;
-            height: 36px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 1.1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            cursor: pointer;
-            box-sizing: border-box;
-            padding: 0;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-        .home-btn:hover, .nav-calc-btn:hover, .nav-email-btn:hover {
-            transform: scale(1.05);
-            border-color: #58a6ff;
-        }
+/* FIXED BUTTON ELEMENTS BASE */
+.home-btn, .nav-calc-btn, .nav-email-btn {
+    width: 36px;
+    height: 36px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    cursor: pointer;
+    box-sizing: border-box;
+    padding: 0;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.home-btn:hover, .nav-calc-btn:hover, .nav-email-btn:hover {
+    transform: scale(1.05);
+    border-color: #58a6ff;
+}
         @media (max-width: 600px) {
             body { padding-top: 50px !important; }
         }
