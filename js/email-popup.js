@@ -1,6 +1,6 @@
 (function() {
     // 1. CONFIGURATION
-    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxEjeO3gREJVoMhwCzOQP3tPt6ua05veNxqJWFPHdas4Hj7uij00Z_RnkcpvEiHq2IZ/exec";
+    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzbrHhT4XS1w063rWdNjZPzSgXPt53n4Trg43QmuVKTTX-F-uodJbjmTN8OE24cfe0/exec";
 
     // 2. Inject Modal Stylesheets
     const modalStyles = `
@@ -88,7 +88,7 @@
     document.getElementById("closeEmailModalBtn").addEventListener("click", closeModal);
     overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
 
-    // 5. Transmission Fetch Pipeline
+   // 5. Transmission Fetch Pipeline
     document.getElementById("submitEmailModalBtn").addEventListener("click", () => {
         const emailInput = document.getElementById("modalRecipient").value;
         const subjectInput = document.getElementById("modalSubject").value;
@@ -105,34 +105,16 @@
         statusMsg.style.color = "#58a6ff";
         statusMsg.innerText = "Dispatching cloud email process...";
 
-        const mainContentElement = document.querySelector('main') || document.body;
-        const tempContainer = mainContentElement.cloneNode(true);
-        const itemsToRemove = tempContainer.querySelectorAll('.header-nav-container, .email-modal-overlay, .modal, script, style');
-        itemsToRemove.forEach(item => item.remove());
-
-        let pageText = tempContainer.innerText.replace(/\n{3,}/g, '\n\n').replace(/^[ \t]+/gm, '').trim();
-
-        const textPayloadBody = 
-            `=========================================================\n` +
-            `🔬 PEPTIDE INFORMATION SHEET\n` +
-            `=========================================================\n` +
-            `Saved On  : ${new Date().toLocaleString()}\n` +
-            `Reference : ${window.location.href}\n` +
-            `---------------------------------------------------------\n\n` +
-            `${pageText}\n\n` +
-            `---------------------------------------------------------\n`;
-
-               const formPayload = new URLSearchParams();
+        // We only need to send the Email and the Page URL
+        const formPayload = new URLSearchParams();
         formPayload.append("email", emailInput);
         formPayload.append("subject", subjectInput);
-        formPayload.append("pageUrl", window.location.href);
+        formPayload.append("pageUrl", window.location.href); 
 
         fetch(GOOGLE_WEB_APP_URL, {
             method: "POST",
             mode: "no-cors", 
-            headers: { 
-                "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" 
-            },
+            headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
             body: formPayload.toString()
         }).then(() => {
             statusMsg.style.color = "#238636";
@@ -145,5 +127,7 @@
         });
     });
 
+    window.openEmailModal = openModal;
+})();
     window.openEmailModal = openModal;
 })();
