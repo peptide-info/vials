@@ -1,6 +1,6 @@
 (function() {
     // 1. CONFIGURATION (Paste your Google Web App URL here)
-    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwy9Y2IWEI3kOTAzDgm_CNfdnknvuXf_cZH8noMavNKkcFMO3VdM-Tea1zApNvJozMK/exec";
+    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzLK-uaclTdbbKJy_M8Y9K0oHaULfDkxIvH2XUZBawvwz0z0DZEul74ZoKVRoll9lg1/exec";
 
     // 2. Inject Modal Stylesheets
     const modalStyles = `
@@ -160,7 +160,7 @@ function openModal() {
             body: textPayloadBody
         };
 
-       // Package the metrics cleanly as standard web form parameters
+     // Package the metrics cleanly as standard web form parameters
         const formPayload = new URLSearchParams();
         formPayload.append("email", emailInput);
         formPayload.append("subject", subjectInput);
@@ -168,26 +168,13 @@ function openModal() {
 
         fetch(GOOGLE_WEB_APP_URL, {
             method: "POST",
-            mode: "no-cors", // Bypasses security restrictions cleanly
+            mode: "no-cors", 
             headers: { 
-                "Content-Type": "application/x-www-form-urlencoded" 
+                // CRITICAL FOR EMOJIS: Explicitly enforce UTF-8 compliance
+                "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" 
             },
             body: formPayload.toString()
         })
-        .then(() => {
-            statusMsg.style.color = "#3fb950";
-            statusMsg.innerText = "Transmission dispatched successfully!";
-            document.getElementById("modalRecipient").value = "";
-            setTimeout(closeModal, 1800);
-        })
-        .catch(err => {
-            console.error(err);
-            statusMsg.style.color = "#f85149";
-            statusMsg.innerText = "Pipeline failure. Check console logs.";
-        })
-        .finally(() => {
-            sendBtn.disabled = false;
-        });
     // Share access functions cleanly across active modular frames
     window.openEmailModal = openModal;
 })();
