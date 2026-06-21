@@ -71,15 +71,20 @@
     document.body.appendChild(overlay);
 
     // 4. Modal Event Controllers
-    function openModal() {
-        // Set dynamic contextual default title if available
-        if (window.activeEmailDefaults && window.activeEmailDefaults.filename) {
+function openModal() {
+        // Find the main <h1> heading on your page, use its text, or fallback
+        const pageHeading = document.querySelector('h1');
+        if (pageHeading && pageHeading.innerText) {
+            document.getElementById("modalSubject").value = `Metrics Report: ${pageHeading.innerText.trim()}`;
+        } else if (window.activeEmailDefaults && window.activeEmailDefaults.filename) {
             document.getElementById("modalSubject").value = `Metrics Report: ${window.activeEmailDefaults.filename}`;
+        } else {
+            document.getElementById("modalSubject").value = "Peptide Fact Sheet";
         }
+        
         overlay.style.display = "flex";
         setTimeout(() => overlay.classList.add("active"), 10);
     }
-
     function closeModal() {
         overlay.classList.remove("active");
         document.getElementById("modalStatusMsg").innerText = "";
