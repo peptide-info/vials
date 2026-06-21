@@ -71,10 +71,7 @@
         const pageHeading = document.querySelector('h1');
         if (pageHeading && pageHeading.innerText) {
             document.getElementById("modalSubject").value = `Peptide Fact Sheet: ${pageHeading.innerText.trim()}`;
-        } else {
-            document.getElementById("modalSubject").value = "Peptide Fact Sheet";
         }
-        
         overlay.style.display = "flex";
         setTimeout(() => overlay.classList.add("active"), 10);
     }
@@ -137,14 +134,14 @@
             body: formPayload.toString()
         }).then(() => {
             statusMsg.style.color = "#238636";
-            statusMsg.innerText = "Transmission dispatched successfully.";
+            statusMsg.innerText = "Transmission dispatched.";
             setTimeout(closeModal, 1500);
-        }).catch(err => {
+        }).catch(() => {
             statusMsg.style.color = "#f85149";
-            statusMsg.innerText = "Error dispatching email.";
+            statusMsg.innerText = "Error sending email.";
             sendBtn.disabled = false;
         });
-    }); // Fixed missing closing brace/paren here
+    }); // This is the fix: added missing });
 
     window.openEmailModal = openModal;
 })();
