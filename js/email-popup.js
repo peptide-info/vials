@@ -1,6 +1,6 @@
 (function() {
     // 1. CONFIGURATION (Paste your Google Web App URL here)
-    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwGKpObzWyu_b8bZ1cK75ZKNG_DofHQ9jPcTcI6SHC9f6DpO_s-1d6D2fK7cY_Fsfe7/exec";
+    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz6zyjaJ4gSLA2gEwVW_97U6MTX0rJVwzdAo0LXnTXYuUWyTmXa7bD3WM0Ve3SgIpWl/exec";
 
     // 2. Inject Modal Stylesheets
     const modalStyles = `
@@ -154,7 +154,7 @@ function openModal() {
             ``;
         // =======================================================
 
-        const requestPayload = {
+      const requestPayload = {
             email: emailInput,
             subject: subjectInput,
             body: textPayloadBody
@@ -162,9 +162,12 @@ function openModal() {
 
         fetch(GOOGLE_WEB_APP_URL, {
             method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestPayload)
+            mode: "no-cors", // Tells the browser to bypass security restrictions
+            cache: "no-cache",
+            headers: { 
+                "Content-Type": "application/json" 
+            },
+            body: JSON.stringify(requestPayload) // Converted to string text
         })
         .then(() => {
             statusMsg.style.color = "#3fb950";
