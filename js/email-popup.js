@@ -1,6 +1,6 @@
 (function() {
     // 1. CONFIGURATION
-    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwskooWjBzHKpAoQkjWKU9ubVs2MV799YCnw3cqrelAq5Dfkjas93KdPrAtmDtEgqN7/exec";
+    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyoDVHRndcDl2PhhZUmVNPjFETj0yWYZb9MLpY4_0sdQWnzDj9tjv8vVMEnxhXxJ_RE/exec";
 
     // 2. Inject Modal Stylesheets
     const modalStyles = `
@@ -41,10 +41,8 @@
     styleElement.innerText = modalStyles;
     document.head.appendChild(styleElement);
 
-    // 3. Create DOM Layout Structures
     const overlay = document.createElement("div");
     overlay.className = "email-modal-overlay";
-
     overlay.innerHTML = `
         <div class="email-modal-card">
             <h3 style="margin-top: 0; margin-bottom: 15px; color: #f0f6fc;">Email Current Framework</h3>
@@ -63,13 +61,11 @@
             </div>
         </div>
     `;
-
     document.body.appendChild(overlay);
 
-    // 4. Modal Event Controllers
     function openModal() {
         const pageHeading = document.querySelector('h1');
-        if (pageHeading && pageHeading.innerText) {
+        if (pageHeading) {
             document.getElementById("modalSubject").value = `Peptide Fact Sheet: ${pageHeading.innerText.trim()}`;
         }
         overlay.style.display = "flex";
@@ -88,7 +84,7 @@
     document.getElementById("closeEmailModalBtn").addEventListener("click", closeModal);
     overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
 
- // 5. Transmission Fetch Pipeline
+    // 5. Transmission Fetch Pipeline
     document.getElementById("submitEmailModalBtn").addEventListener("click", () => {
         const emailInput = document.getElementById("modalRecipient").value;
         const subjectInput = document.getElementById("modalSubject").value;
@@ -105,7 +101,6 @@
         statusMsg.style.color = "#58a6ff";
         statusMsg.innerText = "Dispatching cloud email process...";
 
-        // Send the email address and current page URL
         const formPayload = new URLSearchParams();
         formPayload.append("email", emailInput);
         formPayload.append("subject", subjectInput);
@@ -128,5 +123,4 @@
     });
 
     window.openEmailModal = openModal;
-})();
 })();
