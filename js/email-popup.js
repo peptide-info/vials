@@ -160,14 +160,19 @@ function openModal() {
             body: textPayloadBody
         };
 
+       // Package the metrics cleanly as standard web form parameters
+        const formPayload = new URLSearchParams();
+        formPayload.append("email", emailInput);
+        formPayload.append("subject", subjectInput);
+        formPayload.append("body", textPayloadBody);
+
         fetch(GOOGLE_WEB_APP_URL, {
             method: "POST",
-            mode: "no-cors", // Tells the browser to bypass security restrictions
-            cache: "no-cache",
+            mode: "no-cors", // Bypasses security restrictions cleanly
             headers: { 
-                "Content-Type": "application/json" 
+                "Content-Type": "application/x-www-form-urlencoded" 
             },
-            body: JSON.stringify(requestPayload) // Converted to string text
+            body: formPayload.toString()
         })
         .then(() => {
             statusMsg.style.color = "#3fb950";
@@ -178,13 +183,11 @@ function openModal() {
         .catch(err => {
             console.error(err);
             statusMsg.style.color = "#f85149";
-            statusMsg.innerText = "Pipeline failure. Check console exceptions logs.";
+            statusMsg.innerText = "Pipeline failure. Check console logs.";
         })
         .finally(() => {
             sendBtn.disabled = false;
         });
-    });
-
     // Share access functions cleanly across active modular frames
     window.openEmailModal = openModal;
 })();
