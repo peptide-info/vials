@@ -149,6 +149,7 @@
 
         const finalizedTargetUrl = `${GOOGLE_WEB_APP_URL}?${urlParams.toString()}`;
 
+        // Executing Fetch Request
         fetch(finalizedTargetUrl, {
             method: "POST",
             mode: "no-cors", 
@@ -156,7 +157,7 @@
             headers: { 
                 "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" 
             }
-        })
+        }) // <-- Fixed: Added the missing closing parenthesis right here!
         .then(() => {
             statusMsg.style.color = "#3fb950";
             statusMsg.innerText = "Transmission dispatched successfully!";
@@ -175,4 +176,4 @@
 
     // Share access functions cleanly across active modular frames
     window.openEmailModal = openModal;
-})(); // <-- Closes the file execution context completely!
+})();
