@@ -1,6 +1,6 @@
 (function() {
-    // 1. CONFIGURATION (Your active Google Web App URL endpoint)
-    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwKXGMX2Sp7Xs-oHxe_LnASPCnowsBJJ90EkLaDdgixkY4CErQ6jCRk8iEytTz2HgEz/exec";
+    // 1. CONFIGURATION
+    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzLK-uaclTdbbKJy_M8Y9K0oHaULfDkxIvH2XUZBawvwz0z0DZEul74ZoKVRoll9lg1/exec";
 
     // 2. Inject Modal Stylesheets
     const modalStyles = `
@@ -11,6 +11,7 @@
             backdrop-filter: blur(4px);
             display: flex; align-items: center; justify-content: center;
             z-index: 10001; opacity: 0; transition: opacity 0.3s ease;
+            display: none;
         }
         .email-modal-card {
             background: #161b22;
@@ -44,24 +45,19 @@
     // 3. Create DOM Layout Structures
     const overlay = document.createElement("div");
     overlay.className = "email-modal-overlay";
-    overlay.style.display = "none";
 
     overlay.innerHTML = `
         <div class="email-modal-card">
             <h3 style="margin-top: 0; margin-bottom: 15px; color: #f0f6fc;">Email Current Framework</h3>
-            
             <div class="email-field">
                 <label for="modalSubject">Subject Line</label>
                 <input type="text" id="modalSubject" value="Peptide Fact Sheet">
             </div>
-            
             <div class="email-field">
                 <label for="modalRecipient">Destination Email</label>
                 <input type="email" id="modalRecipient" placeholder="name@example.com" required>
             </div>
-            
             <div id="modalStatusMsg" class="email-modal-status"></div>
-            
             <div class="email-btn-group">
                 <button class="email-btn-cancel" id="closeEmailModalBtn">Cancel</button>
                 <button class="email-btn-send" id="submitEmailModalBtn">Send Transmission</button>
@@ -76,8 +72,6 @@
         const pageHeading = document.querySelector('h1');
         if (pageHeading && pageHeading.innerText) {
             document.getElementById("modalSubject").value = `Peptide Fact Sheet: ${pageHeading.innerText.trim()}`;
-        } else if (window.activeEmailDefaults && window.activeEmailDefaults.filename) {
-            document.getElementById("modalSubject").value = `Peptide Fact Sheet: ${window.activeEmailDefaults.filename}`;
         } else {
             document.getElementById("modalSubject").value = "Peptide Fact Sheet";
         }
@@ -93,10 +87,7 @@
     }
 
     document.getElementById("closeEmailModalBtn").addEventListener("click", closeModal);
-    
-    overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) closeModal();
-    });
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
 
     // 5. Transmission Fetch Pipeline
     document.getElementById("submitEmailModalBtn").addEventListener("click", () => {
@@ -115,20 +106,14 @@
         statusMsg.style.color = "#58a6ff";
         statusMsg.innerText = "Dispatching cloud email process...";
 
-        // =======================================================
-        // DYNAMIC WEB PAGE TEXT PARSER & CLEANER
-        // =======================================================
+        // DYNAMIC WEB PAGE TEXT PARSER
         const mainContentElement = document.querySelector('main') || document.body;
         const tempContainer = mainContentElement.cloneNode(true);
-        
         const itemsToRemove = tempContainer.querySelectorAll('.header-nav-container, .email-modal-overlay, .modal, script, style');
         itemsToRemove.forEach(item => item.remove());
 
         let pageText = tempContainer.innerText;
-        pageText = pageText
-            .replace(/\n{3,}/g, '\n\n') 
-            .replace(/^[ \t]+/gm, '')    
-            .trim();
+        pageText = pageText.replace(/\n{3,}/g, '\n\n').replace(/^[ \t]+/gm, '').trim();
 
         const textPayloadBody = 
             `=========================================================\n` +
@@ -139,7 +124,6 @@
             `---------------------------------------------------------\n\n` +
             `${pageText}\n\n` +
             `---------------------------------------------------------\n`;
-        // =======================================================
 
         // 6. BUILD BULLETPROOF GET-STYLE POST STRING
         const urlParams = new URLSearchParams();
