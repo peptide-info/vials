@@ -103,19 +103,17 @@
         statusMsg.style.color = "#58a6ff";
         statusMsg.innerText = "Dispatching cloud email process...";
 
-        // Set up the form parameters expected by Apps Script doPost(e)
-        const formPayload = new URLSearchParams();
-        formPayload.append("email", emailInput);
-        formPayload.append("subject", subjectInput);
-        formPayload.append("pageUrl", window.location.href); 
+        // FIX: Construct the body string directly using standard encodeURIComponent() 
+        // instead of URLSearchParams, protecting raw multi-byte emoji structures.
+        const rawPayload = `email=${encodeURIComponent(emailInput)}&subject=${encodeURIComponent(subjectInput)}&pageUrl=${encodeURIComponent(window.location.href)}`;
 
         fetch(GOOGLE_WEB_APP_URL, {
             method: "POST",
-            mode: "no-cors", // Crucial for ignoring Google Web App redirection CORS policy blockades
+            mode: "no-cors",
             headers: { 
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" 
             },
-            body: formPayload.toString()
+            body: rawPayload
         }).then(() => {
             statusMsg.style.color = "#238636";
             statusMsg.innerText = "Transmission dispatched successfully.";
