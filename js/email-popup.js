@@ -171,8 +171,8 @@
         .finally(() => {
             sendBtn.disabled = false;
         });
-    }); // <-- This closing bracket was missing!
+    }); 
 
     // Share access functions cleanly across active modular frames
     window.openEmailModal = openModal;
-})();
+})(); // <-- Closes the file execution context completely!
