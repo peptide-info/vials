@@ -157,7 +157,7 @@
             headers: { 
                 "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" 
             }
-        }) // <-- Fixed: Added the missing closing parenthesis right here!
+        })
         .then(() => {
             statusMsg.style.color = "#3fb950";
             statusMsg.innerText = "Transmission dispatched successfully!";
