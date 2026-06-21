@@ -1,6 +1,6 @@
 (function() {
     // 1. CONFIGURATION
-    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzLK-uaclTdbbKJy_M8Y9K0oHaULfDkxIvH2XUZBawvwz0z0DZEul74ZoKVRoll9lg1/exec";
+    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxEjeO3gREJVoMhwCzOQP3tPt6ua05veNxqJWFPHdas4Hj7uij00Z_RnkcpvEiHq2IZ/exec";
 
     // 2. Inject Modal Stylesheets
     const modalStyles = `
@@ -122,26 +122,28 @@
             `${pageText}\n\n` +
             `---------------------------------------------------------\n`;
 
-        const formPayload = new URLSearchParams();
+               const formPayload = new URLSearchParams();
         formPayload.append("email", emailInput);
         formPayload.append("subject", subjectInput);
-        formPayload.append("body", textPayloadBody);
+        formPayload.append("pageUrl", window.location.href);
 
         fetch(GOOGLE_WEB_APP_URL, {
             method: "POST",
             mode: "no-cors", 
-            headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
+            headers: { 
+                "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" 
+            },
             body: formPayload.toString()
         }).then(() => {
             statusMsg.style.color = "#238636";
-            statusMsg.innerText = "Transmission dispatched.";
+            statusMsg.innerText = "Transmission dispatched successfully.";
             setTimeout(closeModal, 1500);
-        }).catch(() => {
+        }).catch(err => {
             statusMsg.style.color = "#f85149";
-            statusMsg.innerText = "Error sending email.";
+            statusMsg.innerText = "Error dispatching email.";
             sendBtn.disabled = false;
         });
-    }); // This is the fix: added missing });
+    });
 
     window.openEmailModal = openModal;
 })();
