@@ -9,9 +9,8 @@
             top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(13, 17, 23, 0.75);
             backdrop-filter: blur(4px);
-            display: flex; align-items: center; justify-content: center;
+            display: none; align-items: center; justify-content: center;
             z-index: 10001; opacity: 0; transition: opacity 0.3s ease;
-            display: none;
         }
         .email-modal-card {
             background: #161b22;
@@ -72,6 +71,8 @@
         const pageHeading = document.querySelector('h1');
         if (pageHeading && pageHeading.innerText) {
             document.getElementById("modalSubject").value = `Peptide Fact Sheet: ${pageHeading.innerText.trim()}`;
+        } else if (window.activeEmailDefaults && window.activeEmailDefaults.filename) {
+            document.getElementById("modalSubject").value = `Peptide Fact Sheet: ${window.activeEmailDefaults.filename}`;
         } else {
             document.getElementById("modalSubject").value = "Peptide Fact Sheet";
         }
@@ -83,6 +84,7 @@
     function closeModal() {
         overlay.classList.remove("active");
         document.getElementById("modalStatusMsg").innerText = "";
+        document.getElementById("submitEmailModalBtn").disabled = false;
         setTimeout(() => overlay.style.display = "none", 300);
     }
 
@@ -106,7 +108,6 @@
         statusMsg.style.color = "#58a6ff";
         statusMsg.innerText = "Dispatching cloud email process...";
 
-        // DYNAMIC WEB PAGE TEXT PARSER
         const mainContentElement = document.querySelector('main') || document.body;
         const tempContainer = mainContentElement.cloneNode(true);
         const itemsToRemove = tempContainer.querySelectorAll('.header-nav-container, .email-modal-overlay, .modal, script, style');
@@ -125,39 +126,26 @@
             `${pageText}\n\n` +
             `---------------------------------------------------------\n`;
 
-        // 6. BUILD BULLETPROOF GET-STYLE POST STRING
-        const urlParams = new URLSearchParams();
-        urlParams.append("email", emailInput);
-        urlParams.append("subject", subjectInput);
-        urlParams.append("body", textPayloadBody);
+        const formPayload = new URLSearchParams();
+        formPayload.append("email", emailInput);
+        formPayload.append("subject", subjectInput);
+        formPayload.append("body", textPayloadBody);
 
-        const finalizedTargetUrl = `${GOOGLE_WEB_APP_URL}?${urlParams.toString()}`;
-
-        // Executing Fetch Request
-        fetch(finalizedTargetUrl, {
+        fetch(GOOGLE_WEB_APP_URL, {
             method: "POST",
             mode: "no-cors", 
-            cache: "no-cache",
-            headers: { 
-                "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" 
-            }
-        })
-        .then(() => {
-            statusMsg.style.color = "#3fb950";
-            statusMsg.innerText = "Transmission dispatched successfully!";
-            document.getElementById("modalRecipient").value = "";
-            setTimeout(closeModal, 1800);
-        })
-        .catch(err => {
-            console.error(err);
+            headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
+            body: formPayload.toString()
+        }).then(() => {
+            statusMsg.style.color = "#238636";
+            statusMsg.innerText = "Transmission dispatched successfully.";
+            setTimeout(closeModal, 1500);
+        }).catch(() => {
             statusMsg.style.color = "#f85149";
-            statusMsg.innerText = "Pipeline failure. Check console logs.";
-        })
-        .finally(() => {
+            statusMsg.innerText = "Transmission failed.";
             sendBtn.disabled = false;
         });
-    }); 
+    });
 
-    // Share access functions cleanly across active modular frames
     window.openEmailModal = openModal;
 })();
