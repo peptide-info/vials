@@ -71,8 +71,6 @@
         const pageHeading = document.querySelector('h1');
         if (pageHeading && pageHeading.innerText) {
             document.getElementById("modalSubject").value = `Peptide Fact Sheet: ${pageHeading.innerText.trim()}`;
-        } else if (window.activeEmailDefaults && window.activeEmailDefaults.filename) {
-            document.getElementById("modalSubject").value = `Peptide Fact Sheet: ${window.activeEmailDefaults.filename}`;
         } else {
             document.getElementById("modalSubject").value = "Peptide Fact Sheet";
         }
@@ -84,8 +82,10 @@
     function closeModal() {
         overlay.classList.remove("active");
         document.getElementById("modalStatusMsg").innerText = "";
-        document.getElementById("submitEmailModalBtn").disabled = false;
-        setTimeout(() => overlay.style.display = "none", 300);
+        setTimeout(() => {
+            overlay.style.display = "none";
+            document.getElementById("submitEmailModalBtn").disabled = false;
+        }, 300);
     }
 
     document.getElementById("closeEmailModalBtn").addEventListener("click", closeModal);
@@ -113,8 +113,7 @@
         const itemsToRemove = tempContainer.querySelectorAll('.header-nav-container, .email-modal-overlay, .modal, script, style');
         itemsToRemove.forEach(item => item.remove());
 
-        let pageText = tempContainer.innerText;
-        pageText = pageText.replace(/\n{3,}/g, '\n\n').replace(/^[ \t]+/gm, '').trim();
+        let pageText = tempContainer.innerText.replace(/\n{3,}/g, '\n\n').replace(/^[ \t]+/gm, '').trim();
 
         const textPayloadBody = 
             `=========================================================\n` +
@@ -140,12 +139,12 @@
             statusMsg.style.color = "#238636";
             statusMsg.innerText = "Transmission dispatched successfully.";
             setTimeout(closeModal, 1500);
-        }).catch(() => {
+        }).catch(err => {
             statusMsg.style.color = "#f85149";
-            statusMsg.innerText = "Transmission failed.";
+            statusMsg.innerText = "Error dispatching email.";
             sendBtn.disabled = false;
         });
-    });
+    }); // Fixed missing closing brace/paren here
 
     window.openEmailModal = openModal;
 })();
