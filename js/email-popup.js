@@ -1,6 +1,6 @@
 (function() {
     // 1. CONFIGURATION (Paste your Google Web App URL here)
-    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxzUMel23UNJMM-rMzuLhqcfy56YSzlSvb9_4yWnUT2UAX-zSTGV2YJ8naQ-0UqcI31/exec";
+    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxkaIoSb9DsYhkgG-dLDqVO88kNn5qcrXqHwXlyxXqTK8hAqGb3QXiDyF-eRvbxSXdH/exec";
 
     // 2. Inject Modal Stylesheets
     const modalStyles = `
