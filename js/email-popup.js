@@ -51,7 +51,7 @@
             
             <div class="email-field">
                 <label for="modalSubject">Subject Line</label>
-                <input type="text" id="modalSubject" value="Peptide Calculation Sheet Metrics">
+                <input type="text" id="modalSubject" value="Peptide Fact Sheet">
             </div>
             
             <div class="email-field">
@@ -75,9 +75,9 @@ function openModal() {
         // Find the main <h1> heading on your page, use its text, or fallback
         const pageHeading = document.querySelector('h1');
         if (pageHeading && pageHeading.innerText) {
-            document.getElementById("modalSubject").value = `Metrics Report: ${pageHeading.innerText.trim()}`;
+            document.getElementById("modalSubject").value = `Peptide Fact Sheet: ${pageHeading.innerText.trim()}`;
         } else if (window.activeEmailDefaults && window.activeEmailDefaults.filename) {
-            document.getElementById("modalSubject").value = `Metrics Report: ${window.activeEmailDefaults.filename}`;
+            document.getElementById("modalSubject").value = `Peptide Fact Sheet: ${window.activeEmailDefaults.filename}`;
         } else {
             document.getElementById("modalSubject").value = "Peptide Fact Sheet";
         }
