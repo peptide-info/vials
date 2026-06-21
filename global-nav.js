@@ -12,17 +12,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // Your absolute default fallback image
     const DEFAULT_LOGO = 'https://peptide-info.github.io/vials/assets/default.png?v=1'; 
 
-// ==========================================
+    // ==========================================
     // 2. PEPTIDE CONFIGURATION ARRAY (Add New Pages Here)
     // ==========================================
     const PEPTIDE_CONFIGS = [
-        { filename: 'bac-water-3ml',                  mg: '',  ml: '',  dose: '',    unit: 'mg' },
+        { filename: 'bac-water-3ml',                 mg: '',  ml: '',  dose: '',   unit: 'mg' },
         { filename: 'bpc-157-5mg',                    mg: 5,   ml: 2,   dose: 375,   unit: 'mcg' },
         { filename: 'cjc-1295-no-dac-with-ipamorelin',mg: 10,  ml: 2,   dose: 200,   unit: 'mcg' },
         { filename: 'pt-141-10mg',                    mg: 10,  ml: 1,   dose: 1,     unit: 'mg' },
         { filename: 'retatrutide-10mg',               mg: 10,  ml: 1,   dose: 2,     unit: 'mg' },
         { filename: 'retatrutide-30mg',               mg: 30,  ml: 3,   dose: 6,     unit: 'mg' },
-        { filename: 'selank-5mg',                     mg: 5,   ml: 2,   dose: 250,   unit: 'mcg' }
+        { filename: 'selank-5mg',                      mg: 5,   ml: 2,   dose: 250,   unit: 'mcg' }
     ];
 
     // ABSOLUTE SYSTEM FALLBACKS (If a page isn't in the list above)
@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         /* FIXED BUTTON ELEMENTS BASE */
-        .home-btn, .nav-calc-btn {
+        .home-btn, .nav-calc-btn, .nav-email-btn {
             width: 36px;
             height: 36px;
             background: #161b22;
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
             padding: 0;
             transition: transform 0.2s ease, border-color 0.2s ease;
         }
-        .home-btn:hover, .nav-calc-btn:hover {
+        .home-btn:hover, .nav-calc-btn:hover, .nav-email-btn:hover {
             transform: scale(1.05);
             border-color: #58a6ff;
         }
@@ -100,8 +100,8 @@ document.addEventListener("DOMContentLoaded", () => {
             width: 100vw;
             height: 100vh;
             background-color: rgba(13, 17, 23, 0.85); 
-            backdrop-filter: blur(5px); /* Adds a cool iOS-style frosted glass blur */
-            display: grid; /* Grid is better for absolute centering */
+            backdrop-filter: blur(5px);
+            display: grid;
             place-items: center;
             z-index: 10000;
             opacity: 1;
@@ -119,23 +119,20 @@ document.addEventListener("DOMContentLoaded", () => {
             transform: scale(0);
             
             animation: 
-               introPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-               coolSpin 1.8s cubic-bezier(0.4, 0, 0.2, 1) 1.2s forwards;
+                introPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+                coolSpin 1.8s cubic-bezier(0.4, 0, 0.2, 1) 1.2s forwards;
 
-            /* 🌟 THE INSTANT SKIP FIX: Pass clicks straight through the artwork to the background wrapper */
             pointer-events: none; 
         }
 
-        /* Pop the image into existence */
         @keyframes introPop {
             0% { transform: scale(0); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* Spin it around 3 times with style */
         @keyframes coolSpin {
             0% { transform: scale(1) rotate(0deg); }
-            100% { transform: scale(1) rotate(1080deg); } /* 360 * 3 = 1080 degrees */
+            100% { transform: scale(1) rotate(1080deg); }
         }
     `;
 
@@ -160,21 +157,27 @@ document.addEventListener("DOMContentLoaded", () => {
     calcButton.title = "Open Dosing Calculator";
     calcButton.innerHTML = "🧮";
 
+    // Create the new email button
+    const emailButton = document.createElement("button");
+    emailButton.className = "nav-email-btn";
+    emailButton.title = "Email Sheet Results";
+    emailButton.innerHTML = "✉️";
+
     // Assemble buttons into top bar container layout
     navContainer.appendChild(homeButton);
     navContainer.appendChild(calcButton);
+    navContainer.appendChild(emailButton); // Added next to calculator
     document.body.insertBefore(navContainer, document.body.firstChild);
 
-  // 5. Create and inject the Splash Screen elements
+    // 5. Create and inject the Splash Screen elements
     const splashContainer = document.createElement("div");
     splashContainer.className = "splash-overlay";
 
     const imgElement = document.createElement("img");
-    imgElement.src = logoUrl; // This is dynamic!
+    imgElement.src = logoUrl;
     imgElement.className = "splash-logo";
     imgElement.alt = "Loading...";
 
-    // If it STILL somehow fails, this text will instantly let us know
     imgElement.onerror = function() {
         this.style.display = 'none';
         const fallbackText = document.createElement('div');
@@ -188,39 +191,32 @@ document.addEventListener("DOMContentLoaded", () => {
     splashContainer.appendChild(imgElement);
     document.body.appendChild(splashContainer);
 
-    // --- NEW: SKIPPABLE INTERACTION ENGINE ---
-    // Function to handle the clean exit animation
     function dismissSplash() {
         splashContainer.style.opacity = "0";
         setTimeout(() => {
             splashContainer.remove();
-        }, 600); // Matches the 0.6s CSS transition fade-out
+        }, 600);
     }
 
-    // Dismiss if the user clicks anywhere on the splash overlay background
     splashContainer.addEventListener("click", () => {
         dismissSplash();
     });
-    // ------------------------------------------
 
-    // 6. TIMING ENGINE: Automatic fallback if they don't click to skip
+    // 6. TIMING ENGINE
     setTimeout(() => {
-        // Only run if the container hasn't been manually removed yet
         if (document.body.contains(splashContainer)) {
             dismissSplash();
         }
     }, 3300);
 
-  // ==========================================
-    // 7. POPUP SCRIPT LAUNCHER LOGIC
+    // ==========================================
+    // 7. POPUP SCRIPT LAUNCHER LOGIC (Calculator)
     // ==========================================
     let isCalcScriptLoaded = false;
 
     calcButton.addEventListener("click", () => {
-        // 🌟 CRITICAL FIX: Share the current page's defaults globally before calling the popup function
         window.activeCalcDefaults = calcDefaults;
 
-        // If script was already downloaded, pass event cleanly to open the modal layout
         if (isCalcScriptLoaded) {
             if (typeof window.openPeptideCalculator === "function") {
                 window.openPeptideCalculator();
@@ -228,7 +224,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Dynamically fetch and download your calculator asset logic code
         console.log("Initializing toolkit setup module injection...");
         const calcScript = document.createElement("script");
         calcScript.src = "https://peptide-info.github.io/vials/js/calculator-popup.js";
@@ -245,5 +240,41 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         document.body.appendChild(calcScript);
+    });
+
+    // ==========================================
+    // 8. NEW: EMAIL POPUP SCRIPT LAUNCHER LOGIC
+    // ==========================================
+    let isEmailScriptLoaded = false;
+
+    emailButton.addEventListener("click", () => {
+        // Pass the current page's contextual data over to the email handler
+        window.activeEmailDefaults = calcDefaults;
+
+        // If the script was already injected, just fire the UI opening function
+        if (isEmailScriptLoaded) {
+            if (typeof window.openEmailModal === "function") {
+                window.openEmailModal();
+            }
+            return;
+        }
+
+        console.log("Initializing email setup module injection...");
+        const emailScript = document.createElement("script");
+        // This is where your external script file will live in your repository
+        emailScript.src = "https://peptide-info.github.io/vials/js/email-popup.js";
+
+        emailScript.onload = () => {
+            isEmailScriptLoaded = true;
+            if (typeof window.openEmailModal === "function") {
+                window.openEmailModal();
+            }
+        };
+
+        emailScript.onerror = () => {
+            alert("Failed to load email tool. Please check your connection or repository paths.");
+        };
+
+        document.body.appendChild(emailScript);
     });
 });
