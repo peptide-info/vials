@@ -1,6 +1,6 @@
 (function() {
     // 1. CONFIGURATION
-    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyoDVHRndcDl2PhhZUmVNPjFETj0yWYZb9MLpY4_0sdQWnzDj9tjv8vVMEnxhXxJ_RE/exec";
+    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZ876CT5c9lT3StcpdJLToyRAPFbIFhEnuLsd18-GeMpJu7mqciCJjOlromgpCAAHy/exec";
 
     // 2. Inject Modal Stylesheets
     const modalStyles = `
@@ -41,6 +41,7 @@
     styleElement.innerText = modalStyles;
     document.head.appendChild(styleElement);
 
+    // 3. Construct Modal Markup
     const overlay = document.createElement("div");
     overlay.className = "email-modal-overlay";
     overlay.innerHTML = `
@@ -63,6 +64,7 @@
     `;
     document.body.appendChild(overlay);
 
+    // 4. Modal Window Logic Actions
     function openModal() {
         const pageHeading = document.querySelector('h1');
         if (pageHeading) {
@@ -101,6 +103,7 @@
         statusMsg.style.color = "#58a6ff";
         statusMsg.innerText = "Dispatching cloud email process...";
 
+        // Set up the form parameters expected by Apps Script doPost(e)
         const formPayload = new URLSearchParams();
         formPayload.append("email", emailInput);
         formPayload.append("subject", subjectInput);
@@ -108,8 +111,10 @@
 
         fetch(GOOGLE_WEB_APP_URL, {
             method: "POST",
-            mode: "no-cors", 
-            headers: { "Content-Type": "application/x-www-form-urlencoded; charset=utf-8" },
+            mode: "no-cors", // Crucial for ignoring Google Web App redirection CORS policy blockades
+            headers: { 
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" 
+            },
             body: formPayload.toString()
         }).then(() => {
             statusMsg.style.color = "#238636";
@@ -119,8 +124,10 @@
             statusMsg.style.color = "#f85149";
             statusMsg.innerText = "Error dispatching email.";
             sendBtn.disabled = false;
+            console.error("Transmission Failure:", err);
         });
     });
 
+    // Assign globally accessible handle
     window.openEmailModal = openModal;
 })();
