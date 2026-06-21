@@ -113,17 +113,41 @@
         // Collect matching document metrics state variables to write plain text summary
         const targetConfig = window.activeEmailDefaults || {};
         
+// =======================================================
+        // DYNAMIC WEB PAGE TEXT PARSER & CLEANER
+        // =======================================================
+        
+        // 1. Target the main content area of your page (using 'main' or falls back to 'body')
+        const mainContentElement = document.querySelector('main') || document.body;
+        
+        // 2. Clone the element so we can manipulate the layout without touching the actual screen
+        const tempContainer = mainContentElement.cloneNode(true);
+        
+        // 3. Strip out the floating navigation buttons and hidden popups so they don't clutter the text
+        const itemsToRemove = tempContainer.querySelectorAll('.header-nav-container, .email-modal-overlay, .modal, script, style');
+        itemsToRemove.forEach(item => item.remove());
+
+        // 4. Extract text line-by-line while keeping structural spacing clean
+        let pageText = tempContainer.innerText;
+
+        // 5. Clean up messy spaces, multiple blank lines, and align layout margins
+        pageText = pageText
+            .replace(/\n{3,}/g, '\n\n') // Collapse excessive line breaks into neat double spaces
+            .replace(/^[ \t]+/gm, '')    // Strip leading indentations for flush margins
+            .trim();
+
+        // 6. Assemble the polished final plain text document string
         const textPayloadBody = 
-            `--- PEPTIDE CALCULATION SUMMARY METRICS ---\n` +
-            `Timestamp: ${new Date().toLocaleString()}\n` +
-            `Source Origin: ${window.location.origin}${window.location.pathname}\n` +
-            `-----------------------------------------\n` +
-            `Target Profile Asset: ${targetConfig.filename || 'Custom Universal Layer'}\n` +
-            `Base Vial Quantity: ${targetConfig.mg || 'N/A'} mg\n` +
-            `Reconstitution Fluid Volume: ${targetConfig.ml || 'N/A'} ml\n` +
-            `Intended Unit Dosage Target: ${targetConfig.dose || 'N/A'} ${targetConfig.unit || 'mcg'}\n` +
-            `-----------------------------------------\n` +
-            `Generated via GitHub Static Automation Pages Link.`;
+            `=========================================================\n` +
+            `🔬 PEPTIDE INFORMATION SHEET\n` +
+            `=========================================================\n` +
+            `Saved On  : ${new Date().toLocaleString()}\n` +
+            `Reference : ${window.location.href}\n` +
+            `---------------------------------------------------------\n\n` +
+            `${pageText}\n\n` +
+            `---------------------------------------------------------\n` +
+            ``;
+        // =======================================================
 
         const requestPayload = {
             email: emailInput,
