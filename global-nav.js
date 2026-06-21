@@ -263,7 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Initializing email setup module injection...");
         const emailScript = document.createElement("script");
         // This is where your external script file will live in your repository
-        emailScript.src = "https://peptide-info.github.io/vials/js/email-popup.js";
+        emailScript.src = "https://peptide-info.github.io/vials/js/email-popup.js?v=2";
 
         emailScript.onload = () => {
             isEmailScriptLoaded = true;
