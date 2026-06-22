@@ -46,7 +46,7 @@
     overlay.className = "email-modal-overlay";
     overlay.innerHTML = `
         <div class="email-modal-card">
-            <h3 style="margin-top: 0; margin-bottom: 15px; color: #f0f6fc;">Email Current Framework</h3>
+            <h3 style="margin-top: 0; margin-bottom: 15px; color: #f0f6fc;">Email Current Fact Sheet</h3>
             <div class="email-field">
                 <label for="modalSubject">Subject Line</label>
                 <input type="text" id="modalSubject" value="Peptide Fact Sheet">
