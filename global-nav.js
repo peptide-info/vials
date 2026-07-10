@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const PEPTIDE_CONFIGS = [
         { filename: 'bac-water-3ml',                 mg: '',  ml: '',  dose: '',   unit: 'mg' },
         { filename: 'bpc-157-5mg',                    mg: 5,   ml: 2,   dose: 375,   unit: 'mcg' },
-        { filename: 'cjc-1295-no-dac-with-ipamorelin',mg: 10,  ml: 2,   dose: 200,   unit: 'mcg' },
+        { filename: 'cjc-1295-no-dac-with-ipamorelin',mg: 10,  ml: 2,   dose: 300,   unit: 'mcg' },
         { filename: 'pt-141-10mg',                    mg: 10,  ml: 1,   dose: 1,     unit: 'mg' },
         { filename: 'retatrutide-10mg',               mg: 10,  ml: 1,   dose: 2,     unit: 'mg' },
         { filename: 'retatrutide-30mg',               mg: 30,  ml: 3,   dose: 6,     unit: 'mg' },
