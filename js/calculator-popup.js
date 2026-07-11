@@ -30,11 +30,18 @@
             pointer-events: auto;
         }
 
+        /* POPUP WINDOW SHELL — close button anchors here so scroll doesn't move it */
+        .calc-modal-shell {
+            position: relative;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+        }
+
         /* POPUP WINDOW CONTAINER */
         .calc-modal-content {
             background: #fff;
-            width: 90%;
-            max-width: 500px;
+            width: 100%;
             max-height: 90vh;
             overflow-y: auto;
             border-radius: 12px;
@@ -53,25 +60,30 @@
             transform: translateY(0);
         }
 
-        /* CLOSE WINDOW BUTTON */
+        /* CLOSE WINDOW BUTTON — pinned to shell corner, outside the scroll area */
         .calc-close-btn {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(0,0,0,0.05);
-            border: none;
-            font-size: 1.2rem;
-            width: 30px;
-            height: 30px;
+            top: -12px;
+            right: -12px;
+            z-index: 5;
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.12);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+            font-size: 1.35rem;
+            line-height: 1;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s ease;
+            color: #333;
+            transition: background 0.2s ease, transform 0.15s ease;
         }
         .calc-close-btn:hover {
-            background: rgba(0,0,0,0.1);
+            background: #f3f4f6;
+            transform: scale(1.05);
         }
 
         .calc-modal-content h2 {
@@ -268,8 +280,9 @@
     overlay.className = "calc-modal-overlay";
 
     overlay.innerHTML = `
-        <div class="calc-modal-content">
-            <button class="calc-close-btn" id="calc-close-modal">&times;</button>
+        <div class="calc-modal-shell">
+            <button type="button" class="calc-close-btn" id="calc-close-modal" aria-label="Close calculator">&times;</button>
+            <div class="calc-modal-content">
             <h2>🧪 Peptide Toolkit</h2>
 
             <div class="tab-container">
@@ -394,6 +407,7 @@
                 </div>
                 
                 <div id="pop_result_2" class="result">Please enter values to calculate.</div>
+            </div>
             </div>
         </div>
     `;
