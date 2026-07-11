@@ -329,10 +329,11 @@
                         </select>
                     </div>
                     <div class="preset-container" data-dose="pop_dose_1" data-unit="pop_unit_1">
+                        <button class="preset-btn" data-v="1" data-u="mg">1 mg</button>
                         <button class="preset-btn" data-v="2" data-u="mg">2 mg</button>
                         <button class="preset-btn" data-v="4" data-u="mg">4 mg</button>
                         <button class="preset-btn" data-v="6" data-u="mg">6 mg</button>
-                        <button class="preset-btn" data-v="100" data-u="mcg">100 mcg</button>
+                        <button class="preset-btn nasal-only-dose" data-v="100" data-u="mcg" hidden>100 mcg</button>
                         <button class="preset-btn" data-v="250" data-u="mcg">250 mcg</button>
                         <button class="preset-btn" data-v="500" data-u="mcg">500 mcg</button>
                     </div>
@@ -428,6 +429,7 @@
         if (radio) radio.checked = true;
         updateRouteHint();
         updateNasalVolumePresets();
+        updateRouteDosePresets();
     }
 
     function updateRouteHint() {
@@ -442,6 +444,13 @@
     function updateNasalVolumePresets() {
         const isNasal = getSelectedRoute() === 'nasal';
         document.querySelectorAll('.nasal-only-vol').forEach(btn => {
+            btn.hidden = !isNasal;
+        });
+    }
+
+    function updateRouteDosePresets() {
+        const isNasal = getSelectedRoute() === 'nasal';
+        document.querySelectorAll('.nasal-only-dose').forEach(btn => {
             btn.hidden = !isNasal;
         });
     }
@@ -587,11 +596,13 @@
         el.addEventListener('change', () => {
             updateRouteHint();
             updateNasalVolumePresets();
+            updateRouteDosePresets();
             calculateStandard();
         });
     });
     updateRouteHint();
     updateNasalVolumePresets();
+    updateRouteDosePresets();
 
     // Dynamic preset chip listeners
     document.querySelectorAll(".preset-container").forEach(container => {
@@ -618,9 +629,6 @@
         overlay.classList.remove("active");
     }
     closeModalBtn.addEventListener("click", closePopup);
-    overlay.addEventListener("click", (e) => {
-        if(e.target === overlay) closePopup();
-    });
 
 // ==========================================
     // 5. GLOBAL EXPOSURE HOOK (Called by Nav file)
