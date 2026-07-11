@@ -310,10 +310,12 @@
                         <input type="number" id="pop_ml_1" value="2" step="any">
                         <select disabled><option>mL</option></select>
                     </div>
-                    <div class="preset-container" data-target="pop_ml_1">
+                    <div class="preset-container" data-target="pop_ml_1" id="pop_ml_presets">
                         <button class="preset-btn" value="1">1 mL</button>
                         <button class="preset-btn" value="2">2 mL</button>
                         <button class="preset-btn" value="3">3 mL</button>
+                        <button class="preset-btn nasal-only-vol" value="4" hidden>4 mL</button>
+                        <button class="preset-btn nasal-only-vol" value="10" hidden>10 mL</button>
                     </div>
                 </div>
                 
@@ -425,15 +427,23 @@
         const radio = document.getElementById(value === 'nasal' ? 'pop_route_nasal' : 'pop_route_subq');
         if (radio) radio.checked = true;
         updateRouteHint();
+        updateNasalVolumePresets();
     }
 
     function updateRouteHint() {
         if (!routeHint) return;
         if (getSelectedRoute() === 'nasal') {
-            routeHint.textContent = 'Find out how many nasal sprays you need (0.1 mL per spray) based on your blend fluid ratio.';
+            routeHint.textContent = 'Find out how many nasal sprays you need (0.1 mL per spray) based on your blend fluid ratio. Use total spray-bottle volume (e.g. 4 mL or 10 mL).';
         } else {
             routeHint.textContent = 'Find out exactly how many units to pull based on your blend fluid ratio.';
         }
+    }
+
+    function updateNasalVolumePresets() {
+        const isNasal = getSelectedRoute() === 'nasal';
+        document.querySelectorAll('.nasal-only-vol').forEach(btn => {
+            btn.hidden = !isNasal;
+        });
     }
 
     function formatDoseAmount(mcg) {
@@ -576,10 +586,12 @@
     document.querySelectorAll('input[name="pop_route"]').forEach(el => {
         el.addEventListener('change', () => {
             updateRouteHint();
+            updateNasalVolumePresets();
             calculateStandard();
         });
     });
     updateRouteHint();
+    updateNasalVolumePresets();
 
     // Dynamic preset chip listeners
     document.querySelectorAll(".preset-container").forEach(container => {

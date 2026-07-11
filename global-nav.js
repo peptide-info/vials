@@ -20,10 +20,10 @@ document.addEventListener("DOMContentLoaded", () => {
         { filename: 'bac-water-3ml',                 mg: '',  ml: '',  dose: '',   unit: 'mg',  route: 'subq' },
         { filename: 'bpc-157-5mg',                    mg: 5,   ml: 2,   dose: 375,   unit: 'mcg', route: 'subq' },
         { filename: 'cjc-1295-no-dac-with-ipamorelin',mg: 10,  ml: 2,   dose: 300,   unit: 'mcg', route: 'subq' },
-        { filename: 'pt-141-10mg',                    mg: 10,  ml: 1,   dose: 1,     unit: 'mg',  route: 'nasal' },
+        { filename: 'pt-141-10mg',                    mg: 10,  ml: 4,   dose: 1,     unit: 'mg',  route: 'nasal' },
         { filename: 'retatrutide-10mg',               mg: 10,  ml: 1,   dose: 2,     unit: 'mg',  route: 'subq' },
         { filename: 'retatrutide-30mg',               mg: 30,  ml: 3,   dose: 6,     unit: 'mg',  route: 'subq' },
-        { filename: 'selank-5mg',                      mg: 5,   ml: 2,   dose: 250,   unit: 'mcg', route: 'nasal' }
+        { filename: 'selank-5mg',                      mg: 5,   ml: 4,   dose: 250,   unit: 'mcg', route: 'nasal' }
     ];
 
     // ABSOLUTE SYSTEM FALLBACKS (If a page isn't in the list above)
@@ -234,7 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const navBase = navScriptEl
             ? navScriptEl.src.replace(/global-nav\.js(\?.*)?$/, '')
             : 'https://peptide-info.github.io/vials/';
-        calcScript.src = navBase + 'js/calculator-popup.js?v=3';
+        calcScript.src = navBase + 'js/calculator-popup.js?v=4';
         
         calcScript.onload = () => {
             isCalcScriptLoaded = true;
