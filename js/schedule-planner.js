@@ -16,7 +16,7 @@
             titration: true,
             defaultTimesPerDay: 1,
             defaultTimes: ['09:00'],
-            note: 'Usually every 5–7 days · optional +2 mg titration after 4 doses at each step · graph ≈6 day half-life'
+            note: 'Usually every 5–7 days · choose slower (+2 mg) or faster (2→4→8→12) titration · graph ≈6 day half-life'
         },
         {
             id: 'tesa',
@@ -239,9 +239,9 @@
     }
 
     /**
-     * Retatrutide titration:
-     * Stay at each dose for 4 injections spaced `intervalDays` apart (typically 5–7),
-     * then +2 mg until target, then maintain.
+     * Retatrutide titration along a dose ladder (e.g. slow 2–12 by +2, or fast 2→4→8→12).
+     * Stay at each listed step for `dosesPerStep` injections, then move to the next step
+     * below target; finally maintain at targetDose.
      */
     function buildRetaEvents({
         currentDose,
@@ -250,49 +250,51 @@
         startDate,
         stopDate,
         intervalDays = 7,
-        stepMg = 2,
         dosesPerStep = 4,
-        maintainWeeks = 26
+        maintainWeeks = 26,
+        steps = [2, 4, 6, 8, 10, 12]
     }) {
         const events = [];
-        const step = Math.max(1, Math.round(intervalDays) || 7);
+        const stepDays = Math.max(1, Math.round(intervalDays) || 7);
         let cursor = new Date(startDate.getTime());
-        const endCap = stopDate || addDays(startDate, maintainWeeks * step + 200);
+        const endCap = stopDate || addDays(startDate, maintainWeeks * stepDays + 200);
+        const ladder = (steps || []).filter((d) => d > 0).sort((a, b) => a - b);
 
-        // Starting at 0 mg = not yet on therapy; first injections are stepMg (2 mg).
+        // Starting at 0 mg = not yet on therapy.
         if (currentDose > 0) {
             const remainingAtCurrent = Math.max(0, dosesPerStep - Math.max(0, dosesAlreadyTaken));
             for (let i = 0; i < remainingAtCurrent; i++) {
                 if (cursor > endCap) break;
                 events.push({ date: new Date(cursor), dose: currentDose, label: `${currentDose} mg` });
-                cursor = addDays(cursor, step);
+                cursor = addDays(cursor, stepDays);
             }
         }
 
-        let stepDose;
-        if (currentDose <= 0) {
-            stepDose = stepMg;
-        } else {
-            stepDose = Math.ceil((currentDose + 0.0001) / stepMg) * stepMg;
-            if (stepDose <= currentDose) stepDose = currentDose + stepMg;
-        }
-
-        while (stepDose < targetDose - 0.0001) {
+        const upcoming = ladder.filter((d) => d > currentDose && d < targetDose - 0.0001);
+        for (const stepDose of upcoming) {
             for (let i = 0; i < dosesPerStep; i++) {
                 if (cursor > endCap) return events;
                 events.push({ date: new Date(cursor), dose: stepDose, label: `${stepDose} mg` });
-                cursor = addDays(cursor, step);
+                cursor = addDays(cursor, stepDays);
             }
-            stepDose += stepMg;
         }
 
-        const maintainUntil = stopDate || addDays(cursor, maintainWeeks * step);
+        const maintainUntil = stopDate || addDays(cursor, maintainWeeks * stepDays);
         while (cursor <= maintainUntil && cursor <= endCap) {
             events.push({ date: new Date(cursor), dose: targetDose, label: `${targetDose} mg (maintain)` });
-            cursor = addDays(cursor, step);
+            cursor = addDays(cursor, stepDays);
         }
 
         return events;
+    }
+
+    function getRetaTitrationSteps() {
+        const path = $('#pf-titration-path')?.value || 'slow';
+        if (path === 'fast') {
+            const include6 = $('#pf-optional-6')?.checked;
+            return include6 ? [2, 4, 6, 8, 12] : [2, 4, 8, 12];
+        }
+        return [2, 4, 6, 8, 10, 12];
     }
 
     function buildFixedEvents({ dose, startDate, stopDate, daysOfWeek }) {
@@ -767,12 +769,22 @@
                 <input type="checkbox" id="pf-follow-titration" checked>
                 <span>Follow titration schedule</span>
             </label>
-            <p class="hint field-span" id="pf-titration-hint">Stay at each dose for 4 injections, then +2 mg until target. Spacing is usually 5–7 days.</p>
+            <p class="hint field-span" id="pf-titration-hint">Stay at each dose for 4 injections, then move to the next step on the path until target. Spacing is usually 5–7 days.</p>
 
             <div id="pf-titration-block">
+                <label class="field field-span"><span>Titration path</span>
+                    <select id="pf-titration-path">
+                        <option value="slow" selected>Slower — 2 → 4 → 6 → 8 → 10 → 12</option>
+                        <option value="fast">Faster — 2 → 4 → 8 → 12</option>
+                    </select>
+                </label>
+                <label class="check-row field-span" id="pf-optional-6-wrap" hidden>
+                    <input type="checkbox" id="pf-optional-6">
+                    <span>Include optional 6 mg bridge (between 4 and 8)</span>
+                </label>
                 <label class="field"><span>Current dose (mg)</span><input type="number" inputmode="decimal" id="pf-current" value="0" min="0" step="0.5"></label>
                 <label class="field"><span>Doses already taken at this dose</span><input type="number" inputmode="numeric" id="pf-taken" value="0" min="0" step="1"></label>
-                <label class="field"><span>Target dose (mg)</span><input type="number" inputmode="decimal" id="pf-target" value="10" min="0" step="0.5"></label>
+                <label class="field"><span>Target dose (mg)</span><input type="number" inputmode="decimal" id="pf-target" value="12" min="0" step="0.5"></label>
             </div>
 
             <div id="pf-fixed-reta-block" hidden>
@@ -794,6 +806,14 @@
         `;
 
         const follow = $('#pf-follow-titration');
+        const pathSelect = $('#pf-titration-path');
+        const syncOptional6 = () => {
+            const wrap = $('#pf-optional-6-wrap');
+            if (wrap) wrap.hidden = pathSelect?.value !== 'fast';
+        };
+        pathSelect?.addEventListener('change', syncOptional6);
+        syncOptional6();
+
         const syncTitrationUi = () => {
             const on = !!follow?.checked;
             const titBlock = $('#pf-titration-block');
@@ -805,7 +825,7 @@
             if (intervalOnly) intervalOnly.hidden = !on;
             if (hint) {
                 hint.textContent = on
-                    ? 'Stay at each dose for 4 injections, then +2 mg until target. Spacing is usually 5–7 days.'
+                    ? 'Stay at each dose for 4 injections, then move to the next step on the path until target. Spacing is usually 5–7 days.'
                     : 'Fixed dose only — use every X days, or days of week for smaller split doses (e.g. Mon/Thu).';
             }
 
@@ -909,7 +929,8 @@
                     targetDose,
                     startDate: start,
                     stopDate: stop,
-                    intervalDays
+                    intervalDays,
+                    steps: getRetaTitrationSteps()
                 });
                 return expandEventsWithTimes(dayEvents, times, peptide.unit);
             }
