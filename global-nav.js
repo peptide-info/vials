@@ -1,4 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // Resolve asset paths relative to this script (works locally + GitHub Pages)
+    const navScriptEl = document.querySelector('script[src*="global-nav"]');
+    const navBase = navScriptEl
+        ? navScriptEl.src.replace(/global-nav\.js(\?.*)?$/, '')
+        : 'https://peptide-info.github.io/vials/';
+
+    // Shared protocol sheet theme (single file to restyle all peptide pages)
+    if (!document.getElementById('protocol-theme-css')) {
+        const themeLink = document.createElement('link');
+        themeLink.id = 'protocol-theme-css';
+        themeLink.rel = 'stylesheet';
+        themeLink.href = navBase + 'css/protocol-theme.css?v=1';
+        document.head.appendChild(themeLink);
+    }
+    document.body.classList.add('protocol-page');
+
     // 1. DYNAMIC ASSET DICTIONARY (Absolute web paths with cache-busting)
     const ASSET_MAP = {
         'retatrutide': 'https://peptide-info.github.io/vials/assets/retatrutide.jpg?v=1',
@@ -235,12 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log("Initializing toolkit setup module injection...");
         const calcScript = document.createElement("script");
-        // Resolve relative to global-nav.js so local + GitHub Pages both work
-        const navScriptEl = document.querySelector('script[src*="global-nav"]');
-        const navBase = navScriptEl
-            ? navScriptEl.src.replace(/global-nav\.js(\?.*)?$/, '')
-            : 'https://peptide-info.github.io/vials/';
-        calcScript.src = navBase + 'js/calculator-popup.js?v=8';
+        calcScript.src = navBase + 'js/calculator-popup.js?v=9';
         
         calcScript.onload = () => {
             isCalcScriptLoaded = true;

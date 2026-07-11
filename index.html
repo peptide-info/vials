@@ -138,8 +138,12 @@
 
         .protocol-list a {
             display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 8px 16px;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas:
+                "name tags"
+                "meta tags";
+            column-gap: 16px;
+            row-gap: 4px;
             align-items: center;
             text-decoration: none;
             color: inherit;
@@ -161,23 +165,24 @@
         }
 
         .protocol-name {
+            grid-area: name;
             font-weight: 600;
             font-size: 1.05rem;
             letter-spacing: -0.01em;
         }
 
         .protocol-meta {
+            grid-area: meta;
             color: var(--muted);
             font-size: 0.88rem;
-            grid-column: 1;
         }
 
         .tags {
+            grid-area: tags;
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
             justify-content: flex-end;
-            grid-row: 1 / span 2;
             align-self: center;
         }
 
@@ -221,11 +226,12 @@
             .page { padding-top: 32px; }
             .protocol-list a {
                 grid-template-columns: 1fr;
+                grid-template-areas:
+                    "name"
+                    "meta"
+                    "tags";
             }
-            .tags {
-                grid-row: auto;
-                justify-content: flex-start;
-            }
+            .tags { justify-content: flex-start; }
         }
     </style>
 </head>
@@ -252,7 +258,7 @@
 
         const GROUPS = [
             { id: 'metabolic', label: 'Metabolic & Body Comp', note: 'Weekly and daily body-composition protocols' },
-            { id: 'gh', label: 'GH Secretagogues', note: 'Pulsatile growth-hormone support' },
+            { id: 'gh', label: 'GH Secretagogues', note: 'Pulsatile GH support and nightly GHRH protocols' },
             { id: 'repair', label: 'Repair & Recovery', note: 'Tissue repair, skin, and recovery blends' },
             { id: 'nasal', label: 'Nasal & CNS', note: 'Intranasal and CNS-leaning compounds' },
             { id: 'supplies', label: 'Supplies', note: 'Diluent reference' },
@@ -263,7 +269,7 @@
         const CATALOG = {
             'retatrutide-10mg.html': { title: 'Retatrutide', meta: '10 mg vial · weekly Sub-Q', group: 'metabolic', tags: ['Sub-Q'] },
             'retatrutide-30mg.html': { title: 'Retatrutide', meta: '30 mg vial · weekly Sub-Q', group: 'metabolic', tags: ['Sub-Q'] },
-            'tesamorelin-10mg.html': { title: 'Tesamorelin', meta: '10 mg vials · 3-week cart option', group: 'metabolic', tags: ['Sub-Q', 'Cart'] },
+            'tesamorelin-10mg.html': { title: 'Tesamorelin', meta: '10 mg vials · 3-week pen load', group: 'gh', tags: ['Sub-Q'] },
             'cjc-1295-no-dac-with-ipamorelin.html': { title: 'CJC-1295 No DAC + Ipamorelin', meta: '5 mg + 5 mg blend · 5 on / 2 off', group: 'gh', tags: ['Sub-Q', 'Blend'] },
             'bpc-157-5mg.html': { title: 'BPC-157', meta: '5 mg vial · daily Sub-Q', group: 'repair', tags: ['Sub-Q'] },
             'ghk-cu-100mg.html': { title: 'GHK-Cu', meta: '100 mg vial · daily Sub-Q', group: 'repair', tags: ['Sub-Q'] },
@@ -276,7 +282,7 @@
         function tagClass(tag) {
             const t = tag.toLowerCase();
             if (t === 'nasal') return 'tag route-nasal';
-            if (t === 'blend' || t === 'topical' || t === 'cart') return 'tag route-blend';
+            if (t === 'blend' || t === 'topical') return 'tag route-blend';
             if (t === 'supply') return 'tag route-supply';
             return 'tag';
         }
