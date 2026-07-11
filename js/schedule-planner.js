@@ -226,15 +226,23 @@
         let cursor = new Date(startDate.getTime());
         const endCap = stopDate || addDays(startDate, maintainWeeks * step + 200);
 
-        const remainingAtCurrent = Math.max(0, dosesPerStep - Math.max(0, dosesAlreadyTaken));
-        for (let i = 0; i < remainingAtCurrent; i++) {
-            if (cursor > endCap) break;
-            events.push({ date: new Date(cursor), dose: currentDose, label: `${currentDose} mg` });
-            cursor = addDays(cursor, step);
+        // Starting at 0 mg = not yet on therapy; first injections are stepMg (2 mg).
+        if (currentDose > 0) {
+            const remainingAtCurrent = Math.max(0, dosesPerStep - Math.max(0, dosesAlreadyTaken));
+            for (let i = 0; i < remainingAtCurrent; i++) {
+                if (cursor > endCap) break;
+                events.push({ date: new Date(cursor), dose: currentDose, label: `${currentDose} mg` });
+                cursor = addDays(cursor, step);
+            }
         }
 
-        let stepDose = Math.ceil((currentDose + 0.0001) / stepMg) * stepMg;
-        if (stepDose <= currentDose) stepDose = currentDose + stepMg;
+        let stepDose;
+        if (currentDose <= 0) {
+            stepDose = stepMg;
+        } else {
+            stepDose = Math.ceil((currentDose + 0.0001) / stepMg) * stepMg;
+            if (stepDose <= currentDose) stepDose = currentDose + stepMg;
+        }
 
         while (stepDose < targetDose - 0.0001) {
             for (let i = 0; i < dosesPerStep; i++) {
@@ -708,8 +716,8 @@
             <p class="hint field-span" id="pf-titration-hint">Stay at each dose for 4 injections, then +2 mg until target. Spacing is usually 5–7 days.</p>
 
             <div id="pf-titration-block">
-                <label class="field"><span>Current dose (mg)</span><input type="number" id="pf-current" value="4" min="0" step="0.5"></label>
-                <label class="field"><span>Doses already taken at this dose</span><input type="number" id="pf-taken" value="2" min="0" step="1"></label>
+                <label class="field"><span>Current dose (mg)</span><input type="number" id="pf-current" value="0" min="0" step="0.5"></label>
+                <label class="field"><span>Doses already taken at this dose</span><input type="number" id="pf-taken" value="0" min="0" step="1"></label>
                 <label class="field"><span>Target dose (mg)</span><input type="number" id="pf-target" value="10" min="0" step="0.5"></label>
             </div>
 
