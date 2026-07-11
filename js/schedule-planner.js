@@ -907,6 +907,177 @@
         bindTimeFields(isCustom ? { defaultTimesPerDay: 1, defaultTimes: ['09:00'] } : peptide);
     }
 
+    const DAY_NAMES_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    function formatDaysOfWeekPhrase(days) {
+        const sorted = [...new Set(days || [])].sort((a, b) => a - b);
+        if (!sorted.length || sorted.length === 7) return 'every day';
+        if (sorted.join(',') === '1,2,3,4,5') return 'Monday–Friday';
+        if (sorted.join(',') === '0,6') return 'weekends';
+        if (sorted.length === 1) return `${DAY_NAMES_LONG[sorted[0]]}s`;
+        if (sorted.length === 2) {
+            return `${DAY_NAMES_LONG[sorted[0]]}s and ${DAY_NAMES_LONG[sorted[1]]}s`;
+        }
+        return sorted.map((d) => DAY_NAMES_SHORT[d]).join(', ');
+    }
+
+    function formatTimesPhrase(times) {
+        const list = (times || []).filter(Boolean);
+        if (!list.length) return '';
+        const labels = list.map((t) => {
+            const [hh, mm] = t.split(':').map(Number);
+            const d = new Date();
+            d.setHours(hh || 0, mm || 0, 0, 0);
+            return formatDisplayTime(d);
+        });
+        if (labels.length === 1) return `at ${labels[0]}`;
+        if (labels.length === 2) return `at ${labels[0]} and ${labels[1]}`;
+        return `at ${labels.slice(0, -1).join(', ')}, and ${labels[labels.length - 1]}`;
+    }
+
+    function formatShortDate(date) {
+        if (!date) return '';
+        const d = date instanceof Date ? date : new Date(date);
+        if (Number.isNaN(d.getTime())) return '';
+        return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+    }
+
+    function formatDosePhrase(dose, unit) {
+        const n = Number(dose);
+        const u = unit || 'mg';
+        if (!Number.isFinite(n)) return String(dose);
+        const text = Number.isInteger(n) ? String(n) : String(n);
+        return `${text}${u}`;
+    }
+
+    function dosePhaseStarts(events) {
+        const phases = [];
+        (events || []).forEach((ev) => {
+            const dose = Number(ev.dose);
+            const date = ev.date instanceof Date ? ev.date : new Date(ev.date);
+            if (!Number.isFinite(dose) || Number.isNaN(date.getTime())) return;
+            if (!phases.length || phases[phases.length - 1].dose !== dose) {
+                phases.push({ dose, date });
+            }
+        });
+        return phases;
+    }
+
+    /** High-level plan text captured from the form when adding a schedule. */
+    function collectPlanSummaryFromForm(peptide, events) {
+        const start = parseDateInput($('#pf-start')?.value);
+        const stop = parseDateInput($('#pf-stop')?.value);
+        const timesPhrase = formatTimesPhrase(getSelectedTimes());
+        const unit = peptide.unit || 'mg';
+        const name = peptide.name || 'Peptide';
+        const endPhrase = stop ? ` through ${formatShortDate(stop)}` : '';
+        const alertPhrase = timesPhrase ? ` ${timesPhrase}` : '';
+
+        if (peptide.prn) {
+            const dose = parseFloat($('#pf-dose')?.value);
+            return `${name} ${formatDosePhrase(dose, unit)} — one-time / PRN on ${formatShortDate(start)}${alertPhrase}.`;
+        }
+
+        if (peptide.titration) {
+            const followTitration = $('#pf-follow-titration')?.checked !== false;
+            const intervalDays = getIntervalDays(peptide.defaultIntervalDays || 7);
+            if (followTitration) {
+                const phases = dosePhaseStarts(events);
+                if (phases.length) {
+                    const first = phases[0];
+                    let text = `${name} ${formatDosePhrase(first.dose, unit)} starting ${formatShortDate(first.date)}, every ${intervalDays} day${intervalDays === 1 ? '' : 's'}`;
+                    phases.slice(1).forEach((phase) => {
+                        text += `, escalating to ${formatDosePhrase(phase.dose, unit)} on ${formatShortDate(phase.date)}`;
+                    });
+                    return `${text}${endPhrase}${alertPhrase}.`;
+                }
+                const steps = getRetaTitrationSteps();
+                const pathLabel = ($('#pf-titration-path')?.value || 'slow') === 'fast' ? 'faster' : 'slower';
+                return `${name} — ${pathLabel} titration (${steps.join(' → ')} mg), every ${intervalDays} days, starting ${formatShortDate(start)}${endPhrase}${alertPhrase}.`;
+            }
+
+            const dose = parseFloat($('#pf-dose')?.value);
+            const mode = getScheduleMode();
+            if (mode === 'interval') {
+                return `${name} ${formatDosePhrase(dose, unit)} every ${intervalDays} day${intervalDays === 1 ? '' : 's'}, starting ${formatShortDate(start)}${endPhrase}${alertPhrase}.`;
+            }
+            return `${name} ${formatDosePhrase(dose, unit)} on ${formatDaysOfWeekPhrase(getSelectedDays())}, starting ${formatShortDate(start)}${endPhrase}${alertPhrase}.`;
+        }
+
+        const dose = parseFloat($('#pf-dose')?.value);
+        const mode = getScheduleMode();
+        if (mode === 'interval') {
+            const intervalDays = getIntervalDays(7);
+            return `${name} ${formatDosePhrase(dose, unit)} every ${intervalDays} day${intervalDays === 1 ? '' : 's'}, starting ${formatShortDate(start)}${endPhrase}${alertPhrase}.`;
+        }
+
+        return `${name} ${formatDosePhrase(dose, unit)} on ${formatDaysOfWeekPhrase(getSelectedDays())}, starting ${formatShortDate(start)}${endPhrase}${alertPhrase}.`;
+    }
+
+    /** Fallback when an older saved schedule has no summary text. */
+    function derivePlanSummaryFromEvents(sched) {
+        const events = (sched.events || [])
+            .map((ev) => ({ ...ev, date: new Date(ev.date) }))
+            .filter((ev) => !Number.isNaN(ev.date.getTime()))
+            .sort((a, b) => a.date - b.date);
+        if (!events.length) return `${sched.name} — see calendar attachment for dose times.`;
+
+        const unit = sched.unit || 'mg';
+        const first = events[0];
+        const last = events[events.length - 1];
+        const doses = [];
+        events.forEach((ev) => {
+            const d = Number(ev.dose);
+            if (!Number.isFinite(d)) return;
+            if (!doses.length || doses[doses.length - 1] !== d) doses.push(d);
+        });
+
+        const dayGaps = [];
+        for (let i = 1; i < Math.min(events.length, 12); i++) {
+            const gap = Math.round((events[i].date - events[i - 1].date) / 86400000);
+            if (gap > 0) dayGaps.push(gap);
+        }
+        const avgGap = dayGaps.length
+            ? dayGaps.reduce((a, b) => a + b, 0) / dayGaps.length
+            : null;
+
+        const dowCounts = {};
+        events.forEach((ev) => {
+            const d = ev.date.getDay();
+            dowCounts[d] = (dowCounts[d] || 0) + 1;
+        });
+        const activeDays = Object.keys(dowCounts).map(Number).sort((a, b) => a - b);
+
+        let cadence = '';
+        if (avgGap != null && avgGap >= 1.5) {
+            const rounded = Math.round(avgGap);
+            cadence = `every ${rounded} day${rounded === 1 ? '' : 's'}`;
+        } else if (activeDays.length && activeDays.length < 7) {
+            cadence = `on ${formatDaysOfWeekPhrase(activeDays)}`;
+        } else {
+            cadence = 'on a set calendar schedule';
+        }
+
+        if (doses.length > 1) {
+            const phases = dosePhaseStarts(events);
+            let text = `${sched.name} ${formatDosePhrase(phases[0].dose, unit)} starting ${formatShortDate(phases[0].date)}`;
+            if (cadence.startsWith('every')) text += `, ${cadence}`;
+            phases.slice(1).forEach((phase) => {
+                text += `, escalating to ${formatDosePhrase(phase.dose, unit)} on ${formatShortDate(phase.date)}`;
+            });
+            return `${text} through ${formatShortDate(last.date)}.`;
+        }
+
+        dosePart = formatDosePhrase(doses[0] != null ? doses[0] : first.dose, unit);
+        return `${sched.name} ${dosePart} ${cadence}, starting ${formatShortDate(first.date)} through ${formatShortDate(last.date)}.`;
+    }
+
+    function scheduleOverviewText(sched) {
+        if (sched.summary && String(sched.summary).trim()) return String(sched.summary).trim();
+        return derivePlanSummaryFromEvents(sched);
+    }
+
     function collectEventsFromForm(peptide) {
         const start = parseDateInput($('#pf-start')?.value);
         if (!start) throw new Error('Start date required');
@@ -999,14 +1170,8 @@
                     <strong>${s.name}</strong>
                     <button type="button" data-remove="${s.id}" class="text-btn">Remove</button>
                 </div>
-                <p class="hint">${s.events.length} dose event${s.events.length === 1 ? '' : 's'} · ${halfLifeLabel(resolveHalfLifeHours(s))}</p>
-                <ol class="sched-preview">
-                    ${s.events.slice(0, 8).map((ev) => {
-                        const when = new Date(ev.date);
-                        return `<li>${formatDisplayDate(when)} · ${formatDisplayTime(when)} — ${ev.label}</li>`;
-                    }).join('')}
-                    ${s.events.length > 8 ? `<li>… +${s.events.length - 8} more</li>` : ''}
-                </ol>
+                <p class="sched-overview">${escapeHtml(scheduleOverviewText(s))}</p>
+                <p class="hint">${s.events.length} calendar alert${s.events.length === 1 ? '' : 's'} · ${halfLifeLabel(resolveHalfLifeHours(s))}</p>
             </article>
         `).join('');
 
@@ -1201,6 +1366,7 @@
                 const events = collectEventsFromForm(peptide);
                 if (!events.length) throw new Error('No events generated — check dates and days of week');
 
+                const summary = collectPlanSummaryFromForm(peptide, events);
                 const schedules = loadSchedules();
                 schedules.push({
                     id: `${peptide.id}-${Date.now()}`,
@@ -1213,6 +1379,7 @@
                     pageUrl: peptide.custom
                         ? PLANNER_URL
                         : (peptide.page ? `${PEPTIDE_BASE_URL}${peptide.page}` : PLANNER_URL),
+                    summary,
                     events: events.map((ev) => ({
                         date: ev.date.toISOString(),
                         dose: ev.dose,
@@ -1356,22 +1523,13 @@
     }
 
     function buildScheduleSummaryHtml(schedules) {
-        const MAX_EVENTS = 60;
         const blocks = schedules.map((s) => {
-            const all = s.events || [];
-            const shown = all.slice(0, MAX_EVENTS);
-            const events = shown.map((ev) => {
-                const when = new Date(ev.date);
-                return `<li style="margin:0 0 4px 0;">${formatDisplayDate(when)} · ${formatDisplayTime(when)} — ${escapeHtml(ev.label)}</li>`;
-            }).join('');
-            const more = all.length > MAX_EVENTS
-                ? `<li style="margin-top:6px;color:#5c6f66;">… +${all.length - MAX_EVENTS} more (see .ics attachment)</li>`
-                : '';
+            const overview = escapeHtml(scheduleOverviewText(s));
+            const count = (s.events || []).length;
             return `
-                <div style="margin:0 0 18px 0;padding:12px 14px;border-left:4px solid #0f7a5f;background:#f3f6f2;border-radius:8px;">
-                    <p style="margin:0 0 6px 0;font-family:Georgia,serif;font-size:18px;font-weight:700;color:#1c2a24;">${escapeHtml(s.name)}</p>
-                    <p style="margin:0 0 8px 0;font-size:13px;color:#5c6f66;">${all.length} dose event${all.length === 1 ? '' : 's'} · ${escapeHtml(halfLifeLabel(resolveHalfLifeHours(s)))}</p>
-                    <ol style="margin:0;padding-left:20px;font-size:14px;color:#1c2a24;line-height:1.45;">${events}${more}</ol>
+                <div style="margin:0 0 14px 0;padding:14px 16px;border-left:4px solid #0f7a5f;background:#f3f6f2;border-radius:8px;">
+                    <p style="margin:0;font-size:15px;color:#1c2a24;line-height:1.55;">${overview}</p>
+                    <p style="margin:8px 0 0 0;font-size:12px;color:#5c6f66;">${count} calendar alert${count === 1 ? '' : 's'} in the attached .ics</p>
                 </div>`;
         }).join('');
 
@@ -1384,7 +1542,7 @@
                 <p style="margin:0 0 20px 0;font-size:13px;">
                     <a href="${PLANNER_URL}" style="color:#0f7a5f;">Open Schedule planner</a>
                 </p>
-                <h2 style="margin:0 0 12px 0;font-family:Georgia,serif;font-size:18px;border-bottom:1px solid #d5ddd8;padding-bottom:6px;">Schedule</h2>
+                <h2 style="margin:0 0 12px 0;font-family:Georgia,serif;font-size:18px;border-bottom:1px solid #d5ddd8;padding-bottom:6px;">Plan overview</h2>
                 ${blocks}
                 <h2 style="margin:24px 0 12px 0;font-family:Georgia,serif;font-size:18px;border-bottom:1px solid #d5ddd8;padding-bottom:6px;">Estimated amount still around</h2>
                 <p style="margin:0 0 12px 0;font-size:13px;color:#5c6f66;">Educational half-life sketch only — not lab pharmacokinetics.</p>
