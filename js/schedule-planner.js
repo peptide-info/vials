@@ -9,6 +9,7 @@
         {
             id: 'reta',
             name: 'Retatrutide',
+            page: 'retatrutide-10mg.html',
             halfLifeHours: 150,
             defaultIntervalDays: 7,
             unit: 'mg',
@@ -20,6 +21,7 @@
         {
             id: 'tesa',
             name: 'Tesamorelin',
+            page: 'tesamorelin-10mg.html',
             halfLifeHours: 12,
             defaultIntervalDays: 1,
             unit: 'mg',
@@ -31,6 +33,7 @@
         {
             id: 'cjc',
             name: 'CJC / Ipamorelin',
+            page: 'cjc-1295-no-dac-with-ipamorelin.html',
             halfLifeHours: 2,
             defaultIntervalDays: 1,
             unit: 'mcg',
@@ -41,6 +44,7 @@
         {
             id: 'bpc',
             name: 'BPC-157',
+            page: 'bpc-157-5mg.html',
             halfLifeHours: 4,
             defaultIntervalDays: 1,
             unit: 'mcg',
@@ -51,6 +55,7 @@
         {
             id: 'ghk',
             name: 'GHK-Cu',
+            page: 'ghk-cu-100mg.html',
             halfLifeHours: 6,
             defaultIntervalDays: 1,
             unit: 'mg',
@@ -61,6 +66,7 @@
         {
             id: 'ghk-bpc',
             name: 'GHK-Cu + BPC-157',
+            page: 'ghk-cu-100mg-with-bpc-157-10mg.html',
             halfLifeHours: 5,
             defaultIntervalDays: 1,
             unit: 'mg',
@@ -73,6 +79,7 @@
         {
             id: 'selank',
             name: 'Selank',
+            page: 'selank-5mg.html',
             halfLifeHours: 3,
             defaultIntervalDays: 1,
             unit: 'mcg',
@@ -83,6 +90,7 @@
         {
             id: 'pt141',
             name: 'PT-141',
+            page: 'pt-141-10mg.html',
             halfLifeHours: 2.5,
             defaultIntervalDays: 0,
             unit: 'mg',
@@ -397,6 +405,17 @@
     }
 
     const PLANNER_URL = 'https://peptide-info.github.io/vials/';
+    const PEPTIDE_BASE_URL = `${PLANNER_URL}peptides/`;
+
+    function scheduleNotesUrl(sched) {
+        if (sched.peptideId === 'custom' || sched.custom) {
+            return PLANNER_URL;
+        }
+        if (sched.pageUrl) return sched.pageUrl;
+        const page = sched.page || peptideById(sched.peptideId)?.page;
+        if (page) return `${PEPTIDE_BASE_URL}${page}`;
+        return PLANNER_URL;
+    }
 
     function buildIcs(schedules) {
         const lines = [
@@ -409,9 +428,10 @@
 
         const stamp = new Date();
         const dtStamp = toIcsUtc(stamp);
-        const desc = escapeIcs(`Peptide schedule from Peptide Info planner\n${PLANNER_URL}`);
 
         schedules.forEach((sched) => {
+            const link = scheduleNotesUrl(sched);
+            const desc = escapeIcs(`Peptide schedule from Peptide Info planner\n${link}`);
             const seriesList = groupEventsIntoSeries(sched.events || []);
             seriesList.forEach((series, seriesIdx) => {
                 const first = series.events[0];
@@ -430,7 +450,7 @@
                 }
                 lines.push(`SUMMARY:${summary}`);
                 lines.push(`DESCRIPTION:${desc}`);
-                lines.push(`URL:${PLANNER_URL}`);
+                lines.push(`URL:${link}`);
                 lines.push('END:VEVENT');
             });
         });
@@ -1085,6 +1105,11 @@
                     name: peptide.name,
                     unit: peptide.unit,
                     halfLifeHours: peptide.halfLifeHours,
+                    custom: !!peptide.custom,
+                    page: peptide.custom ? null : (peptide.page || null),
+                    pageUrl: peptide.custom
+                        ? PLANNER_URL
+                        : (peptide.page ? `${PEPTIDE_BASE_URL}${peptide.page}` : PLANNER_URL),
                     events: events.map((ev) => ({
                         date: ev.date.toISOString(),
                         dose: ev.dose,
