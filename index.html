@@ -565,6 +565,40 @@
             color: var(--accent);
         }
 
+        .pf-stop-detail {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .pf-stop-detail[hidden] {
+            display: none !important;
+        }
+
+        .pf-stop-detail input[type="number"],
+        .pf-stop-detail input[type="date"] {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font: inherit;
+            color: var(--ink);
+            background: #fff;
+            max-width: 9rem;
+        }
+
+        .pf-stop-detail > span:not(.hint) {
+            color: var(--muted);
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+
+        .pf-stop-detail .hint {
+            margin: 0;
+            width: 100%;
+        }
+
         #pf-custom-wrap[hidden],
         #pf-custom-unit-wrap[hidden],
         #pf-custom-hl-wrap[hidden],
@@ -574,7 +608,9 @@
         #pf-interval-wrap[hidden],
         #pf-interval-hint[hidden],
         #pf-dow-block[hidden],
-        #pf-optional-6-wrap[hidden] {
+        #pf-optional-6-wrap[hidden],
+        #pf-stop-weeks-wrap[hidden],
+        #pf-stop-date-wrap[hidden] {
             display: none !important;
         }
 
@@ -677,7 +713,7 @@
         </div>
     </main>
 
-    <script src="js/schedule-planner.js?v=16"></script>
+    <script src="js/schedule-planner.js?v=17"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';

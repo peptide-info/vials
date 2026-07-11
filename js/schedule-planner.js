@@ -28,7 +28,8 @@
             defaultTimesPerDay: 1,
             defaultTimes: ['21:00'],
             defaultDays: [1, 2, 3, 4, 5],
-            note: 'Usually weekdays — defaults to Mon–Fri'
+            defaultStopWeeks: 10,
+            note: 'Usually weekdays — defaults to Mon–Fri · 10-week course'
         },
         {
             id: 'cjc',
@@ -688,6 +689,85 @@
         return checked?.value || radios.find((r) => r.checked)?.value || 'dow';
     }
 
+    function stopFieldsHtml(peptide = {}) {
+        const defaultWeeks = peptide.defaultStopWeeks;
+        const mode = defaultWeeks ? 'weeks' : 'none';
+        const weeksVal = defaultWeeks || 10;
+        return `
+            <div class="field field-span" id="pf-stop-block">
+                <span>Stop (optional)</span>
+                <div class="mode-row" id="pf-stop-mode">
+                    <label class="mode-chip">
+                        <input type="radio" name="pf-stop-mode" value="none" ${mode === 'none' ? 'checked' : ''}>
+                        <span>None</span>
+                    </label>
+                    <label class="mode-chip">
+                        <input type="radio" name="pf-stop-mode" value="weeks" ${mode === 'weeks' ? 'checked' : ''}>
+                        <span>After weeks</span>
+                    </label>
+                    <label class="mode-chip">
+                        <input type="radio" name="pf-stop-mode" value="date" ${mode === 'date' ? 'checked' : ''}>
+                        <span>On date</span>
+                    </label>
+                </div>
+                <div class="pf-stop-detail" id="pf-stop-weeks-wrap" ${mode === 'weeks' ? '' : 'hidden'}>
+                    <input type="number" inputmode="numeric" id="pf-stop-weeks" value="${weeksVal}" min="1" max="104" step="1">
+                    <span>weeks from start</span>
+                    <span class="hint" id="pf-stop-weeks-hint"></span>
+                </div>
+                <div class="pf-stop-detail" id="pf-stop-date-wrap" ${mode === 'date' ? '' : 'hidden'}>
+                    <input type="date" id="pf-stop">
+                </div>
+            </div>
+        `;
+    }
+
+    function getStopMode() {
+        return $('input[name="pf-stop-mode"]:checked')?.value || 'none';
+    }
+
+    function resolveStopDate() {
+        const mode = getStopMode();
+        if (mode === 'none') return null;
+        if (mode === 'date') return parseDateInput($('#pf-stop')?.value);
+        if (mode === 'weeks') {
+            const start = parseDateInput($('#pf-start')?.value);
+            const weeks = parseInt($('#pf-stop-weeks')?.value, 10);
+            if (!start || !(weeks > 0)) return null;
+            return addDays(start, weeks * 7);
+        }
+        return null;
+    }
+
+    function updateStopWeeksHint() {
+        const hint = $('#pf-stop-weeks-hint');
+        if (!hint) return;
+        if (getStopMode() !== 'weeks') {
+            hint.textContent = '';
+            return;
+        }
+        const stop = resolveStopDate();
+        hint.textContent = stop ? `through ${formatShortDate(stop)}` : '';
+    }
+
+    function bindStopFields() {
+        const sync = () => {
+            const mode = getStopMode();
+            const weeksWrap = $('#pf-stop-weeks-wrap');
+            const dateWrap = $('#pf-stop-date-wrap');
+            if (weeksWrap) weeksWrap.hidden = mode !== 'weeks';
+            if (dateWrap) dateWrap.hidden = mode !== 'date';
+            updateStopWeeksHint();
+        };
+        $all('input[name="pf-stop-mode"]').forEach((radio) => {
+            radio.addEventListener('change', sync);
+        });
+        $('#pf-stop-weeks')?.addEventListener('input', updateStopWeeksHint);
+        $('#pf-start')?.addEventListener('change', updateStopWeeksHint);
+        $('#pf-start')?.addEventListener('input', updateStopWeeksHint);
+        sync();
+    }
+
     function syncScheduleModeVisibility() {
         const mode = getScheduleMode();
         const intervalWrap = $('#pf-interval-wrap');
@@ -801,7 +881,7 @@
             </div>
 
             <label class="field"><span>Start date (next dose)</span><input type="date" id="pf-start" value="${today}"></label>
-            <label class="field"><span>Stop date (optional)</span><input type="date" id="pf-stop"></label>
+            ${stopFieldsHtml(peptide)}
             <div id="pf-reta-times">${timeFieldsHtml(peptide, { forceMax: 1 })}</div>
         `;
 
@@ -813,6 +893,7 @@
         };
         pathSelect?.addEventListener('change', syncOptional6);
         syncOptional6();
+        bindStopFields();
 
         const syncTitrationUi = () => {
             const on = !!follow?.checked;
@@ -887,7 +968,7 @@
             ${customFieldsHtml()}
             <label class="field"><span>Dose (<span id="pf-unit-label">${unit}</span>)</span><input type="number" inputmode="decimal" id="pf-dose" value="${doseDefault}" min="0" step="any"></label>
             <label class="field"><span>Start date</span><input type="date" id="pf-start" value="${today}"></label>
-            <label class="field"><span>Stop date</span><input type="date" id="pf-stop" value="${formatDateInput(addDays(new Date(), 84))}"></label>
+            ${stopFieldsHtml(isCustom ? {} : peptide)}
             ${scheduleModeHtml({
                 defaultMode,
                 intervalDays: peptide.defaultIntervalDays > 1 ? peptide.defaultIntervalDays : 7
@@ -897,6 +978,7 @@
         `;
 
         setCustomVisible(isCustom);
+        bindStopFields();
         if (isCustom) {
             $('#pf-custom-unit')?.addEventListener('change', (e) => {
                 const label = $('#pf-unit-label');
@@ -967,11 +1049,15 @@
     /** High-level plan captured from the form when adding a schedule. */
     function collectPlanSummaryFromForm(peptide, events) {
         const start = parseDateInput($('#pf-start')?.value);
-        const stop = parseDateInput($('#pf-stop')?.value);
+        const stop = resolveStopDate();
         const timesPhrase = formatTimesPhrase(getSelectedTimes());
         const unit = peptide.unit || 'mg';
         const name = peptide.name || 'Peptide';
-        const throughBullet = stop ? `Through ${formatShortDate(stop)}` : null;
+        const stopMode = getStopMode();
+        const stopWeeks = parseInt($('#pf-stop-weeks')?.value, 10);
+        const throughBullet = stopMode === 'weeks' && stopWeeks > 0 && stop
+            ? `For ${stopWeeks} week${stopWeeks === 1 ? '' : 's'} (through ${formatShortDate(stop)})`
+            : (stop ? `Through ${formatShortDate(stop)}` : null);
         const alertBullet = timesPhrase ? `Alerts ${timesPhrase}` : null;
 
         if (peptide.prn) {
@@ -1162,7 +1248,6 @@
 
         if (peptide.titration) {
             const followTitration = $('#pf-follow-titration')?.checked !== false;
-            const stop = parseDateInput($('#pf-stop')?.value);
 
             if (followTitration) {
                 const currentDose = parseFloat($('#pf-current').value);
@@ -1171,6 +1256,7 @@
                 const intervalDays = getIntervalDays(peptide.defaultIntervalDays || 7);
                 if (!(currentDose >= 0) || !(targetDose > 0)) throw new Error('Check titration doses');
                 if (targetDose < currentDose) throw new Error('Target dose should be ≥ current dose');
+                const stop = resolveStopDate();
                 const dayEvents = buildRetaEvents({
                     currentDose,
                     dosesAlreadyTaken,
@@ -1187,6 +1273,7 @@
             const dose = parseFloat($('#pf-dose').value);
             if (!(dose > 0)) throw new Error('Enter a dose');
             const mode = getScheduleMode();
+            const stop = resolveStopDate();
             let dayEvents;
             if (mode === 'interval') {
                 dayEvents = buildIntervalEvents({
@@ -1213,7 +1300,7 @@
         }
 
         const dose = parseFloat($('#pf-dose').value);
-        const stop = parseDateInput($('#pf-stop')?.value);
+        const stop = resolveStopDate();
         const mode = getScheduleMode();
         let dayEvents;
         if (mode === 'interval') {
