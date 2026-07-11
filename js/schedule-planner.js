@@ -1356,16 +1356,22 @@
     }
 
     function buildScheduleSummaryHtml(schedules) {
+        const MAX_EVENTS = 60;
         const blocks = schedules.map((s) => {
-            const events = (s.events || []).map((ev) => {
+            const all = s.events || [];
+            const shown = all.slice(0, MAX_EVENTS);
+            const events = shown.map((ev) => {
                 const when = new Date(ev.date);
                 return `<li style="margin:0 0 4px 0;">${formatDisplayDate(when)} · ${formatDisplayTime(when)} — ${escapeHtml(ev.label)}</li>`;
             }).join('');
+            const more = all.length > MAX_EVENTS
+                ? `<li style="margin-top:6px;color:#5c6f66;">… +${all.length - MAX_EVENTS} more (see .ics attachment)</li>`
+                : '';
             return `
                 <div style="margin:0 0 18px 0;padding:12px 14px;border-left:4px solid #0f7a5f;background:#f3f6f2;border-radius:8px;">
                     <p style="margin:0 0 6px 0;font-family:Georgia,serif;font-size:18px;font-weight:700;color:#1c2a24;">${escapeHtml(s.name)}</p>
-                    <p style="margin:0 0 8px 0;font-size:13px;color:#5c6f66;">${(s.events || []).length} dose event${(s.events || []).length === 1 ? '' : 's'} · ${escapeHtml(halfLifeLabel(resolveHalfLifeHours(s)))}</p>
-                    <ol style="margin:0;padding-left:20px;font-size:14px;color:#1c2a24;line-height:1.45;">${events}</ol>
+                    <p style="margin:0 0 8px 0;font-size:13px;color:#5c6f66;">${all.length} dose event${all.length === 1 ? '' : 's'} · ${escapeHtml(halfLifeLabel(resolveHalfLifeHours(s)))}</p>
+                    <ol style="margin:0;padding-left:20px;font-size:14px;color:#1c2a24;line-height:1.45;">${events}${more}</ol>
                 </div>`;
         }).join('');
 
@@ -1395,10 +1401,20 @@
     }
 
     function getChartPngBase64() {
-        const canvas = $('#planner-graph');
-        if (!canvas) return '';
+        const source = $('#planner-graph');
+        if (!source) return '';
         try {
-            const dataUrl = canvas.toDataURL('image/png');
+            // Export a small JPEG for email — full retina PNG often crashes Apps Script POST
+            const w = Math.min(640, source.clientWidth || 640);
+            const h = 260;
+            const off = document.createElement('canvas');
+            off.width = w;
+            off.height = h;
+            const ctx = off.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(source, 0, 0, source.width, source.height, 0, 0, w, h);
+            const dataUrl = off.toDataURL('image/jpeg', 0.72);
             const parts = dataUrl.split(',');
             return parts.length > 1 ? parts[1] : '';
         } catch (err) {
@@ -1410,7 +1426,7 @@
     function sendScheduleEmail(onDone) {
         const emailInput = document.getElementById('sched-email-to')?.value?.trim() || '';
         const subjectInput = document.getElementById('sched-email-subject')?.value?.trim()
-            || 'Peptide Info — dose schedule (.ics)';
+            || 'Peptide Info - dose schedule (.ics)';
         const status = document.getElementById('sched-email-status');
         const sendBtn = document.getElementById('sched-email-send');
 
@@ -1428,12 +1444,18 @@
         }));
         if (!schedules.length) return;
 
-        // Ensure graph is current before snapshot
         drawGraph(schedules);
 
         const ics = buildIcs(schedules);
         const scheduleHtml = buildScheduleSummaryHtml(schedules);
-        const chartBase64 = getChartPngBase64();
+        let chartBase64 = getChartPngBase64();
+
+        // Keep Apps Script POST well under size limits
+        const MAX_CHART = 180000;
+        if (chartBase64.length > MAX_CHART) {
+            console.warn('Chart too large for email relay, omitting chart', chartBase64.length);
+            chartBase64 = '';
+        }
 
         if (sendBtn) sendBtn.disabled = true;
         if (status) {
