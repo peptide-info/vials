@@ -1160,6 +1160,8 @@
         renderScheduleList(schedules);
         drawGraph(schedules);
         $('#planner-export').disabled = schedules.length === 0;
+        const emailBtn = $('#planner-email');
+        if (emailBtn) emailBtn.disabled = schedules.length === 0;
     }
 
     let initialized = false;
@@ -1242,8 +1244,237 @@
             downloadText('peptide-schedule.ics', ics, 'text/calendar;charset=utf-8');
         });
 
+        $('#planner-email')?.addEventListener('click', () => {
+            openScheduleEmailModal();
+        });
+
         window.addEventListener('resize', () => refresh());
         refresh();
+    }
+
+    // ——— Email schedule (.ics + HTML body + chart) via Apps Script ———
+    const SCHEDULE_EMAIL_WEB_APP_URL =
+        'https://script.google.com/macros/s/AKfycbzVCehcIu4ZBFthpBpp3J4oiCtismzABk-oafrzPtXysaZn_RDjupSf7lbouQvKMEl-/exec';
+
+    let scheduleEmailUiReady = false;
+
+    function ensureScheduleEmailUi() {
+        if (scheduleEmailUiReady) return;
+        scheduleEmailUiReady = true;
+
+        const style = document.createElement('style');
+        style.textContent = `
+            .sched-email-overlay {
+                position: fixed; inset: 0; z-index: 10002;
+                display: none; align-items: center; justify-content: center;
+                background: rgba(28, 42, 36, 0.45); backdrop-filter: blur(4px);
+                opacity: 0; transition: opacity 0.25s ease;
+            }
+            .sched-email-overlay.active { opacity: 1; }
+            .sched-email-card {
+                width: min(440px, calc(100% - 32px));
+                background: #fff;
+                border: 1px solid var(--line, rgba(28,42,36,0.12));
+                border-radius: 16px;
+                padding: 20px;
+                box-shadow: 0 12px 40px rgba(28,42,36,0.18);
+                font-family: Outfit, system-ui, sans-serif;
+                color: var(--ink, #1c2a24);
+            }
+            .sched-email-card h3 { margin: 0 0 8px; font-family: Fraunces, Georgia, serif; font-size: 1.25rem; }
+            .sched-email-card .hint { margin: 0 0 14px; }
+            .sched-email-field { margin-bottom: 12px; }
+            .sched-email-field label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--muted, #5c6f66); margin-bottom: 6px; }
+            .sched-email-field input {
+                width: 100%; box-sizing: border-box; border: 1px solid var(--line, #d5ddd8);
+                border-radius: 10px; padding: 10px 12px; font: inherit; color: inherit;
+            }
+            .sched-email-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+            .sched-email-status { min-height: 1.2em; margin-top: 10px; font-size: 0.88rem; text-align: center; font-weight: 500; }
+        `;
+        document.head.appendChild(style);
+
+        let frame = document.getElementById('schedule-email-frame');
+        if (!frame) {
+            frame = document.createElement('iframe');
+            frame.id = 'schedule-email-frame';
+            frame.name = 'schedule-email-frame';
+            frame.title = 'Schedule email relay';
+            frame.style.display = 'none';
+            document.body.appendChild(frame);
+        }
+
+        const overlay = document.createElement('div');
+        overlay.className = 'sched-email-overlay';
+        overlay.id = 'sched-email-overlay';
+        overlay.innerHTML = `
+            <div class="sched-email-card" role="dialog" aria-labelledby="sched-email-title">
+                <h3 id="sched-email-title">Email schedule</h3>
+                <p class="hint">Sends your schedule summary, half-life chart, and an attached <strong>.ics</strong> calendar file you can import for dose alerts.</p>
+                <div class="sched-email-field">
+                    <label for="sched-email-to">Email address</label>
+                    <input type="email" id="sched-email-to" placeholder="you@example.com" autocomplete="email">
+                </div>
+                <div class="sched-email-field">
+                    <label for="sched-email-subject">Subject</label>
+                    <input type="text" id="sched-email-subject" value="Peptide Info — dose schedule (.ics)">
+                </div>
+                <div class="sched-email-status" id="sched-email-status"></div>
+                <div class="sched-email-actions">
+                    <button type="button" class="btn" id="sched-email-cancel">Cancel</button>
+                    <button type="button" class="btn primary" id="sched-email-send">Send</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const close = () => {
+            overlay.classList.remove('active');
+            setTimeout(() => { overlay.style.display = 'none'; }, 250);
+            const sendBtn = document.getElementById('sched-email-send');
+            if (sendBtn) sendBtn.disabled = false;
+            const status = document.getElementById('sched-email-status');
+            if (status) status.textContent = '';
+        };
+
+        document.getElementById('sched-email-cancel').addEventListener('click', close);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+        document.getElementById('sched-email-send').addEventListener('click', () => {
+            sendScheduleEmail(close);
+        });
+    }
+
+    function openScheduleEmailModal() {
+        const schedules = loadSchedules();
+        if (!schedules.length) return;
+        ensureScheduleEmailUi();
+        const overlay = document.getElementById('sched-email-overlay');
+        overlay.style.display = 'flex';
+        requestAnimationFrame(() => overlay.classList.add('active'));
+        document.getElementById('sched-email-to')?.focus();
+    }
+
+    function buildScheduleSummaryHtml(schedules) {
+        const blocks = schedules.map((s) => {
+            const events = (s.events || []).map((ev) => {
+                const when = new Date(ev.date);
+                return `<li style="margin:0 0 4px 0;">${formatDisplayDate(when)} · ${formatDisplayTime(when)} — ${escapeHtml(ev.label)}</li>`;
+            }).join('');
+            return `
+                <div style="margin:0 0 18px 0;padding:12px 14px;border-left:4px solid #0f7a5f;background:#f3f6f2;border-radius:8px;">
+                    <p style="margin:0 0 6px 0;font-family:Georgia,serif;font-size:18px;font-weight:700;color:#1c2a24;">${escapeHtml(s.name)}</p>
+                    <p style="margin:0 0 8px 0;font-size:13px;color:#5c6f66;">${(s.events || []).length} dose event${(s.events || []).length === 1 ? '' : 's'} · ${escapeHtml(halfLifeLabel(resolveHalfLifeHours(s)))}</p>
+                    <ol style="margin:0;padding-left:20px;font-size:14px;color:#1c2a24;line-height:1.45;">${events}</ol>
+                </div>`;
+        }).join('');
+
+        return `
+            <div style="font-family:Arial,Helvetica,sans-serif;color:#1c2a24;line-height:1.5;max-width:640px;">
+                <h1 style="margin:0 0 8px 0;font-family:Georgia,serif;font-size:24px;color:#1c2a24;">Your peptide dose schedule</h1>
+                <p style="margin:0 0 16px 0;font-size:14px;color:#5c6f66;">
+                    Attached is a calendar file (<strong>peptide-schedule.ics</strong>). Open it in Google Calendar, Apple Calendar, or Outlook to add alerts for each dose.
+                </p>
+                <p style="margin:0 0 20px 0;font-size:13px;">
+                    <a href="${PLANNER_URL}" style="color:#0f7a5f;">Open Schedule planner</a>
+                </p>
+                <h2 style="margin:0 0 12px 0;font-family:Georgia,serif;font-size:18px;border-bottom:1px solid #d5ddd8;padding-bottom:6px;">Schedule</h2>
+                ${blocks}
+                <h2 style="margin:24px 0 12px 0;font-family:Georgia,serif;font-size:18px;border-bottom:1px solid #d5ddd8;padding-bottom:6px;">Estimated amount still around</h2>
+                <p style="margin:0 0 12px 0;font-size:13px;color:#5c6f66;">Educational half-life sketch only — not lab pharmacokinetics.</p>
+                <img src="cid:halflifeChart" alt="Half-life concentration chart" style="max-width:100%;height:auto;border:1px solid #d5ddd8;border-radius:12px;background:#fff;" />
+            </div>`;
+    }
+
+    function escapeHtml(text) {
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function getChartPngBase64() {
+        const canvas = $('#planner-graph');
+        if (!canvas) return '';
+        try {
+            const dataUrl = canvas.toDataURL('image/png');
+            const parts = dataUrl.split(',');
+            return parts.length > 1 ? parts[1] : '';
+        } catch (err) {
+            console.warn('Could not export chart', err);
+            return '';
+        }
+    }
+
+    function sendScheduleEmail(onDone) {
+        const emailInput = document.getElementById('sched-email-to')?.value?.trim() || '';
+        const subjectInput = document.getElementById('sched-email-subject')?.value?.trim()
+            || 'Peptide Info — dose schedule (.ics)';
+        const status = document.getElementById('sched-email-status');
+        const sendBtn = document.getElementById('sched-email-send');
+
+        if (!emailInput.includes('@')) {
+            if (status) {
+                status.style.color = '#9b1c28';
+                status.textContent = 'Enter a valid email address.';
+            }
+            return;
+        }
+
+        const schedules = loadSchedules().map((s) => ({
+            ...s,
+            events: s.events.map((ev) => ({ ...ev, date: new Date(ev.date) }))
+        }));
+        if (!schedules.length) return;
+
+        // Ensure graph is current before snapshot
+        drawGraph(schedules);
+
+        const ics = buildIcs(schedules);
+        const scheduleHtml = buildScheduleSummaryHtml(schedules);
+        const chartBase64 = getChartPngBase64();
+
+        if (sendBtn) sendBtn.disabled = true;
+        if (status) {
+            status.style.color = '#0f7a5f';
+            status.textContent = 'Sending schedule email…';
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = SCHEDULE_EMAIL_WEB_APP_URL;
+        form.target = 'schedule-email-frame';
+        form.style.display = 'none';
+
+        const fields = {
+            action: 'schedule',
+            email: emailInput,
+            subject: subjectInput,
+            scheduleHtml,
+            chartBase64,
+            icsContent: ics
+        };
+
+        Object.keys(fields).forEach((name) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = fields[name];
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+        form.remove();
+
+        if (status) {
+            status.style.color = '#0f7a5f';
+            status.textContent = 'Sent — check inbox (and spam) for the .ics attachment.';
+        }
+        setTimeout(() => {
+            if (typeof onDone === 'function') onDone();
+        }, 1600);
     }
 
     window.PeptideSchedulePlanner = { init, PEPTIDES };

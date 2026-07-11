@@ -618,8 +618,8 @@
         <div class="view" id="view-planner" hidden>
             <div class="planner-panel">
                 <section class="planner-card">
-                    <h2>Build a course</h2>
-                    <p class="hint">Pick a peptide (or Custom), choose every X days or weekdays, set alert times, then save. Retatrutide can follow a +2 mg titration or a fixed dose.</p>
+                    <h2>Build your dose schedule</h2>
+                    <p class="hint">This planner builds a personal dosing schedule, then exports a calendar file (<strong>.ics</strong>) you can download or email. Open that file in Google Calendar, Apple Calendar, Outlook, etc. to get alerts for when to take each peptide. Pick a peptide (or Custom), set the days and alert times, then add it below. Retatrutide can follow a titration path or a fixed dose.</p>
                     <label class="field" style="margin-top:12px">
                         <span>Peptide</span>
                         <select id="planner-peptide"></select>
@@ -635,9 +635,12 @@
                 <section class="planner-card">
                     <div class="section-head">
                         <h2>Your schedule</h2>
-                        <button type="button" class="btn" id="planner-export" disabled>Download calendar (.ics)</button>
+                        <div class="planner-actions" style="margin-top:0">
+                            <button type="button" class="btn" id="planner-export" disabled>Download .ics</button>
+                            <button type="button" class="btn primary" id="planner-email" disabled>Email schedule + .ics</button>
+                        </div>
                     </div>
-                    <p class="hint">Download imports as recurring series when the pattern is regular (so you can delete the whole series). Notes link back to this planner.</p>
+                    <p class="hint">Download the .ics file, or email it to yourself with the schedule list and half-life chart in the message. Importing the attachment adds calendar alerts for each dose. Regular patterns import as a recurring series (easier to delete later). Event notes link back to this planner.</p>
                     <div id="planner-schedule-list"></div>
                 </section>
 
@@ -654,7 +657,7 @@
         </div>
     </main>
 
-    <script src="js/schedule-planner.js?v=12"></script>
+    <script src="js/schedule-planner.js?v=13"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';
@@ -675,7 +678,7 @@
                 document.getElementById('view-planner').hidden = view !== 'planner';
                 protocolsToolbar.hidden = view !== 'protocols';
                 lede.textContent = view === 'planner'
-                    ? 'Build dose schedules, preview a relative half-life curve, and export calendar events for phone or desktop.'
+                    ? 'Create your dosing schedule, preview the half-life curve, then download or email an .ics calendar file so your phone or desktop can alert you when to dose.'
                     : 'Protocol sheets with reconstitution math, dosing tables, and calculator defaults for each vial.';
                 if (view === 'planner') {
                     window.PeptideSchedulePlanner?.init();
