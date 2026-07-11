@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../global-nav.js?v=14"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semax Protocol</title>
+</head>
+<body>
+
+    <h1>Semax</h1>
+    <p><strong>Format:</strong> Lyophilized Powder (ACTH 4–10 analogue) · Vial <span data-vial-mg>5 mg</span></p>
+
+    <div id="vial-picker"
+         data-storage-key="vial.semax"
+         data-sizes="5,10"
+         data-default="5"
+         data-bac-ml="2"
+         data-spray-ml="4"
+         data-calc-dose="300"
+         data-calc-unit="mcg"
+         data-route="nasal"
+         data-mode="nasal"></div>
+
+    <hr>
+
+    <h3>🧬 Mechanism of Action</h3>
+    <p>Synthetic ACTH fragment analogue studied for nootropic, neuroprotective, and BDNF-related CNS effects; commonly used intranasally.</p>
+    <ul>
+        <li>Often paired conceptually with Selank (focus vs calm), though they are distinct peptides.</li>
+        <li>Nasal delivery is the default on this sheet.</li>
+        <li>Short courses or as-needed cognitive-demand use are common.</li>
+    </ul>
+
+    <hr>
+
+    <h3>🧪 Reconstitution Guide</h3>
+    <div class="route-stack">
+        <section class="route-panel route-nasal">
+            <p class="route-label">Nasal</p>
+            <h4>Nasal spray reconstitution</h4>
+            <p>Use <em>sterile water</em> or <em>normal saline</em> — not BAC. Metered pump ≈ 0.1 mL/spray. Finished spray volume <strong>4.0 mL</strong>.</p>
+            <ol>
+                <li>Reconstitute the vial with ~half the water; swirl gently.</li>
+                <li>Transfer into a spray bottle and bring total finished volume to <strong>4.0 mL</strong>.</li>
+                <li><strong>Final:</strong> <span data-vial-conc></span>.</li>
+                <li>Refrigerate; discard if cloudy or after ~30 days.</li>
+            </ol>
+            
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>📅 Protocol &amp; Dosing</h3>
+<p><strong>Frequency:</strong> Intranasal 1–2× daily during focused work blocks or short cycles.</p>
+    <div class="route-stack">
+        <section class="route-panel route-nasal">
+            <p class="route-label">Nasal</p>
+            <h4>Nasal dosing</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th>Target Dose</th>
+                        <th>Nasal sprays (0.1 mL)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Standard</strong></td><td>200–300 mcg</td><td data-units data-dose-mcg="200" data-dose-mcg-high="300"></td></tr>
+                    <tr><td><strong>Higher</strong></td><td>300–600 mcg</td><td data-units data-dose-mcg="300" data-dose-mcg-high="600"></td></tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>⚠️ Safety &amp; Side Effects</h3>
+    <ul>
+        <li><strong>Common:</strong> Nasal irritation, mild stimulation, headache, vivid dreams.</li>
+    </ul>
+
+    <blockquote>
+        <p><strong>CRITICAL WARNINGS:</strong></p>
+        <ul>
+            <li>Use sterile water/saline — not BAC — for nasal mixes.</li>
+            <li>Reduce dose if anxiety or overstimulation appears.</li>
+            <li><strong>For laboratory research use only.</strong></li>
+        </ul>
+    </blockquote>
+
+    <script src="../js/vial-size.js?v=1"></script>
+</body>
+</html>

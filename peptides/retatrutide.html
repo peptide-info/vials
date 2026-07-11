@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../global-nav.js?v=14"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retatrutide Protocol</title>
+</head>
+<body>
+
+    <h1>Retatrutide</h1>
+    <p><strong>Format:</strong> Lyophilized Powder · Vial <span data-vial-mg>30 mg</span></p>
+
+    <div id="vial-picker"
+         data-storage-key="vial.retatrutide"
+         data-sizes="10,15,20,30,40,50,60"
+         data-default="30"
+         data-bac-ml="3"
+         data-calc-dose="2"
+         data-calc-unit="mg"
+         data-route="subq"
+         data-mode="subq"></div>
+
+    <hr>
+
+    <h3>🧬 Mechanism of Action</h3>
+    <p>Triple agonist targeting <strong>GLP-1</strong>, <strong>GIP</strong>, and <strong>Glucagon</strong> receptors.</p>
+    <ul>
+        <li>Enhances insulin secretion &amp; delays gastric emptying.</li>
+        <li>Suppresses appetite.</li>
+        <li>Upregulates energy expenditure and lipid (fat) metabolism.</li>
+    </ul>
+
+    <hr>
+
+    <h3>🧪 Reconstitution Guide</h3>
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4>Subcutaneous reconstitution</h4>
+            <ul>
+                <li><strong>Diluent:</strong> Add <strong data-vial-bac>3.0 mL</strong> of Bacteriostatic (BAC) Water gently down the side of the vial.</li>
+                <li><strong>Mixing:</strong> Do <em>not</em> shake. Swirl gently until the solution is completely clear.</li>
+                <li><strong>Final Concentration:</strong> <span data-vial-conc></span>.</li>
+                <li><strong>Storage:</strong> Store in refrigerator at <strong>36°F–46°F</strong> (2°C–8°C).</li>
+            </ul>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>📅 Protocol &amp; Titration</h3>
+    <p><strong>Frequency:</strong> Subcutaneous injection once weekly (every 7 days). Stay at each step for about <strong>4 doses</strong> before increasing, or longer if side effects need more time.</p>
+    <p>Two common paths (syringe volumes update with the vial size above):</p>
+
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q · Faster</p>
+            <h4>Faster titration — 2 → 4 → 8 → 12 mg</h4>
+            <p>Larger jumps. Some people insert an optional <strong>6 mg</strong> bridge between 4 and 8 if 4→8 is too aggressive.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timeline</th>
+                        <th>Weekly Dose</th>
+                        <th>Syringe Volume (U-100)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Weeks 1–4</strong></td><td>2.0 mg</td><td data-units data-dose-mg="2"></td></tr>
+                    <tr><td><strong>Weeks 5–8</strong></td><td>4.0 mg</td><td data-units data-dose-mg="4"></td></tr>
+                    <tr><td><strong>Optional</strong></td><td>6.0 mg <em>(bridge)</em></td><td data-units data-dose-mg="6"></td></tr>
+                    <tr><td><strong>Next 4 weeks</strong></td><td>8.0 mg</td><td data-units data-dose-mg="8"></td></tr>
+                    <tr><td><strong>Thereafter</strong></td><td>12.0 mg <em>(Max)</em></td><td data-units data-dose-mg="12"></td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q · Slower</p>
+            <h4>Slower titration — 2 → 4 → 6 → 8 → 10 → 12 mg</h4>
+            <p>+2 mg after every ~4 weekly doses. Gentler climb; use if you prefer smaller steps.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timeline</th>
+                        <th>Weekly Dose</th>
+                        <th>Syringe Volume (U-100)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Weeks 1–4</strong></td><td>2.0 mg</td><td data-units data-dose-mg="2"></td></tr>
+                    <tr><td><strong>Weeks 5–8</strong></td><td>4.0 mg</td><td data-units data-dose-mg="4"></td></tr>
+                    <tr><td><strong>Weeks 9–12</strong></td><td>6.0 mg</td><td data-units data-dose-mg="6"></td></tr>
+                    <tr><td><strong>Weeks 13–16</strong></td><td>8.0 mg</td><td data-units data-dose-mg="8"></td></tr>
+                    <tr><td><strong>Weeks 17–20</strong></td><td>10.0 mg</td><td data-units data-dose-mg="10"></td></tr>
+                    <tr><td><strong>Week 21+</strong></td><td>12.0 mg <em>(Max)</em></td><td data-units data-dose-mg="12"></td></tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>⚠️ Safety &amp; Side Effects</h3>
+    <ul>
+        <li><strong>Common:</strong> Nausea, diarrhea, vomiting, constipation, decreased appetite, mild increase in resting heart rate, and transient injection site irritation.</li>
+    </ul>
+
+    <blockquote>
+        <p><strong>CRITICAL WARNINGS:</strong></p>
+        <ul>
+            <li>Monitor resting heart rate regularly.</li>
+            <li>Discontinue immediately if severe abdominal pain occurs.</li>
+            <li><strong>For laboratory research use only.</strong></li>
+        </ul>
+    </blockquote>
+
+    <script src="../js/vial-size.js?v=1"></script>
+</body>
+</html>

@@ -22,7 +22,7 @@
         {
             id: 'reta',
             name: 'Retatrutide',
-            page: 'retatrutide-30mg.html',
+            page: 'retatrutide.html',
             halfLifeHours: 144,
             defaultIntervalDays: 7,
             unit: 'mg',
@@ -32,9 +32,45 @@
             note: 'Usually every 5–7 days · choose slower (+2 mg) or faster (2→4→8→12) titration · graph ≈6 day half-life'
         },
         {
+            id: 'tirz',
+            name: 'Tirzepatide',
+            page: 'tirzepatide.html',
+            halfLifeHours: 120,
+            defaultIntervalDays: 7,
+            unit: 'mg',
+            defaultDose: 2.5,
+            defaultTimesPerDay: 1,
+            defaultTimes: defaultAlertTimes(1),
+            note: 'Weekly dual GIP/GLP-1 · titrate slowly'
+        },
+        {
+            id: 'sema',
+            name: 'Semaglutide',
+            page: 'semaglutide.html',
+            halfLifeHours: 168,
+            defaultIntervalDays: 7,
+            unit: 'mg',
+            defaultDose: 0.25,
+            defaultTimesPerDay: 1,
+            defaultTimes: defaultAlertTimes(1),
+            note: 'Weekly GLP-1 · start low'
+        },
+        {
+            id: 'cagri',
+            name: 'Cagrilintide',
+            page: 'cagrilintide.html',
+            halfLifeHours: 150,
+            defaultIntervalDays: 7,
+            unit: 'mg',
+            defaultDose: 0.6,
+            defaultTimesPerDay: 1,
+            defaultTimes: defaultAlertTimes(1),
+            note: 'Weekly amylin analogue'
+        },
+        {
             id: 'tesa',
             name: 'Tesamorelin',
-            page: 'tesamorelin-10mg.html',
+            page: 'tesamorelin.html',
             halfLifeHours: 12,
             defaultIntervalDays: 1,
             unit: 'mg',
@@ -43,6 +79,19 @@
             defaultDays: [1, 2, 3, 4, 5],
             defaultStopWeeks: 10,
             note: 'Usually weekdays — defaults to Mon–Fri · 10-week course'
+        },
+        {
+            id: 'ipa',
+            name: 'Ipamorelin',
+            page: 'ipamorelin.html',
+            halfLifeHours: 2,
+            defaultIntervalDays: 1,
+            unit: 'mcg',
+            defaultDose: 200,
+            defaultTimesPerDay: 2,
+            defaultTimes: defaultAlertTimes(2),
+            defaultDays: [1, 2, 3, 4, 5],
+            note: '1–2× daily · often with CJC No DAC'
         },
         {
             id: 'cjc',
@@ -56,9 +105,22 @@
             note: 'Often 1–2× daily — set both alert times below'
         },
         {
+            id: 'cjc-nodac',
+            name: 'CJC-1295 No DAC',
+            page: 'cjc-1295-no-dac.html',
+            halfLifeHours: 0.5,
+            defaultIntervalDays: 1,
+            unit: 'mcg',
+            defaultDose: 100,
+            defaultTimesPerDay: 2,
+            defaultTimes: defaultAlertTimes(2),
+            defaultDays: [1, 2, 3, 4, 5],
+            note: 'Mod GRF 1-29 · pulse dosing'
+        },
+        {
             id: 'bpc',
             name: 'BPC-157',
-            page: 'bpc-157-5mg.html',
+            page: 'bpc-157.html',
             halfLifeHours: 4,
             defaultIntervalDays: 1,
             unit: 'mcg',
@@ -67,9 +129,21 @@
             note: '1–2× daily'
         },
         {
+            id: 'tb500',
+            name: 'TB-500',
+            page: 'tb-500.html',
+            halfLifeHours: 24,
+            defaultIntervalDays: 3,
+            unit: 'mg',
+            defaultDose: 2,
+            defaultTimesPerDay: 1,
+            defaultTimes: defaultAlertTimes(1),
+            note: 'Often 2× weekly loading'
+        },
+        {
             id: 'ghk',
             name: 'GHK-Cu',
-            page: 'ghk-cu-100mg.html',
+            page: 'ghk-cu.html',
             halfLifeHours: 6,
             defaultIntervalDays: 1,
             unit: 'mg',
@@ -91,9 +165,21 @@
             note: 'Blend vial · enter GHK mg per draw (BPC scales with it) · graph uses ~5 h'
         },
         {
+            id: 'kpv',
+            name: 'KPV',
+            page: 'kpv.html',
+            halfLifeHours: 4,
+            defaultIntervalDays: 1,
+            unit: 'mcg',
+            defaultDose: 500,
+            defaultTimesPerDay: 1,
+            defaultTimes: defaultAlertTimes(1),
+            note: '1–2× daily anti-inflammatory fragment'
+        },
+        {
             id: 'selank',
             name: 'Selank',
-            page: 'selank-5mg.html',
+            page: 'selank.html',
             halfLifeHours: 3,
             defaultIntervalDays: 1,
             unit: 'mcg',
@@ -102,9 +188,21 @@
             note: 'Nasal 1–2× daily'
         },
         {
+            id: 'semax',
+            name: 'Semax',
+            page: 'semax.html',
+            halfLifeHours: 3,
+            defaultIntervalDays: 1,
+            unit: 'mcg',
+            defaultDose: 300,
+            defaultTimesPerDay: 2,
+            defaultTimes: defaultAlertTimes(2),
+            note: 'Nasal nootropic 1–2× daily'
+        },
+        {
             id: 'pt141',
             name: 'PT-141',
-            page: 'pt-141-10mg.html',
+            page: 'pt-141.html',
             halfLifeHours: 2.5,
             defaultIntervalDays: 0,
             unit: 'mg',
@@ -112,6 +210,31 @@
             defaultTimesPerDay: 1,
             defaultTimes: defaultAlertTimes(1),
             note: 'PRN only · max 1× / 24h'
+        },
+        {
+            id: 'mots',
+            name: 'MOTS-c',
+            page: 'mots-c.html',
+            halfLifeHours: 48,
+            defaultIntervalDays: 3,
+            unit: 'mg',
+            defaultDose: 5,
+            defaultTimesPerDay: 1,
+            defaultTimes: defaultAlertTimes(1),
+            note: 'Often 2–3× weekly'
+        },
+        {
+            id: 'epitalon',
+            name: 'Epitalon',
+            page: 'epitalon.html',
+            halfLifeHours: 6,
+            defaultIntervalDays: 1,
+            unit: 'mg',
+            defaultDose: 5,
+            defaultTimesPerDay: 1,
+            defaultTimes: defaultAlertTimes(1),
+            defaultStopWeeks: 2,
+            note: 'Short courses · daily during run'
         }
     ];
 

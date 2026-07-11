@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../global-nav.js?v=14"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TB-500 Protocol</title>
+</head>
+<body>
+
+    <h1>TB-500</h1>
+    <p><strong>Format:</strong> Lyophilized Powder (Thymosin Beta-4 fragment / analogue) · Vial <span data-vial-mg>5 mg</span></p>
+
+    <div id="vial-picker"
+         data-storage-key="vial.tb-500"
+         data-sizes="5,10"
+         data-default="5"
+         data-bac-ml="2"
+         data-calc-dose="2"
+         data-calc-unit="mg"
+         data-route="subq"
+         data-mode="subq"></div>
+
+    <hr>
+
+    <h3>🧬 Mechanism of Action</h3>
+    <p>Synthetic peptide related to thymosin beta-4, studied for actin regulation, cell migration, and tissue-repair signaling.</p>
+    <ul>
+        <li>Often paired with BPC-157 in community “Wolverine” repair stacks.</li>
+        <li>Discussed for systemic recovery rather than purely local injection.</li>
+        <li>Loading then lower maintenance schedules are common in research discussions.</li>
+    </ul>
+
+    <hr>
+
+    <h3>🧪 Reconstitution Guide</h3>
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4>Subcutaneous reconstitution</h4>
+            <ul>
+                <li><strong>Diluent:</strong> Add <strong data-vial-bac></strong> of Bacteriostatic (BAC) Water gently down the side of the vial.</li>
+                <li><strong>Mixing:</strong> Do <em>not</em> shake. Swirl gently until the solution is completely clear.</li>
+                <li><strong>Final Concentration:</strong> <span data-vial-conc></span>.</li>
+                <li><strong>Storage:</strong> Store in refrigerator at <strong>36°F–46°F</strong> (2°C–8°C).</li>
+            </ul>
+            
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>📅 Protocol &amp; Dosing</h3>
+<p><strong>Frequency:</strong> Common pattern is 2× weekly during a loading phase, then less frequent maintenance. Timing is flexible.</p>
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4>Subcutaneous dosing</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th>Target Dose</th>
+                        <th>Syringe Volume (U-100)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Conservative</strong></td><td>2.0 mg</td><td data-units data-dose-mg="2"></td></tr>
+                    <tr><td><strong>Standard load</strong></td><td>2.5–5.0 mg</td><td data-units data-dose-mg="2.5" data-dose-mg-high="5"></td></tr>
+                    <tr><td><strong>Higher research range</strong></td><td>5.0–10 mg</td><td data-units data-dose-mg="5" data-dose-mg-high="10"></td></tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>⚠️ Safety &amp; Side Effects</h3>
+    <ul>
+        <li><strong>Common:</strong> Transient fatigue, head rush, mild injection-site irritation.</li>
+    </ul>
+
+    <blockquote>
+        <p><strong>CRITICAL WARNINGS:</strong></p>
+        <ul>
+            <li>Avoid casual use around active cancer workups.</li>
+            <li>Cycle length is typically finite (weeks), not indefinite daily use.</li>
+            <li><strong>For laboratory research use only.</strong></li>
+        </ul>
+    </blockquote>
+
+    <script src="../js/vial-size.js?v=1"></script>
+</body>
+</html>

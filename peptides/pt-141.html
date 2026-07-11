@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../global-nav.js?v=14"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PT-141 Protocol</title>
+</head>
+<body>
+
+    <h1>PT-141</h1>
+    <p><strong>Format:</strong> Lyophilized Powder (Bremelanotide) · Vial <span data-vial-mg>10 mg</span></p>
+
+    <div id="vial-picker"
+         data-storage-key="vial.pt-141"
+         data-sizes="10"
+         data-default="10"
+         data-bac-ml="3"
+         data-spray-ml="4"
+         data-calc-dose="1"
+         data-calc-unit="mg"
+         data-route="nasal"
+         data-mode="nasal"></div>
+
+    <hr>
+
+    <h3>🧬 Mechanism of Action</h3>
+    <p>Synthetic alpha-MSH analogue acting as a melanocortin receptor agonist (notably MC3R/MC4R) in the central nervous system.</p>
+    <ul>
+        <li>Acts centrally rather than primarily through vascular pathways.</li>
+        <li>Studied for libido and sexual-function signaling via melanocortin / dopamine pathways.</li>
+    </ul>
+
+    <hr>
+
+    <h3>🧪 Reconstitution Guide</h3>
+    <div class="route-stack">
+        <section class="route-panel route-nasal">
+            <p class="route-label">Nasal</p>
+            <h4>Nasal spray reconstitution</h4>
+            <p>Use <em>sterile water</em> or <em>normal saline</em> — not BAC. Metered pump ≈ 0.1 mL/spray. Finished spray volume <strong>4.0 mL</strong>.</p>
+            <ol>
+                <li>Reconstitute the vial with ~half the water; swirl gently.</li>
+                <li>Transfer into a spray bottle and bring total finished volume to <strong>4.0 mL</strong>.</li>
+                <li><strong>Final:</strong> <span data-vial-conc></span>.</li>
+                <li>Refrigerate; discard if cloudy or after ~30 days.</li>
+            </ol>
+            
+        </section>
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4>Optional subcutaneous mix</h4>
+            <ul>
+                <li>Add <strong>3.0 mL</strong> BAC water to the vial for injection use.</li>
+                <li>At 10 mg / 3 mL: ≈3.33 mg/mL (1 mg ≈ 30 units).</li>
+            </ul>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>📅 Protocol &amp; Dosing</h3>
+<p><strong>General rules:</strong> PRN, roughly 45 minutes to 6 hours before activity. Max about 8 doses/month; do not repeat within 24 hours. Start low — nausea is common.</p>
+    <div class="route-stack">
+        <section class="route-panel route-nasal">
+            <p class="route-label">Nasal</p>
+            <h4>Nasal dosing</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th>Target Dose</th>
+                        <th>Sprays (0.1 mL)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Low / Test</strong></td><td>0.5 mg (500 mcg)</td><td data-units data-dose-mcg="500"></td></tr>
+                    <tr><td><strong>Standard</strong></td><td>1.0 mg</td><td data-units data-dose-mg="1"></td></tr>
+                    <tr><td><strong>Moderate–High</strong></td><td>1.5–2.0 mg</td><td data-units data-dose-mg="1.5" data-dose-mg-high="2"></td></tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>⚠️ Safety &amp; Side Effects</h3>
+    <ul>
+        <li><strong>Common:</strong> Nausea, flushing, headache, yawning, spontaneous erections, injection/nasal irritation.</li>
+    </ul>
+
+    <blockquote>
+        <p><strong>CRITICAL WARNINGS:</strong></p>
+        <ul>
+            <li>Do not stack casually with other melanocortin agonists (e.g. Melanotan II).</li>
+            <li>Seek care for severe/prolonged nausea, chest pain, or hypertensive symptoms.</li>
+            <li><strong>For laboratory research use only.</strong></li>
+        </ul>
+    </blockquote>
+
+    <script src="../js/vial-size.js?v=1"></script>
+</body>
+</html>

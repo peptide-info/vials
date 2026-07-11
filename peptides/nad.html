@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../global-nav.js?v=14"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAD+ Protocol</title>
+</head>
+<body>
+
+    <h1>NAD+</h1>
+    <p><strong>Format:</strong> Lyophilized Powder (nicotinamide adenine dinucleotide) · Vial <span data-vial-mg>500 mg</span></p>
+
+    <div id="vial-picker"
+         data-storage-key="vial.nad"
+         data-sizes="100,500,1000"
+         data-default="500"
+         data-bac-ml="5"
+         data-calc-dose="50"
+         data-calc-unit="mg"
+         data-route="subq"
+         data-mode="subq"></div>
+
+    <hr>
+
+    <h3>🧬 Mechanism of Action</h3>
+    <p>Essential redox cofactor involved in cellular energy metabolism and sirtuin-related signaling; injectable NAD+ is used in wellness/research settings.</p>
+    <ul>
+        <li>Sub-Q or IM micro-dosing appears in community protocols; IV clinic protocols differ.</li>
+        <li>Flushing and chest pressure can occur if pushed too quickly.</li>
+        <li>Large vials are common because per-session milligram amounts add up.</li>
+    </ul>
+
+    <hr>
+
+    <h3>🧪 Reconstitution Guide</h3>
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4>Subcutaneous reconstitution</h4>
+            <ul>
+                <li><strong>Diluent:</strong> Add <strong data-vial-bac></strong> of Bacteriostatic (BAC) Water gently down the side of the vial.</li>
+                <li><strong>Mixing:</strong> Do <em>not</em> shake. Swirl gently until the solution is completely clear.</li>
+                <li><strong>Final Concentration:</strong> <span data-vial-conc></span>.</li>
+                <li><strong>Storage:</strong> Store in refrigerator at <strong>36°F–46°F</strong> (2°C–8°C).</li>
+            </ul>
+            
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>📅 Protocol &amp; Dosing</h3>
+<p><strong>Frequency:</strong> Highly variable (e.g. several times weekly). Start low and inject slowly.</p>
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4>Subcutaneous dosing</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th>Target Dose</th>
+                        <th>Syringe Volume (U-100)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Low / test</strong></td><td>25–50 mg</td><td data-units data-dose-mg="25" data-dose-mg-high="50"></td></tr>
+                    <tr><td><strong>Common research range</strong></td><td>50–100 mg</td><td data-units data-dose-mg="50" data-dose-mg-high="100"></td></tr>
+                    <tr><td><strong>Higher session</strong></td><td>100–200 mg</td><td data-units data-dose-mg="100" data-dose-mg-high="200"></td></tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>⚠️ Safety &amp; Side Effects</h3>
+    <ul>
+        <li><strong>Common:</strong> Flushing, warmth, chest tightness, nausea, cramping if administered too fast.</li>
+    </ul>
+
+    <blockquote>
+        <p><strong>CRITICAL WARNINGS:</strong></p>
+        <ul>
+            <li>Inject slowly; stop if significant chest pressure or distress occurs.</li>
+            <li>Not interchangeable with oral NR/NMN supplements.</li>
+            <li><strong>For laboratory research use only.</strong></li>
+        </ul>
+    </blockquote>
+
+    <script src="../js/vial-size.js?v=1"></script>
+</body>
+</html>

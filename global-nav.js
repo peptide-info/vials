@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const themeLink = document.createElement('link');
         themeLink.id = 'protocol-theme-css';
         themeLink.rel = 'stylesheet';
-        themeLink.href = navBase + 'css/protocol-theme.css?v=3';
+        themeLink.href = navBase + 'css/protocol-theme.css?v=4';
         document.head.appendChild(themeLink);
     }
     document.body.classList.add('protocol-page');
@@ -18,13 +18,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. DYNAMIC ASSET DICTIONARY (Absolute web paths with cache-busting)
     const ASSET_MAP = {
         'retatrutide': 'https://peptide-info.github.io/vials/assets/retatrutide.jpg?v=1',
+        'tirzepatide': 'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'semaglutide': 'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'cagrilintide': 'https://peptide-info.github.io/vials/assets/default.png?v=1',
         'tesamorelin': 'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'ipamorelin': 'https://peptide-info.github.io/vials/assets/default.png?v=1',
         'ghk':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
         'selank':      'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'semax':       'https://peptide-info.github.io/vials/assets/default.png?v=1',
         'cjc':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
         'bpc':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'tb-500':       'https://peptide-info.github.io/vials/assets/default.png?v=1',
         'bac':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'pt':           'https://peptide-info.github.io/vials/assets/default.png?v=1'
+        'pt':           'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'epitalon':     'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'mots':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'nad':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'kpv':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'melanotan':    'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'dsip':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'thymosin':     'https://peptide-info.github.io/vials/assets/default.png?v=1'
     };
 
     // Your absolute default fallback image
@@ -37,15 +50,30 @@ document.addEventListener("DOMContentLoaded", () => {
     // NOTE: more-specific filenames must be listed before shorter prefixes they contain
     const PEPTIDE_CONFIGS = [
         { filename: 'bac-water-3ml',                      mg: '',  ml: '',  dose: '',   unit: 'mg',  route: 'subq' },
-        { filename: 'bpc-157-5mg',                         mg: 5,   ml: 2,   dose: 375,   unit: 'mcg', route: 'subq' },
-        { filename: 'cjc-1295-no-dac-with-ipamorelin',     mg: 10,  ml: 2,   dose: 300,   unit: 'mcg', route: 'subq' },
         { filename: 'ghk-cu-100mg-with-bpc-157-10mg',      mg: 50,  ml: 3,   dose: 2.5,   unit: 'mg',  route: 'subq' },
-        { filename: 'ghk-cu-100mg',                        mg: 100, ml: 3,   dose: 2,     unit: 'mg',  route: 'subq' },
-        { filename: 'pt-141-10mg',                         mg: 10,  ml: 4,   dose: 1,     unit: 'mg',  route: 'nasal' },
-        { filename: 'retatrutide-10mg',                    mg: 10,  ml: 3,   dose: 2,     unit: 'mg',  route: 'subq' },
-        { filename: 'retatrutide-30mg',                    mg: 30,  ml: 3,   dose: 6,     unit: 'mg',  route: 'subq' },
-        { filename: 'selank-5mg',                          mg: 5,   ml: 4,   dose: 250,   unit: 'mcg', route: 'nasal' },
-        { filename: 'tesamorelin-10mg',                    mg: 30,  ml: 3,   dose: 2,     unit: 'mg',  route: 'subq' }
+        { filename: 'cjc-1295-no-dac-with-ipamorelin',     mg: 10,  ml: 2,   dose: 300,   unit: 'mcg', route: 'subq' },
+        { filename: 'bpc-157-tb-500',                      mg: 10,  ml: 2,   dose: 250,   unit: 'mcg', route: 'subq' },
+        { filename: 'cjc-1295-no-dac',                     mg: 5,   ml: 2,   dose: 100,   unit: 'mcg', route: 'subq' },
+        { filename: 'cjc-1295-dac',                        mg: 5,   ml: 2,   dose: 2,     unit: 'mg',  route: 'subq' },
+        { filename: 'thymosin-alpha-1',                    mg: 5,   ml: 2,   dose: 1.6,   unit: 'mg',  route: 'subq' },
+        { filename: 'melanotan-2',                         mg: 10,  ml: 2,   dose: 250,   unit: 'mcg', route: 'subq' },
+        { filename: 'tirzepatide',                         mg: 30,  ml: 3,   dose: 2.5,   unit: 'mg',  route: 'subq' },
+        { filename: 'semaglutide',                         mg: 10,  ml: 2,   dose: 0.25,  unit: 'mg',  route: 'subq' },
+        { filename: 'cagrilintide',                        mg: 5,   ml: 2,   dose: 0.6,   unit: 'mg',  route: 'subq' },
+        { filename: 'retatrutide',                         mg: 30,  ml: 3,   dose: 2,     unit: 'mg',  route: 'subq' },
+        { filename: 'tesamorelin',                         mg: 10,  ml: 1,   dose: 2,     unit: 'mg',  route: 'subq' },
+        { filename: 'ipamorelin',                          mg: 5,   ml: 2,   dose: 200,   unit: 'mcg', route: 'subq' },
+        { filename: 'bpc-157',                             mg: 5,   ml: 2,   dose: 375,   unit: 'mcg', route: 'subq' },
+        { filename: 'tb-500',                              mg: 5,   ml: 2,   dose: 2,     unit: 'mg',  route: 'subq' },
+        { filename: 'ghk-cu',                              mg: 100, ml: 3,   dose: 2,     unit: 'mg',  route: 'subq' },
+        { filename: 'kpv',                                 mg: 5,   ml: 2,   dose: 500,   unit: 'mcg', route: 'subq' },
+        { filename: 'pt-141',                              mg: 10,  ml: 4,   dose: 1,     unit: 'mg',  route: 'nasal' },
+        { filename: 'selank',                              mg: 5,   ml: 4,   dose: 250,   unit: 'mcg', route: 'nasal' },
+        { filename: 'semax',                               mg: 5,   ml: 4,   dose: 300,   unit: 'mcg', route: 'nasal' },
+        { filename: 'epitalon',                            mg: 10,  ml: 2,   dose: 5,     unit: 'mg',  route: 'subq' },
+        { filename: 'mots-c',                              mg: 10,  ml: 2,   dose: 5,     unit: 'mg',  route: 'subq' },
+        { filename: 'nad',                                 mg: 500, ml: 5,   dose: 50,    unit: 'mg',  route: 'subq' },
+        { filename: 'dsip',                                mg: 5,   ml: 2,   dose: 100,   unit: 'mcg', route: 'subq' }
     ];
 
     // ABSOLUTE SYSTEM FALLBACKS (If a page isn't in the list above)

@@ -285,6 +285,50 @@ body.protocol-page a {
     color: var(--accent);
 }
 
+/* Vial size picker */
+body.protocol-page .vial-picker,
+body.protocol-page #vial-picker {
+    width: min(680px, 100%);
+    margin: 10px auto 18px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 12px;
+}
+
+body.protocol-page .vial-picker-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+body.protocol-page .vial-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+body.protocol-page .vial-chip {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+body.protocol-page .vial-chip.is-active,
+body.protocol-page .vial-chip[aria-pressed="true"] {
+    background: var(--accent-soft);
+    border-color: rgba(15, 122, 95, 0.35);
+    color: var(--accent);
+}
+
 @media (max-width: 600px) {
     body.protocol-page {
         padding-top: 56px;

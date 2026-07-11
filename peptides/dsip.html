@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../global-nav.js?v=14"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSIP Protocol</title>
+</head>
+<body>
+
+    <h1>DSIP</h1>
+    <p><strong>Format:</strong> Lyophilized Powder (Delta Sleep-Inducing Peptide) · Vial <span data-vial-mg>5 mg</span></p>
+
+    <div id="vial-picker"
+         data-storage-key="vial.dsip"
+         data-sizes="5,10,15"
+         data-default="5"
+         data-bac-ml="2"
+         data-calc-dose="100"
+         data-calc-unit="mcg"
+         data-route="subq"
+         data-mode="subq"></div>
+
+    <hr>
+
+    <h3>🧬 Mechanism of Action</h3>
+    <p>Neuropeptide studied for sleep architecture and stress-modulation research.</p>
+    <ul>
+        <li>Typically discussed for bedtime use.</li>
+        <li>Effects are subtle and variable across users in anecdotal reports.</li>
+        <li>Short courses are more common than indefinite nightly use.</li>
+    </ul>
+
+    <hr>
+
+    <h3>🧪 Reconstitution Guide</h3>
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4>Subcutaneous reconstitution</h4>
+            <ul>
+                <li><strong>Diluent:</strong> Add <strong data-vial-bac></strong> of Bacteriostatic (BAC) Water gently down the side of the vial.</li>
+                <li><strong>Mixing:</strong> Do <em>not</em> shake. Swirl gently until the solution is completely clear.</li>
+                <li><strong>Final Concentration:</strong> <span data-vial-conc></span>.</li>
+                <li><strong>Storage:</strong> Store in refrigerator at <strong>36°F–46°F</strong> (2°C–8°C).</li>
+            </ul>
+            
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>📅 Protocol &amp; Dosing</h3>
+<p><strong>Frequency:</strong> Often Sub-Q in the evening / before bed, several nights per week or in short runs.</p>
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4>Subcutaneous dosing</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th>Target Dose</th>
+                        <th>Syringe Volume (U-100)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Conservative</strong></td><td>100 mcg</td><td data-units data-dose-mcg="100"></td></tr>
+                    <tr><td><strong>Standard</strong></td><td>100–300 mcg</td><td data-units data-dose-mcg="100" data-dose-mcg-high="300"></td></tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>⚠️ Safety &amp; Side Effects</h3>
+    <ul>
+        <li><strong>Common:</strong> Vivid dreams, next-day grogginess, mild headache, injection-site irritation.</li>
+    </ul>
+
+    <blockquote>
+        <p><strong>CRITICAL WARNINGS:</strong></p>
+        <ul>
+            <li>Do not combine casually with sedatives/alcohol.</li>
+            <li>Stop if paradoxical insomnia or mood changes worsen.</li>
+            <li><strong>For laboratory research use only.</strong></li>
+        </ul>
+    </blockquote>
+
+    <script src="../js/vial-size.js?v=1"></script>
+</body>
+</html>

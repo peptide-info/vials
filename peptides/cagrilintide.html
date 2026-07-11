@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../global-nav.js?v=14"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cagrilintide Protocol</title>
+</head>
+<body>
+
+    <h1>Cagrilintide</h1>
+    <p><strong>Format:</strong> Lyophilized Powder (long-acting amylin analogue) · Vial <span data-vial-mg>5 mg</span></p>
+
+    <div id="vial-picker"
+         data-storage-key="vial.cagrilintide"
+         data-sizes="5,10"
+         data-default="5"
+         data-bac-ml="2"
+         data-calc-dose="0.6"
+         data-calc-unit="mg"
+         data-route="subq"
+         data-mode="subq"></div>
+
+    <hr>
+
+    <h3>🧬 Mechanism of Action</h3>
+    <p>Long-acting amylin receptor agonist studied for appetite regulation and complementary metabolic effects alongside incretin agonists.</p>
+    <ul>
+        <li>Amylin signaling contributes to satiety and delayed gastric emptying.</li>
+        <li>Often discussed in research stacks with GLP-1 / dual agonists (not as a casual DIY mix).</li>
+        <li>Weekly Sub-Q cadence in published titration schemes.</li>
+    </ul>
+
+    <hr>
+
+    <h3>🧪 Reconstitution Guide</h3>
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4>Subcutaneous reconstitution</h4>
+            <ul>
+                <li><strong>Diluent:</strong> Add <strong data-vial-bac></strong> of Bacteriostatic (BAC) Water gently down the side of the vial.</li>
+                <li><strong>Mixing:</strong> Do <em>not</em> shake. Swirl gently until the solution is completely clear.</li>
+                <li><strong>Final Concentration:</strong> <span data-vial-conc></span>.</li>
+                <li><strong>Storage:</strong> Store in refrigerator at <strong>36°F–46°F</strong> (2°C–8°C).</li>
+            </ul>
+            
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>📅 Protocol &amp; Dosing</h3>
+<p><strong>Frequency:</strong> Typically once weekly Sub-Q in published protocols. Titrate slowly.</p>
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4>Subcutaneous dosing</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th>Target Dose</th>
+                        <th>Syringe Volume (U-100)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Start</strong></td><td>0.3–0.6 mg</td><td data-units data-dose-mg="0.3" data-dose-mg-high="0.6"></td></tr>
+                    <tr><td><strong>Mid</strong></td><td>1.2–2.4 mg</td><td data-units data-dose-mg="1.2" data-dose-mg-high="2.4"></td></tr>
+                    <tr><td><strong>Higher research range</strong></td><td>4.5 mg</td><td data-units data-dose-mg="4.5"></td></tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>⚠️ Safety &amp; Side Effects</h3>
+    <ul>
+        <li><strong>Common:</strong> Nausea, decreased appetite, GI discomfort, injection-site reactions.</li>
+    </ul>
+
+    <blockquote>
+        <p><strong>CRITICAL WARNINGS:</strong></p>
+        <ul>
+            <li>Do not aggressively stack with other strong GI-delaying agents without understanding additive nausea risk.</li>
+            <li><strong>For laboratory research use only.</strong></li>
+        </ul>
+    </blockquote>
+
+    <script src="../js/vial-size.js?v=1"></script>
+</body>
+</html>
