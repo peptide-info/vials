@@ -1731,7 +1731,7 @@
                 ${blocks}
                 <h2 style="margin:24px 0 12px 0;font-family:Georgia,serif;font-size:18px;border-bottom:1px solid #d5ddd8;padding-bottom:6px;">Estimated amount still around</h2>
                 <p style="margin:0 0 12px 0;font-size:13px;color:#5c6f66;">Educational half-life sketch only — not lab pharmacokinetics.</p>
-                <img src="cid:halflifeChart" alt="Half-life concentration chart" style="max-width:100%;height:auto;border:1px solid #d5ddd8;border-radius:12px;background:#fff;" />
+                <img src="cid:halflifeChart" alt="Half-life concentration chart" width="600" style="max-width:100%;height:auto;border:1px solid #d5ddd8;border-radius:12px;background:#fff;" />
             </div>`;
     }
 
@@ -1743,26 +1743,29 @@
             .replace(/"/g, '&quot;');
     }
 
-    function getChartPngBase64() {
+    function exportChartJpegBase64({ maxW = 1000, maxH = 420, quality = 0.9 } = {}) {
         const source = $('#planner-graph');
         if (!source) return '';
         try {
-            // Small JPEG for email — keep well under Apps Script POST limits
-            const cssW = source.clientWidth || source.width || 640;
-            const cssH = source.clientHeight || 260;
-            const w = Math.min(520, Math.max(280, cssW));
-            const h = Math.min(220, Math.max(160, Math.round(w * (cssH / Math.max(cssW, 1)))));
+            const srcW = source.width || source.clientWidth;
+            const srcH = source.height || source.clientHeight;
+            if (!srcW || !srcH) return '';
+
+            // Prefer the retina backing store; only shrink if above email max
+            const scale = Math.min(1, maxW / srcW, maxH / srcH);
+            const w = Math.max(1, Math.round(srcW * scale));
+            const h = Math.max(1, Math.round(srcH * scale));
+
             const off = document.createElement('canvas');
             off.width = w;
             off.height = h;
             const ctx = off.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, w, h);
-            const srcW = source.width || cssW;
-            const srcH = source.height || cssH;
-            if (!srcW || !srcH) return '';
             ctx.drawImage(source, 0, 0, srcW, srcH, 0, 0, w, h);
-            const dataUrl = off.toDataURL('image/jpeg', 0.62);
+            const dataUrl = off.toDataURL('image/jpeg', quality);
             const parts = dataUrl.split(',');
             return parts.length > 1 ? parts[1] : '';
         } catch (err) {
@@ -1771,27 +1774,17 @@
         }
     }
 
+    function getChartPngBase64() {
+        // High-res snapshot of the on-page graph for email
+        return exportChartJpegBase64({ maxW: 1000, maxH: 420, quality: 0.9 });
+    }
+
+    function getChartPngBase64Medium() {
+        return exportChartJpegBase64({ maxW: 800, maxH: 340, quality: 0.82 });
+    }
+
     function getChartPngBase64Small() {
-        const source = $('#planner-graph');
-        if (!source) return '';
-        try {
-            const w = 400;
-            const h = 180;
-            const off = document.createElement('canvas');
-            off.width = w;
-            off.height = h;
-            const ctx = off.getContext('2d');
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, w, h);
-            const srcW = source.width || source.clientWidth || w;
-            const srcH = source.height || source.clientHeight || h;
-            ctx.drawImage(source, 0, 0, srcW, srcH, 0, 0, w, h);
-            const dataUrl = off.toDataURL('image/jpeg', 0.5);
-            const parts = dataUrl.split(',');
-            return parts.length > 1 ? parts[1] : '';
-        } catch (err) {
-            return '';
-        }
+        return exportChartJpegBase64({ maxW: 640, maxH: 280, quality: 0.72 });
     }
 
     function sendScheduleEmail(onDone) {
@@ -1823,10 +1816,12 @@
             const scheduleHtml = buildScheduleSummaryHtml(schedules);
             let chartBase64 = getChartPngBase64();
 
-            // Keep Apps Script POST well under size limits
-            const MAX_CHART = 120000;
+            // Prefer sharp chart; step down only if POST would be too large
+            const MAX_CHART = 320000;
             if (chartBase64.length > MAX_CHART) {
-                console.warn('Chart too large for email relay, retrying smaller', chartBase64.length);
+                chartBase64 = getChartPngBase64Medium();
+            }
+            if (chartBase64.length > MAX_CHART) {
                 chartBase64 = getChartPngBase64Small();
             }
             if (chartBase64.length > MAX_CHART) {
@@ -1841,6 +1836,47 @@
                     ? 'Sending schedule email (with chart)…'
                     : 'Sending schedule email (chart unavailable)…';
             }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = SCHEDULE_EMAIL_WEB_APP_URL;
+            form.target = 'schedule-email-frame';
+            form.style.display = 'none';
+
+            const fields = {
+                action: 'schedule',
+                email: emailInput,
+                subject: subjectInput,
+                scheduleHtml,
+                chartBase64,
+                icsContent: ics
+            };
+
+            Object.keys(fields).forEach((name) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = fields[name];
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+            form.remove();
+
+            if (status) {
+                status.style.color = '#0f7a5f';
+                status.textContent = 'Sent — check inbox (and spam) for the .ics + chart.';
+            }
+            setTimeout(() => {
+                if (sendBtn) sendBtn.disabled = false;
+                if (typeof onDone === 'function') onDone();
+            }, 1600);
+        };
+
+        // One frame so canvas pixels are committed after drawGraph
+        requestAnimationFrame(() => requestAnimationFrame(finishSend));
+    }
 
             const form = document.createElement('form');
             form.method = 'POST';
