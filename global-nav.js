@@ -15,18 +15,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // ==========================================
     // 2. PEPTIDE CONFIGURATION ARRAY (Add New Pages Here)
     // ==========================================
+    // route: 'subq' (syringe units) or 'nasal' (0.1 mL sprays)
     const PEPTIDE_CONFIGS = [
-        { filename: 'bac-water-3ml',                 mg: '',  ml: '',  dose: '',   unit: 'mg' },
-        { filename: 'bpc-157-5mg',                    mg: 5,   ml: 2,   dose: 375,   unit: 'mcg' },
-        { filename: 'cjc-1295-no-dac-with-ipamorelin',mg: 10,  ml: 2,   dose: 300,   unit: 'mcg' },
-        { filename: 'pt-141-10mg',                    mg: 10,  ml: 1,   dose: 1,     unit: 'mg' },
-        { filename: 'retatrutide-10mg',               mg: 10,  ml: 1,   dose: 2,     unit: 'mg' },
-        { filename: 'retatrutide-30mg',               mg: 30,  ml: 3,   dose: 6,     unit: 'mg' },
-        { filename: 'selank-5mg',                      mg: 5,   ml: 2,   dose: 250,   unit: 'mcg' }
+        { filename: 'bac-water-3ml',                 mg: '',  ml: '',  dose: '',   unit: 'mg',  route: 'subq' },
+        { filename: 'bpc-157-5mg',                    mg: 5,   ml: 2,   dose: 375,   unit: 'mcg', route: 'subq' },
+        { filename: 'cjc-1295-no-dac-with-ipamorelin',mg: 10,  ml: 2,   dose: 300,   unit: 'mcg', route: 'subq' },
+        { filename: 'pt-141-10mg',                    mg: 10,  ml: 1,   dose: 1,     unit: 'mg',  route: 'nasal' },
+        { filename: 'retatrutide-10mg',               mg: 10,  ml: 1,   dose: 2,     unit: 'mg',  route: 'subq' },
+        { filename: 'retatrutide-30mg',               mg: 30,  ml: 3,   dose: 6,     unit: 'mg',  route: 'subq' },
+        { filename: 'selank-5mg',                      mg: 5,   ml: 2,   dose: 250,   unit: 'mcg', route: 'nasal' }
     ];
 
     // ABSOLUTE SYSTEM FALLBACKS (If a page isn't in the list above)
-    let calcDefaults = { mg: 5, ml: 2, dose: 2, unit: 'mg' }; 
+    let calcDefaults = { mg: 5, ml: 2, dose: 2, unit: 'mg', route: 'subq' }; 
     let logoUrl = DEFAULT_LOGO;
 
     // AUTOMATIC DETECTION ENGINE
@@ -40,7 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
             mg: matchedConfig.mg, 
             ml: matchedConfig.ml, 
             dose: matchedConfig.dose, 
-            unit: matchedConfig.unit 
+            unit: matchedConfig.unit,
+            route: matchedConfig.route || 'subq'
         };
     }
 
@@ -227,7 +229,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log("Initializing toolkit setup module injection...");
         const calcScript = document.createElement("script");
-        calcScript.src = "https://peptide-info.github.io/vials/js/calculator-popup.js";
+        // Resolve relative to global-nav.js so local + GitHub Pages both work
+        const navScriptEl = document.querySelector('script[src*="global-nav"]');
+        const navBase = navScriptEl
+            ? navScriptEl.src.replace(/global-nav\.js(\?.*)?$/, '')
+            : 'https://peptide-info.github.io/vials/';
+        calcScript.src = navBase + 'js/calculator-popup.js';
         
         calcScript.onload = () => {
             isCalcScriptLoaded = true;

@@ -212,6 +212,48 @@
             margin-top: 4px;
             line-height: 1.4;
         }
+
+        /* ROUTE TOGGLE (Sub-Q / Nasal) */
+        .route-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 16px;
+            border: 1px solid #d1d5da;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f6f8fa;
+        }
+        .route-toggle label {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #586069;
+            cursor: pointer;
+            margin: 0;
+            transition: background 0.15s ease, color 0.15s ease;
+            user-select: none;
+        }
+        .route-toggle label + label {
+            border-left: 1px solid #d1d5da;
+        }
+        .route-toggle input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .route-toggle label:has(input:checked) {
+            background: #fff;
+            color: #b30086;
+            box-shadow: inset 0 -3px 0 #ff9aa2;
+        }
+        .route-toggle label:hover {
+            background: rgba(255,255,255,0.85);
+        }
     `;
 
     const styleSheet = document.createElement("style");
@@ -236,7 +278,17 @@
             </div>
 
             <div id="pop-tab-standard" class="calc-panel active">
-                <p class="sub-text" style="margin-top:-5px; margin-bottom: 15px;">Find out exactly how many units to pull based on your blend fluid ratio.</p>
+                <div class="route-toggle" role="radiogroup" aria-label="Administration route">
+                    <label>
+                        <input type="radio" name="pop_route" id="pop_route_subq" value="subq" checked>
+                        Sub-Q
+                    </label>
+                    <label>
+                        <input type="radio" name="pop_route" id="pop_route_nasal" value="nasal">
+                        Nasal
+                    </label>
+                </div>
+                <p class="sub-text" id="pop_route_hint" style="margin-top:-5px; margin-bottom: 15px;">Find out exactly how many units to pull based on your blend fluid ratio.</p>
                 
                 <div class="input-group">
                     <label>Peptide Amount</label>
@@ -360,6 +412,45 @@
     };
     const result1 = document.getElementById('pop_result_1');
     const result2 = document.getElementById('pop_result_2');
+    const routeHint = document.getElementById('pop_route_hint');
+    const SPRAY_ML = 0.1; // standard metered nasal spray volume
+
+    function getSelectedRoute() {
+        const checked = document.querySelector('input[name="pop_route"]:checked');
+        return checked ? checked.value : 'subq';
+    }
+
+    function setRoute(route) {
+        const value = route === 'nasal' ? 'nasal' : 'subq';
+        const radio = document.getElementById(value === 'nasal' ? 'pop_route_nasal' : 'pop_route_subq');
+        if (radio) radio.checked = true;
+        updateRouteHint();
+    }
+
+    function updateRouteHint() {
+        if (!routeHint) return;
+        if (getSelectedRoute() === 'nasal') {
+            routeHint.textContent = 'Find out how many nasal sprays you need (0.1 mL per spray) based on your blend fluid ratio.';
+        } else {
+            routeHint.textContent = 'Find out exactly how many units to pull based on your blend fluid ratio.';
+        }
+    }
+
+    function formatDoseAmount(mcg) {
+        if (mcg >= 1000) {
+            const mg = mcg / 1000;
+            return (Number.isInteger(mg) || Math.abs(mg - Math.round(mg)) < 0.001)
+                ? `${Math.round(mg)} mg`
+                : `${parseFloat(mg.toFixed(2))} mg`;
+        }
+        return (Number.isInteger(mcg) || Math.abs(mcg - Math.round(mcg)) < 0.1)
+            ? `${Math.round(mcg)} mcg`
+            : `${parseFloat(mcg.toFixed(1))} mcg`;
+    }
+
+    function formatSprayLabel(n) {
+        return n === 1 ? '1 spray' : `${n} sprays`;
+    }
 
     function calculateStandard() {
         const mgVal = parseFloat(inputs.mg1.value);
@@ -371,13 +462,45 @@
             return;
         }
 
-        if(inputs.unit1.value === 'mg') { targetDose = targetDose * 1000; }
+        if (inputs.unit1.value === 'mg') { targetDose = targetDose * 1000; }
 
         const totalMcg = mgVal * 1000;
-        const unitsRequired = (targetDose * (mlVal * 100)) / totalMcg;
+        const mlNeeded = (targetDose / totalMcg) * mlVal;
+        const route = getSelectedRoute();
 
         result1.className = "result";
-        if(unitsRequired > 100) {
+
+        if (route === 'nasal') {
+            const spraysExact = mlNeeded / SPRAY_ML;
+            const mcgPerSpray = (totalMcg / mlVal) * SPRAY_ML;
+            const rounded = Math.round(spraysExact);
+
+            // Treat near-integers as exact (floating point / rounding noise)
+            if (Math.abs(spraysExact - rounded) < 0.02 && rounded > 0) {
+                result1.innerHTML = `Required: ${formatSprayLabel(rounded)} <br><span class="sub-text" style="display:block; margin-top:6px;">Each spray delivers 0.1 mL (${formatDoseAmount(mcgPerSpray)}).</span>`;
+                return;
+            }
+
+            const low = Math.max(0, Math.floor(spraysExact));
+            const high = Math.ceil(spraysExact);
+            const lowDose = low * mcgPerSpray;
+            const highDose = high * mcgPerSpray;
+
+            let nearestHtml = `Target volume is <strong>${spraysExact.toFixed(2)} sprays</strong> (not an exact spray count).<br>`;
+            nearestHtml += `<span style="font-weight:normal; font-size:13px; color:#333; display:block; margin-top:8px;">Nearest options:</span>`;
+            nearestHtml += `<span style="font-weight:normal; font-size:13px; color:#333; display:block; margin-top:4px;">• <strong>${formatSprayLabel(low)}</strong> → ${formatDoseAmount(lowDose)}${low === 0 ? ' (no dose)' : ''}</span>`;
+            if (high !== low) {
+                nearestHtml += `<span style="font-weight:normal; font-size:13px; color:#333; display:block;">• <strong>${formatSprayLabel(high)}</strong> → ${formatDoseAmount(highDose)}</span>`;
+            }
+            nearestHtml += `<span class="sub-text" style="display:block; margin-top:6px;">Each spray = 0.1 mL.</span>`;
+            result1.innerHTML = nearestHtml;
+            return;
+        }
+
+        // Sub-Q: U-100 syringe units (100 units = 1 mL)
+        const unitsRequired = mlNeeded * 100;
+
+        if (unitsRequired > 100) {
             result1.innerHTML = `Required Pull: ${unitsRequired.toFixed(1)} units <br><span style="font-size:11px; font-weight:normal; color:#555;">⚠️ Warning: Exceeds a single 100-unit syringe capacity.</span>`;
         } else {
             result1.innerHTML = `Required Pull: ${unitsRequired.toFixed(1)} units`;
@@ -450,6 +573,13 @@
     [inputs.mg2, inputs.dose2, inputs.maxUnits].forEach(el => el.addEventListener('input', calculateReverse));
     inputs.unit1.addEventListener('change', calculateStandard);
     inputs.unit2.addEventListener('change', calculateReverse);
+    document.querySelectorAll('input[name="pop_route"]').forEach(el => {
+        el.addEventListener('change', () => {
+            updateRouteHint();
+            calculateStandard();
+        });
+    });
+    updateRouteHint();
 
     // Dynamic preset chip listeners
     document.querySelectorAll(".preset-container").forEach(container => {
@@ -509,6 +639,9 @@
             if (targetInputs.mg2) targetInputs.mg2.value = defs.mg;
             if (targetInputs.dose2) targetInputs.dose2.value = defs.dose;
             if (targetInputs.unit2) targetInputs.unit2.value = defs.unit;
+
+            // Page default route: Sub-Q vs Nasal
+            setRoute(defs.route || 'subq');
         }
 
         overlay.classList.add("active");
