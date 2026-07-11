@@ -480,9 +480,67 @@
             color: var(--accent);
         }
 
+        .check-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 4px 0 2px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .check-row input {
+            margin-top: 3px;
+            width: 1.05rem;
+            height: 1.05rem;
+            accent-color: var(--accent);
+        }
+
+        .mode-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .mode-chip {
+            display: inline-flex;
+            cursor: pointer;
+        }
+
+        .mode-chip input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .mode-chip span {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .mode-chip input:checked + span {
+            background: var(--accent-soft);
+            border-color: rgba(15, 122, 95, 0.35);
+            color: var(--accent);
+        }
+
         #pf-custom-wrap[hidden],
         #pf-custom-unit-wrap[hidden],
-        #pf-custom-hl-wrap[hidden] {
+        #pf-custom-hl-wrap[hidden],
+        #pf-titration-block[hidden],
+        #pf-fixed-reta-block[hidden],
+        #pf-reta-interval-block[hidden],
+        #pf-interval-wrap[hidden],
+        #pf-interval-hint[hidden],
+        #pf-dow-block[hidden] {
             display: none !important;
         }
 
@@ -547,7 +605,7 @@
             <div class="planner-panel">
                 <section class="planner-card">
                     <h2>Build a course</h2>
-                    <p class="hint">Pick a peptide (or Custom), set dose days and alert times, then save. Retatrutide includes automatic 2 mg titration blocks.</p>
+                    <p class="hint">Pick a peptide (or Custom), choose every X days or weekdays, set alert times, then save. Retatrutide can follow a +2 mg titration or a fixed dose.</p>
                     <label class="field" style="margin-top:12px">
                         <span>Peptide</span>
                         <select id="planner-peptide"></select>
@@ -580,7 +638,7 @@
         </div>
     </main>
 
-    <script src="js/schedule-planner.js?v=3"></script>
+    <script src="js/schedule-planner.js?v=4"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';

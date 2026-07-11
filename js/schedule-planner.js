@@ -15,7 +15,7 @@
             titration: true,
             defaultTimesPerDay: 1,
             defaultTimes: ['09:00'],
-            note: 'Weekly · graph uses ~6–7 day half-life'
+            note: 'Usually every 5–7 days · optional +2 mg titration after 4 doses at each step'
         },
         {
             id: 'tesa',
@@ -187,7 +187,8 @@
 
     /**
      * Retatrutide titration:
-     * Finish current step (4 doses/weeks total at current dose), then +2 mg every 4 weeks until target, then maintain.
+     * Stay at each dose for 4 injections spaced `intervalDays` apart (typically 5–7),
+     * then +2 mg until target, then maintain.
      */
     function buildRetaEvents({
         currentDose,
@@ -195,19 +196,21 @@
         targetDose,
         startDate,
         stopDate,
+        intervalDays = 7,
         stepMg = 2,
         dosesPerStep = 4,
         maintainWeeks = 26
     }) {
         const events = [];
+        const step = Math.max(1, Math.round(intervalDays) || 7);
         let cursor = new Date(startDate.getTime());
-        const endCap = stopDate || addDays(startDate, maintainWeeks * 7 + 200);
+        const endCap = stopDate || addDays(startDate, maintainWeeks * step + 200);
 
         const remainingAtCurrent = Math.max(0, dosesPerStep - Math.max(0, dosesAlreadyTaken));
         for (let i = 0; i < remainingAtCurrent; i++) {
             if (cursor > endCap) break;
             events.push({ date: new Date(cursor), dose: currentDose, label: `${currentDose} mg` });
-            cursor = addDays(cursor, 7);
+            cursor = addDays(cursor, step);
         }
 
         let stepDose = Math.ceil((currentDose + 0.0001) / stepMg) * stepMg;
@@ -217,15 +220,15 @@
             for (let i = 0; i < dosesPerStep; i++) {
                 if (cursor > endCap) return events;
                 events.push({ date: new Date(cursor), dose: stepDose, label: `${stepDose} mg` });
-                cursor = addDays(cursor, 7);
+                cursor = addDays(cursor, step);
             }
             stepDose += stepMg;
         }
 
-        const maintainUntil = stopDate || addDays(cursor, maintainWeeks * 7);
+        const maintainUntil = stopDate || addDays(cursor, maintainWeeks * step);
         while (cursor <= maintainUntil && cursor <= endCap) {
             events.push({ date: new Date(cursor), dose: targetDose, label: `${targetDose} mg (maintain)` });
-            cursor = addDays(cursor, 7);
+            cursor = addDays(cursor, step);
         }
 
         return events;
@@ -243,6 +246,22 @@
                 events.push({ date: new Date(cursor), dose, label: String(dose) });
             }
             cursor = addDays(cursor, 1);
+        }
+
+        return events;
+    }
+
+    /** Fixed dose every N calendar days (e.g. Reta every 6 days). */
+    function buildIntervalEvents({ dose, startDate, stopDate, intervalDays }) {
+        const events = [];
+        const step = Math.max(1, Math.round(intervalDays) || 1);
+        let cursor = new Date(startDate.getTime());
+        cursor.setHours(0, 0, 0, 0);
+        const end = stopDate || addDays(startDate, Math.max(90, step * 16));
+
+        while (cursor <= end) {
+            events.push({ date: new Date(cursor), dose, label: String(dose) });
+            cursor = addDays(cursor, step);
         }
 
         return events;
@@ -323,10 +342,12 @@
         URL.revokeObjectURL(url);
     }
 
-    function timeFieldsHtml(peptide) {
+    function timeFieldsHtml(peptide, { forceMax } = {}) {
         const count = Math.max(1, peptide.defaultTimesPerDay || 1);
         const defaults = peptide.defaultTimes || ['09:00'];
-        const maxTimes = peptide.titration || peptide.prn ? 1 : 4;
+        const maxTimes = forceMax != null
+            ? forceMax
+            : (peptide.titration || peptide.prn ? 1 : 4);
         const options = Array.from({ length: maxTimes }, (_, i) => {
             const n = i + 1;
             return `<option value="${n}" ${n === Math.min(count, maxTimes) ? 'selected' : ''}>${n}× per day</option>`;
@@ -350,7 +371,7 @@
         }).join('');
     }
 
-    function bindTimeFields(peptide) {
+    function bindTimeFields(peptide, forceMax) {
         const select = $('#pf-times-per-day');
         if (!select) {
             renderTimeSlots(1, peptide.defaultTimes);
@@ -358,12 +379,43 @@
         }
         const sync = () => {
             const n = Math.max(1, parseInt(select.value, 10) || 1);
+            const capped = forceMax != null ? Math.min(n, forceMax) : n;
             const current = $all('.pf-time-input').map((el) => el.value);
             const defaults = current.length ? current : (peptide.defaultTimes || ['09:00']);
-            renderTimeSlots(n, defaults);
+            renderTimeSlots(capped, defaults);
         };
         select.addEventListener('change', sync);
         sync();
+    }
+
+    function intervalFieldHtml(defaultDays = 7, { min = 1, max = 14, hint } = {}) {
+        return `
+            <label class="field" id="pf-interval-wrap">
+                <span>Every X days</span>
+                <input type="number" id="pf-interval" value="${defaultDays}" min="${min}" max="${max}" step="1">
+            </label>
+            ${hint ? `<p class="hint field-span" id="pf-interval-hint">${hint}</p>` : ''}
+        `;
+    }
+
+    function scheduleModeHtml({ defaultMode = 'dow', intervalDays = 7 } = {}) {
+        return `
+            <div class="field field-span">
+                <span>Schedule type</span>
+                <div class="mode-row" id="pf-schedule-mode">
+                    <label class="mode-chip">
+                        <input type="radio" name="pf-sched-mode" value="interval" ${defaultMode === 'interval' ? 'checked' : ''}>
+                        <span>Every X days</span>
+                    </label>
+                    <label class="mode-chip">
+                        <input type="radio" name="pf-sched-mode" value="dow" ${defaultMode === 'dow' ? 'checked' : ''}>
+                        <span>Days of week</span>
+                    </label>
+                </div>
+            </div>
+            ${intervalFieldHtml(intervalDays, { hint: 'e.g. 6 = dose every 6 days from the start date' })}
+            <div id="pf-dow-block"></div>
+        `;
     }
 
     function daysOfWeekHtml(peptide) {
@@ -392,6 +444,7 @@
                     <button type="button" class="chip-btn" data-dow="1,2,3,4,5">Mon–Fri</button>
                     <button type="button" class="chip-btn" data-dow="0,1,2,3,4,5,6">Every day</button>
                     <button type="button" class="chip-btn" data-dow="1,3,5">M/W/F</button>
+                    <button type="button" class="chip-btn" data-dow="1,4">Mon/Thu</button>
                 </div>
             </div>
         `;
@@ -411,6 +464,41 @@
     function getSelectedDays() {
         const checked = $all('#pf-dow input[type="checkbox"]:checked').map((cb) => parseInt(cb.value, 10));
         return checked.length ? checked : [0, 1, 2, 3, 4, 5, 6];
+    }
+
+    function getIntervalDays(fallback = 7) {
+        const inputs = $all('#pf-interval');
+        const el = inputs.find((i) => !i.closest('[hidden]')) || inputs[0];
+        const n = parseInt(el?.value, 10);
+        return Number.isFinite(n) && n >= 1 ? n : fallback;
+    }
+
+    function getScheduleMode() {
+        const radios = $all('input[name="pf-sched-mode"]');
+        const checked = radios.find((r) => r.checked && !r.closest('[hidden]'));
+        return checked?.value || radios.find((r) => r.checked)?.value || 'dow';
+    }
+
+    function syncScheduleModeVisibility() {
+        const mode = getScheduleMode();
+        const intervalWrap = $('#pf-interval-wrap');
+        const intervalHint = $('#pf-interval-hint');
+        const dowBlock = $('#pf-dow-block');
+        if (intervalWrap) intervalWrap.hidden = mode !== 'interval';
+        if (intervalHint) intervalHint.hidden = mode !== 'interval';
+        if (dowBlock) dowBlock.hidden = mode !== 'dow';
+    }
+
+    function bindScheduleMode(peptideForDow) {
+        const dowBlock = $('#pf-dow-block');
+        if (dowBlock && !dowBlock.innerHTML.trim()) {
+            dowBlock.innerHTML = daysOfWeekHtml(peptideForDow || {});
+            bindDowPresets();
+        }
+        $all('input[name="pf-sched-mode"]').forEach((radio) => {
+            radio.addEventListener('change', syncScheduleModeVisibility);
+        });
+        syncScheduleModeVisibility();
     }
 
     function customFieldsHtml() {
@@ -462,22 +550,94 @@
         return peptideById(id);
     }
 
+    function renderRetaForm(peptide) {
+        const wrap = $('#planner-fields');
+        const today = formatDateInput(new Date());
+        const interval = peptide.defaultIntervalDays || 7;
+
+        wrap.innerHTML = `
+            <label class="check-row field-span">
+                <input type="checkbox" id="pf-follow-titration" checked>
+                <span>Follow titration schedule</span>
+            </label>
+            <p class="hint field-span" id="pf-titration-hint">Stay at each dose for 4 injections, then +2 mg until target. Spacing is usually 5–7 days.</p>
+
+            <div id="pf-titration-block">
+                <label class="field"><span>Current dose (mg)</span><input type="number" id="pf-current" value="4" min="0" step="0.5"></label>
+                <label class="field"><span>Doses already taken at this dose</span><input type="number" id="pf-taken" value="2" min="0" step="1"></label>
+                <label class="field"><span>Target dose (mg)</span><input type="number" id="pf-target" value="10" min="0" step="0.5"></label>
+            </div>
+
+            <div id="pf-fixed-reta-block" hidden>
+                <label class="field"><span>Dose each injection (mg)</span><input type="number" id="pf-dose" value="2" min="0" step="0.5"></label>
+                ${scheduleModeHtml({ defaultMode: 'interval', intervalDays: interval })}
+            </div>
+
+            <div id="pf-reta-interval-block">
+                ${intervalFieldHtml(interval, {
+                    min: 1,
+                    max: 14,
+                    hint: 'Commonly 5–7 days between injections. Titration steps after 4 doses at this spacing.'
+                })}
+            </div>
+
+            <label class="field"><span>Start date (next dose)</span><input type="date" id="pf-start" value="${today}"></label>
+            <label class="field"><span>Stop date (optional)</span><input type="date" id="pf-stop"></label>
+            <div id="pf-reta-times">${timeFieldsHtml(peptide, { forceMax: 1 })}</div>
+        `;
+
+        const follow = $('#pf-follow-titration');
+        const syncTitrationUi = () => {
+            const on = !!follow?.checked;
+            const titBlock = $('#pf-titration-block');
+            const fixedBlock = $('#pf-fixed-reta-block');
+            const intervalOnly = $('#pf-reta-interval-block');
+            const hint = $('#pf-titration-hint');
+            if (titBlock) titBlock.hidden = !on;
+            if (fixedBlock) fixedBlock.hidden = on;
+            if (intervalOnly) intervalOnly.hidden = !on;
+            if (hint) {
+                hint.textContent = on
+                    ? 'Stay at each dose for 4 injections, then +2 mg until target. Spacing is usually 5–7 days.'
+                    : 'Fixed dose only — use every X days, or days of week for smaller split doses (e.g. Mon/Thu).';
+            }
+
+            const timesHost = $('#pf-reta-times');
+            if (timesHost) {
+                const maxTimes = on ? 1 : 4;
+                const fake = {
+                    ...peptide,
+                    titration: on,
+                    defaultTimesPerDay: on ? 1 : 2,
+                    defaultTimes: on ? ['09:00'] : ['09:00', '21:00']
+                };
+                timesHost.innerHTML = timeFieldsHtml(fake, { forceMax: maxTimes });
+                bindTimeFields(fake, maxTimes);
+            }
+        };
+
+        follow?.addEventListener('change', syncTitrationUi);
+
+        // Fixed-mode schedule controls (only matter when titration off)
+        const dowBlock = $('#pf-dow-block');
+        if (dowBlock) {
+            dowBlock.innerHTML = daysOfWeekHtml({ defaultDays: [1, 4] });
+            bindDowPresets();
+        }
+        $all('input[name="pf-sched-mode"]').forEach((radio) => {
+            radio.addEventListener('change', syncScheduleModeVisibility);
+        });
+        syncScheduleModeVisibility();
+        syncTitrationUi();
+    }
+
     function renderFormFields(peptide) {
         const wrap = $('#planner-fields');
         const today = formatDateInput(new Date());
         const isCustom = peptide?.id === 'custom' || $('#planner-peptide')?.value === 'custom';
 
         if (peptide?.titration) {
-            wrap.innerHTML = `
-                <label class="field"><span>Current dose (mg)</span><input type="number" id="pf-current" value="4" min="0" step="0.5"></label>
-                <label class="field"><span>Doses already taken at this dose</span><input type="number" id="pf-taken" value="2" min="0" step="1"></label>
-                <label class="field"><span>Target dose (mg)</span><input type="number" id="pf-target" value="10" min="0" step="0.5"></label>
-                <label class="field"><span>Start date (next dose)</span><input type="date" id="pf-start" value="${today}"></label>
-                <label class="field"><span>Stop date (optional)</span><input type="date" id="pf-stop"></label>
-                ${timeFieldsHtml(peptide)}
-                <p class="hint field-span">Titration: finish a 4-dose block at the current dose, then +2 mg every 4 weekly doses until target, then maintain.</p>
-            `;
-            bindTimeFields(peptide);
+            renderRetaForm(peptide);
             return;
         }
 
@@ -492,17 +652,21 @@
             return;
         }
 
-        // Standard / custom daily-style course
+        // Standard / custom — days of week or every X days
         const unit = isCustom ? 'mg' : peptide.unit;
         const doseDefault = unit === 'mg' ? 2 : 250;
+        const defaultMode = (peptide.defaultIntervalDays && peptide.defaultIntervalDays > 1) ? 'interval' : 'dow';
         wrap.innerHTML = `
             ${customFieldsHtml()}
             <label class="field"><span>Dose (<span id="pf-unit-label">${unit}</span>)</span><input type="number" id="pf-dose" value="${doseDefault}" min="0" step="any"></label>
             <label class="field"><span>Start date</span><input type="date" id="pf-start" value="${today}"></label>
             <label class="field"><span>Stop date</span><input type="date" id="pf-stop" value="${formatDateInput(addDays(new Date(), 84))}"></label>
-            ${daysOfWeekHtml(isCustom ? { defaultDays: [0, 1, 2, 3, 4, 5, 6] } : peptide)}
+            ${scheduleModeHtml({
+                defaultMode,
+                intervalDays: peptide.defaultIntervalDays > 1 ? peptide.defaultIntervalDays : 7
+            })}
             ${timeFieldsHtml(isCustom ? { defaultTimesPerDay: 1, defaultTimes: ['09:00'] } : peptide)}
-            <p class="hint field-span">Pick which weekdays count, then set how many alerts you want each of those days.</p>
+            <p class="hint field-span">Choose every X days (e.g. every 6) or pick weekdays, then set alert times.</p>
         `;
 
         setCustomVisible(isCustom);
@@ -512,7 +676,7 @@
                 if (label) label.textContent = e.target.value;
             });
         }
-        bindDowPresets();
+        bindScheduleMode(isCustom ? { defaultDays: [0, 1, 2, 3, 4, 5, 6] } : peptide);
         bindTimeFields(isCustom ? { defaultTimesPerDay: 1, defaultTimes: ['09:00'] } : peptide);
     }
 
@@ -522,13 +686,47 @@
         const times = getSelectedTimes();
 
         if (peptide.titration) {
-            const currentDose = parseFloat($('#pf-current').value);
-            const dosesAlreadyTaken = parseInt($('#pf-taken').value, 10) || 0;
-            const targetDose = parseFloat($('#pf-target').value);
+            const followTitration = $('#pf-follow-titration')?.checked !== false;
             const stop = parseDateInput($('#pf-stop')?.value);
-            if (!(currentDose >= 0) || !(targetDose > 0)) throw new Error('Check titration doses');
-            if (targetDose < currentDose) throw new Error('Target dose should be ≥ current dose');
-            const dayEvents = buildRetaEvents({ currentDose, dosesAlreadyTaken, targetDose, startDate: start, stopDate: stop });
+
+            if (followTitration) {
+                const currentDose = parseFloat($('#pf-current').value);
+                const dosesAlreadyTaken = parseInt($('#pf-taken').value, 10) || 0;
+                const targetDose = parseFloat($('#pf-target').value);
+                const intervalDays = getIntervalDays(peptide.defaultIntervalDays || 7);
+                if (!(currentDose >= 0) || !(targetDose > 0)) throw new Error('Check titration doses');
+                if (targetDose < currentDose) throw new Error('Target dose should be ≥ current dose');
+                const dayEvents = buildRetaEvents({
+                    currentDose,
+                    dosesAlreadyTaken,
+                    targetDose,
+                    startDate: start,
+                    stopDate: stop,
+                    intervalDays
+                });
+                return expandEventsWithTimes(dayEvents, times, peptide.unit);
+            }
+
+            // Fixed Reta — no titration
+            const dose = parseFloat($('#pf-dose').value);
+            if (!(dose > 0)) throw new Error('Enter a dose');
+            const mode = getScheduleMode();
+            let dayEvents;
+            if (mode === 'interval') {
+                dayEvents = buildIntervalEvents({
+                    dose,
+                    startDate: start,
+                    stopDate: stop || addDays(start, 180),
+                    intervalDays: getIntervalDays(peptide.defaultIntervalDays || 7)
+                });
+            } else {
+                dayEvents = buildFixedEvents({
+                    dose,
+                    startDate: start,
+                    stopDate: stop || addDays(start, 180),
+                    daysOfWeek: getSelectedDays()
+                });
+            }
             return expandEventsWithTimes(dayEvents, times, peptide.unit);
         }
 
@@ -540,8 +738,23 @@
 
         const dose = parseFloat($('#pf-dose').value);
         const stop = parseDateInput($('#pf-stop')?.value);
-        const daysOfWeek = getSelectedDays();
-        const dayEvents = buildFixedEvents({ dose, startDate: start, stopDate: stop, daysOfWeek });
+        const mode = getScheduleMode();
+        let dayEvents;
+        if (mode === 'interval') {
+            dayEvents = buildIntervalEvents({
+                dose,
+                startDate: start,
+                stopDate: stop,
+                intervalDays: getIntervalDays(7)
+            });
+        } else {
+            dayEvents = buildFixedEvents({
+                dose,
+                startDate: start,
+                stopDate: stop,
+                daysOfWeek: getSelectedDays()
+            });
+        }
         return expandEventsWithTimes(dayEvents, times, peptide.unit);
     }
 
