@@ -1,6 +1,6 @@
 (function() {
     // 1. CONFIGURATION
-    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmVtWT1dZuJwtaOI9OyzqTGSpYDfXmNd5T-uRYbouOm7QA_07yz2MfFdlFTrTQNmig/exec";
+    const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz2BjKhXGHWZWAQ6HetjdhSBa6sVRE-MH8-n1DtjEPlCZSBa3tH7ayiGd9bCVvk28BD/exec";
 
     // 2. Inject Modal Stylesheets
     const modalStyles = `
@@ -40,6 +40,17 @@
     const styleElement = document.createElement("style");
     styleElement.innerText = modalStyles;
     document.head.appendChild(styleElement);
+
+    // Hidden iframe so form POST works with Apps Script redirects (fetch + no-cors drops the body)
+    let relayFrame = document.getElementById("email-apps-script-frame");
+    if (!relayFrame) {
+        relayFrame = document.createElement("iframe");
+        relayFrame.name = "email-apps-script-frame";
+        relayFrame.id = "email-apps-script-frame";
+        relayFrame.title = "Email relay";
+        relayFrame.style.display = "none";
+        document.body.appendChild(relayFrame);
+    }
 
     // 3. Construct Modal Markup
     const overlay = document.createElement("div");
@@ -86,7 +97,7 @@
     document.getElementById("closeEmailModalBtn").addEventListener("click", closeModal);
     overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
 
-    // 5. Transmission Fetch Pipeline
+    // 5. Form POST into hidden iframe (reliable with Apps Script /exec redirects)
     document.getElementById("submitEmailModalBtn").addEventListener("click", () => {
         const emailInput = document.getElementById("modalRecipient").value;
         const subjectInput = document.getElementById("modalSubject").value;
@@ -103,27 +114,33 @@
         statusMsg.style.color = "#58a6ff";
         statusMsg.innerText = "Dispatching cloud email process...";
 
-        // FIX: Construct the body string directly using standard encodeURIComponent() 
-        // instead of URLSearchParams, protecting raw multi-byte emoji structures.
-        const rawPayload = `email=${encodeURIComponent(emailInput)}&subject=${encodeURIComponent(subjectInput)}&pageUrl=${encodeURIComponent(window.location.href)}`;
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = GOOGLE_WEB_APP_URL;
+        form.target = "email-apps-script-frame";
+        form.style.display = "none";
 
-        fetch(GOOGLE_WEB_APP_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { 
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" 
-            },
-            body: rawPayload
-        }).then(() => {
-            statusMsg.style.color = "#238636";
-            statusMsg.innerText = "Transmission dispatched successfully.";
-            setTimeout(closeModal, 1500);
-        }).catch(err => {
-            statusMsg.style.color = "#f85149";
-            statusMsg.innerText = "Error dispatching email.";
-            sendBtn.disabled = false;
-            console.error("Transmission Failure:", err);
+        const fields = {
+            email: emailInput.trim(),
+            subject: subjectInput.trim(),
+            pageUrl: window.location.href
+        };
+
+        Object.keys(fields).forEach((name) => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = name;
+            input.value = fields[name];
+            form.appendChild(input);
         });
+
+        document.body.appendChild(form);
+        form.submit();
+        form.remove();
+
+        statusMsg.style.color = "#238636";
+        statusMsg.innerText = "Transmission dispatched. Check your inbox (and spam).";
+        setTimeout(closeModal, 1800);
     });
 
     // Assign globally accessible handle
