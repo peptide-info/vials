@@ -291,6 +291,12 @@ body.protocol-page #vial-picker {
     width: min(680px, 100%);
     margin: 10px auto 18px;
     display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+body.protocol-page .vial-picker-row {
+    display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 10px 12px;
@@ -302,12 +308,21 @@ body.protocol-page .vial-picker-label {
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--muted);
+    min-width: 5.5rem;
 }
 
 body.protocol-page .vial-chip-row {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+}
+
+body.protocol-page .vial-picker-hint {
+    flex: 1 1 100%;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.4;
 }
 
 body.protocol-page .vial-chip {
@@ -320,6 +335,11 @@ body.protocol-page .vial-chip {
     border-radius: 999px;
     padding: 8px 12px;
     cursor: pointer;
+}
+
+body.protocol-page .vial-chip.is-suggested:not(.is-active) {
+    border-color: rgba(15, 122, 95, 0.28);
+    box-shadow: inset 0 0 0 1px rgba(15, 122, 95, 0.12);
 }
 
 body.protocol-page .vial-chip.is-active,

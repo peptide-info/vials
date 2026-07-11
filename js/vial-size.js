@@ -1,13 +1,15 @@
 /**
- * Vial size chips: recalculate recon concentration + syringe/spray volumes.
+ * Vial size + BAC volume chips: recalculate recon concentration + syringe/spray volumes.
  *
  * Rules:
- * - BAC water can vary by vial size (data-bac-by-vial="10:1,30:1.5").
+ * - BAC water can vary by vial size (data-bac-by-vial="10:1,30:1.5") as the default suggestion.
+ * - User can override BAC with chips: 1 / 1.5 / 2 / 2.5 / 3 mL.
  * - Single Sub-Q draws must stay ≤ 60 units on a U-100 syringe.
  * - Never suggest multi-shot draws; point to a larger vial / denser mix instead.
  */
 (function () {
     const MAX_SINGLE_DRAW_UNITS = 60;
+    const BAC_OPTIONS = [1, 1.5, 2, 2.5, 3];
 
     function parseList(raw) {
         return String(raw || '')
@@ -68,34 +70,18 @@
         return (vialMg * 1000) / sprayMl * 0.1;
     }
 
-    function collectPageDosesMg() {
-        const doses = [];
-        document.querySelectorAll('[data-units]').forEach((el) => {
-            if (el.hasAttribute('data-dose-mg')) {
-                doses.push(parseFloat(el.getAttribute('data-dose-mg')));
-            }
-            if (el.hasAttribute('data-dose-mg-high')) {
-                doses.push(parseFloat(el.getAttribute('data-dose-mg-high')));
-            }
-            if (el.hasAttribute('data-dose-mcg')) {
-                doses.push(parseFloat(el.getAttribute('data-dose-mcg')) / 1000);
-            }
-            if (el.hasAttribute('data-dose-mcg-high')) {
-                doses.push(parseFloat(el.getAttribute('data-dose-mcg-high')) / 1000);
-            }
-        });
-        return doses.filter((n) => Number.isFinite(n) && n > 0);
-    }
-
-    function resolveBacMl(root, vialMg) {
+    function recommendedBacMl(root, vialMg) {
         const map = parseBacMap(root.dataset.bacByVial);
         let bac = map[vialMg];
         if (!Number.isFinite(bac)) bac = parseFloat(root.dataset.bacMl);
         if (!Number.isFinite(bac) || bac <= 0) bac = 2;
-        return bac;
+        // Snap to nearest chip option when close
+        const nearest = BAC_OPTIONS.reduce((best, opt) => (
+            Math.abs(opt - bac) < Math.abs(best - bac) ? opt : best
+        ), BAC_OPTIONS[0]);
+        return Math.abs(nearest - bac) < 0.05 ? nearest : bac;
     }
 
-    /** Largest dose that still fits in ≤60 units at this bac/vial. */
     function maxDoseForSingleDraw(vialMg, bacMl) {
         return (MAX_SINGLE_DRAW_UNITS / 100) * (vialMg / bacMl);
     }
@@ -128,7 +114,7 @@
         }
         const units = unitsForMg(doseMg, vialMg, bacMl);
         if (units > MAX_SINGLE_DRAW_UNITS + 0.05) {
-            return `<em>Over ${MAX_SINGLE_DRAW_UNITS} units at this mix — choose a larger vial</em>`;
+            return `<em>Over ${MAX_SINGLE_DRAW_UNITS} units at this mix — use less BAC or a larger vial</em>`;
         }
         return formatUnits(units);
     }
@@ -141,20 +127,18 @@
         const lowU = unitsForMg(lowMg, vialMg, bacMl);
         const highU = unitsForMg(Math.min(highMg, vialMg), vialMg, bacMl);
         if (lowU > MAX_SINGLE_DRAW_UNITS + 0.05) {
-            return `<em>Over ${MAX_SINGLE_DRAW_UNITS} units at this mix — choose a larger vial</em>`;
+            return `<em>Over ${MAX_SINGLE_DRAW_UNITS} units at this mix — use less BAC or a larger vial</em>`;
         }
         if (highMg > vialMg + 1e-9 || highU > MAX_SINGLE_DRAW_UNITS + 0.05) {
-            const capped = Math.min(
-                maxDoseForSingleDraw(vialMg, bacMl),
-                vialMg
-            );
-            return `<strong>${niceNumber(roundUnits(lowU))} units</strong> <em>(upper end needs a larger vial; ~${niceNumber(capped)} mg max here)</em>`;
+            const capped = Math.min(maxDoseForSingleDraw(vialMg, bacMl), vialMg);
+            return `<strong>${niceNumber(roundUnits(lowU))} units</strong> <em>(upper end over 60u / vial; ~${niceNumber(capped)} mg max here)</em>`;
         }
         return `<strong>${niceNumber(roundUnits(lowU))}–${niceNumber(roundUnits(highU))} units</strong>`;
     }
 
-    function updatePage(root, vialMg) {
-        const bacMl = resolveBacMl(root, vialMg);
+    function updatePage(root, state) {
+        const vialMg = state.vialMg;
+        const bacMl = state.bacMl;
         const sprayMl = parseFloat(root.dataset.sprayMl) || 0;
         const mode = (root.dataset.mode || 'subq').toLowerCase();
         const calcDose = parseFloat(root.dataset.calcDose);
@@ -162,6 +146,7 @@
         const route = root.dataset.route || (mode === 'nasal' ? 'nasal' : 'subq');
         const labelUnit = root.dataset.sizeUnit || 'mg';
         const maxSingle = maxDoseForSingleDraw(vialMg, bacMl);
+        const suggestedBac = recommendedBacMl(root, vialMg);
 
         document.querySelectorAll('[data-vial-mg]').forEach((el) => {
             el.textContent = `${niceNumber(vialMg)} ${labelUnit}`;
@@ -231,6 +216,24 @@
             }
         });
 
+        // Sync BAC chip active state + suggested hint
+        root.querySelectorAll('.bac-chip').forEach((btn) => {
+            const val = parseFloat(btn.dataset.bac);
+            const on = Math.abs(val - bacMl) < 0.05;
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            btn.classList.toggle('is-active', on);
+            btn.classList.toggle('is-suggested', Math.abs(val - suggestedBac) < 0.05);
+        });
+
+        const hint = root.querySelector('[data-bac-hint]');
+        if (hint) {
+            if (Math.abs(bacMl - suggestedBac) < 0.05) {
+                hint.textContent = `Suggested for this vial: ${niceNumber(suggestedBac)} mL (keeps common doses ≤60 units).`;
+            } else {
+                hint.textContent = `Showing ${niceNumber(bacMl)} mL mix. Suggested for this vial is ${niceNumber(suggestedBac)} mL.`;
+            }
+        }
+
         applyCalcDefaults({
             vialMg,
             bacMl: mode === 'nasal' && sprayMl > 0 ? sprayMl : bacMl,
@@ -240,7 +243,7 @@
         });
 
         document.dispatchEvent(new CustomEvent('vialsizechange', {
-            detail: { vialMg, bacMl, sprayMl, mode, maxSingleDrawMg: maxSingle }
+            detail: { vialMg, bacMl, sprayMl, mode, maxSingleDrawMg: maxSingle, suggestedBac }
         }));
     }
 
@@ -248,46 +251,112 @@
         const sizes = parseList(root.dataset.sizes);
         if (!sizes.length) return;
 
+        const mode = (root.dataset.mode || 'subq').toLowerCase();
+        const showBac = mode !== 'nasal' && root.dataset.hideBac !== '1';
         const storageKey = root.dataset.storageKey || `vial.${location.pathname}`;
+        const bacStorageKey = `${storageKey}.bac`;
         const params = new URLSearchParams(location.search);
         const fromQuery = parseFloat(params.get('vial'));
         const fromStore = parseFloat(localStorage.getItem(storageKey));
         const fallback = parseFloat(root.dataset.default) || sizes[0];
-        let selected = sizes.includes(fromQuery) ? fromQuery
+        let selectedVial = sizes.includes(fromQuery) ? fromQuery
             : (sizes.includes(fromStore) ? fromStore : fallback);
 
-        root.innerHTML = `
-            <span class="vial-picker-label">Vial size</span>
-            <div class="vial-chip-row" role="group" aria-label="Vial size">
-                ${sizes.map((s) => `
-                    <button type="button" class="vial-chip" data-size="${s}" aria-pressed="${s === selected ? 'true' : 'false'}">
-                        ${niceNumber(s)} ${root.dataset.sizeUnit || 'mg'}
-                    </button>
-                `).join('')}
+        let selectedBac = recommendedBacMl(root, selectedVial);
+        const bacQuery = parseFloat(params.get('bac'));
+        const bacStore = parseFloat(localStorage.getItem(bacStorageKey));
+        if (BAC_OPTIONS.includes(bacQuery)) selectedBac = bacQuery;
+        else if (BAC_OPTIONS.includes(bacStore)) selectedBac = bacStore;
+        // If store/query missing, use recommended for current vial
+        if (!BAC_OPTIONS.includes(bacQuery) && !BAC_OPTIONS.includes(bacStore)) {
+            selectedBac = recommendedBacMl(root, selectedVial);
+            if (!BAC_OPTIONS.includes(selectedBac)) {
+                selectedBac = BAC_OPTIONS.reduce((best, opt) => (
+                    Math.abs(opt - selectedBac) < Math.abs(best - selectedBac) ? opt : best
+                ), BAC_OPTIONS[0]);
+            }
+        }
+
+        const bacRow = showBac ? `
+            <div class="vial-picker-row">
+                <span class="vial-picker-label">BAC water</span>
+                <div class="vial-chip-row" role="group" aria-label="BAC water volume">
+                    ${BAC_OPTIONS.map((b) => `
+                        <button type="button" class="vial-chip bac-chip" data-bac="${b}" aria-pressed="false">
+                            ${niceNumber(b)} mL
+                        </button>
+                    `).join('')}
+                </div>
+                <p class="vial-picker-hint" data-bac-hint></p>
             </div>
+        ` : '';
+
+        root.innerHTML = `
+            <div class="vial-picker-row">
+                <span class="vial-picker-label">Vial size</span>
+                <div class="vial-chip-row" role="group" aria-label="Vial size">
+                    ${sizes.map((s) => `
+                        <button type="button" class="vial-chip size-chip" data-size="${s}" aria-pressed="false">
+                            ${niceNumber(s)} ${root.dataset.sizeUnit || 'mg'}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+            ${bacRow}
         `;
 
-        const sync = (size) => {
-            selected = size;
-            localStorage.setItem(storageKey, String(size));
-            root.querySelectorAll('.vial-chip').forEach((btn) => {
-                const on = parseFloat(btn.dataset.size) === size;
-                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-                btn.classList.toggle('is-active', on);
-            });
-            updatePage(root, size);
+        const persistUrl = () => {
             try {
                 const url = new URL(location.href);
-                url.searchParams.set('vial', String(size));
+                url.searchParams.set('vial', String(selectedVial));
+                if (showBac) url.searchParams.set('bac', String(selectedBac));
                 history.replaceState({}, '', url);
             } catch (ignore) {}
         };
 
-        root.querySelectorAll('.vial-chip').forEach((btn) => {
-            btn.addEventListener('click', () => sync(parseFloat(btn.dataset.size)));
+        const sync = ({ vial, bac, resetBacToSuggested } = {}) => {
+            if (vial != null) selectedVial = vial;
+            if (resetBacToSuggested) {
+                let sug = recommendedBacMl(root, selectedVial);
+                if (!BAC_OPTIONS.includes(sug)) {
+                    sug = BAC_OPTIONS.reduce((best, opt) => (
+                        Math.abs(opt - sug) < Math.abs(best - sug) ? opt : best
+                    ), BAC_OPTIONS[0]);
+                }
+                selectedBac = sug;
+            } else if (bac != null) {
+                selectedBac = bac;
+            }
+
+            localStorage.setItem(storageKey, String(selectedVial));
+            if (showBac) localStorage.setItem(bacStorageKey, String(selectedBac));
+
+            root.querySelectorAll('.size-chip').forEach((btn) => {
+                const on = parseFloat(btn.dataset.size) === selectedVial;
+                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+                btn.classList.toggle('is-active', on);
+            });
+
+            updatePage(root, {
+                vialMg: selectedVial,
+                bacMl: showBac ? selectedBac : recommendedBacMl(root, selectedVial)
+            });
+            persistUrl();
+        };
+
+        root.querySelectorAll('.size-chip').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                sync({ vial: parseFloat(btn.dataset.size), resetBacToSuggested: true });
+            });
         });
 
-        sync(selected);
+        root.querySelectorAll('.bac-chip').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                sync({ bac: parseFloat(btn.dataset.bac) });
+            });
+        });
+
+        sync({});
     }
 
     function boot() {

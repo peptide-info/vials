@@ -1650,7 +1650,10 @@
 
         bindNumberInputGuards(document.getElementById('view-planner') || document);
 
-        select.innerHTML = PEPTIDES.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')
+        select.innerHTML = PEPTIDES
+            .slice()
+            .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+            .map((p) => `<option value="${p.id}">${p.name}</option>`).join('')
             + '<option value="custom">Custom peptide…</option>';
 
         const sync = () => {
