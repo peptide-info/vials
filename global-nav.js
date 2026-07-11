@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { filename: 'bpc-157-5mg',                         mg: 5,   ml: 2,   dose: 375,   unit: 'mcg', route: 'subq' },
         { filename: 'cjc-1295-no-dac-with-ipamorelin',     mg: 10,  ml: 2,   dose: 300,   unit: 'mcg', route: 'subq' },
         { filename: 'ghk-cu-100mg-with-bpc-157-10mg',      mg: 50,  ml: 3,   dose: 2.5,   unit: 'mg',  route: 'subq' },
-        { filename: 'ghk-cu-100mg',                        mg: 100, ml: 5,   dose: 2,     unit: 'mg',  route: 'subq' },
+        { filename: 'ghk-cu-100mg',                        mg: 100, ml: 3,   dose: 2,     unit: 'mg',  route: 'subq' },
         { filename: 'pt-141-10mg',                         mg: 10,  ml: 4,   dose: 1,     unit: 'mg',  route: 'nasal' },
         { filename: 'retatrutide-10mg',                    mg: 10,  ml: 3,   dose: 2,     unit: 'mg',  route: 'subq' },
         { filename: 'retatrutide-30mg',                    mg: 30,  ml: 3,   dose: 6,     unit: 'mg',  route: 'subq' },
@@ -240,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const navBase = navScriptEl
             ? navScriptEl.src.replace(/global-nav\.js(\?.*)?$/, '')
             : 'https://peptide-info.github.io/vials/';
-        calcScript.src = navBase + 'js/calculator-popup.js?v=7';
+        calcScript.src = navBase + 'js/calculator-popup.js?v=8';
         
         calcScript.onload = () => {
             isCalcScriptLoaded = true;
