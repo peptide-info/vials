@@ -5,6 +5,19 @@
 (function () {
     const STORAGE_KEY = 'peptideInfoSchedules.v2';
 
+    /** Default alert clock times by times-per-day count. */
+    const DEFAULT_ALERT_TIMES = {
+        1: ['20:00'],
+        2: ['08:00', '20:00'],
+        3: ['08:00', '14:00', '20:00'],
+        4: ['08:00', '12:00', '16:00', '20:00']
+    };
+
+    function defaultAlertTimes(count) {
+        const n = Math.max(1, Math.min(4, Number(count) || 1));
+        return DEFAULT_ALERT_TIMES[n].slice();
+    }
+
     const PEPTIDES = [
         {
             id: 'reta',
@@ -15,7 +28,7 @@
             unit: 'mg',
             titration: true,
             defaultTimesPerDay: 1,
-            defaultTimes: ['09:00'],
+            defaultTimes: defaultAlertTimes(1),
             note: 'Usually every 5–7 days · choose slower (+2 mg) or faster (2→4→8→12) titration · graph ≈6 day half-life'
         },
         {
@@ -26,7 +39,7 @@
             defaultIntervalDays: 1,
             unit: 'mg',
             defaultTimesPerDay: 1,
-            defaultTimes: ['21:00'],
+            defaultTimes: defaultAlertTimes(1),
             defaultDays: [1, 2, 3, 4, 5],
             defaultStopWeeks: 10,
             note: 'Usually weekdays — defaults to Mon–Fri · 10-week course'
@@ -39,7 +52,7 @@
             defaultIntervalDays: 1,
             unit: 'mcg',
             defaultTimesPerDay: 2,
-            defaultTimes: ['08:00', '21:00'],
+            defaultTimes: defaultAlertTimes(2),
             note: 'Often 1–2× daily — set both alert times below'
         },
         {
@@ -50,7 +63,7 @@
             defaultIntervalDays: 1,
             unit: 'mcg',
             defaultTimesPerDay: 2,
-            defaultTimes: ['08:00', '20:00'],
+            defaultTimes: defaultAlertTimes(2),
             note: '1–2× daily'
         },
         {
@@ -61,7 +74,7 @@
             defaultIntervalDays: 1,
             unit: 'mg',
             defaultTimesPerDay: 1,
-            defaultTimes: ['09:00'],
+            defaultTimes: defaultAlertTimes(1),
             note: 'Daily Sub-Q'
         },
         {
@@ -73,7 +86,7 @@
             unit: 'mg',
             defaultDose: 2.5,
             defaultTimesPerDay: 1,
-            defaultTimes: ['09:00'],
+            defaultTimes: defaultAlertTimes(1),
             defaultDays: [0, 1, 2, 3, 4, 5, 6],
             note: 'Blend vial · enter GHK mg per draw (BPC scales with it) · graph uses ~5 h'
         },
@@ -85,7 +98,7 @@
             defaultIntervalDays: 1,
             unit: 'mcg',
             defaultTimesPerDay: 2,
-            defaultTimes: ['09:00', '15:00'],
+            defaultTimes: defaultAlertTimes(2),
             note: 'Nasal 1–2× daily'
         },
         {
@@ -97,7 +110,7 @@
             unit: 'mg',
             prn: true,
             defaultTimesPerDay: 1,
-            defaultTimes: ['18:00'],
+            defaultTimes: defaultAlertTimes(1),
             note: 'PRN only · max 1× / 24h'
         }
     ];
@@ -171,10 +184,10 @@
     }
 
     function parseTimeInput(value) {
-        const raw = value || '09:00';
+        const raw = value || '20:00';
         const [hh, mm] = raw.split(':').map(Number);
         return {
-            hours: Number.isFinite(hh) ? hh : 9,
+            hours: Number.isFinite(hh) ? hh : 20,
             minutes: Number.isFinite(mm) ? mm : 0
         };
     }
@@ -188,8 +201,8 @@
 
     function getSelectedTimes() {
         const timesPerDay = Math.max(1, parseInt($('#pf-times-per-day')?.value || '1', 10));
-        const times = $all('.pf-time-input').map((el) => el.value || '09:00').slice(0, timesPerDay);
-        while (times.length < timesPerDay) times.push(times[times.length - 1] || '09:00');
+        const times = $all('.pf-time-input').map((el) => el.value || '20:00').slice(0, timesPerDay);
+        while (times.length < timesPerDay) times.push(times[times.length - 1] || '20:00');
         return times;
     }
 
@@ -554,13 +567,18 @@
 
     function timeFieldsHtml(peptide, { forceMax } = {}) {
         const count = Math.max(1, peptide.defaultTimesPerDay || 1);
-        const defaults = peptide.defaultTimes || ['09:00'];
         const maxTimes = forceMax != null
             ? forceMax
             : (peptide.titration || peptide.prn ? 1 : 4);
+        const selected = Math.min(count, maxTimes);
+
+        if (maxTimes === 1) {
+            return `<div id="pf-time-slots" class="time-slots" data-single="1"></div>`;
+        }
+
         const options = Array.from({ length: maxTimes }, (_, i) => {
             const n = i + 1;
-            return `<option value="${n}" ${n === Math.min(count, maxTimes) ? 'selected' : ''}>${n}× per day</option>`;
+            return `<option value="${n}" ${n === selected ? 'selected' : ''}>${n}× per day</option>`;
         }).join('');
 
         return `
@@ -571,28 +589,32 @@
         `;
     }
 
-    function renderTimeSlots(count, defaults = ['09:00']) {
+    function renderTimeSlots(count, defaults) {
         const host = $('#pf-time-slots');
         if (!host) return;
         const n = Math.max(1, count);
+        const times = (defaults && defaults.length) ? defaults : defaultAlertTimes(n);
+        const single = host.getAttribute('data-single') === '1' || n === 1;
         host.innerHTML = Array.from({ length: n }, (_, i) => {
-            const val = defaults[i] || defaults[defaults.length - 1] || '09:00';
-            return `<label class="field"><span>Alert time ${i + 1}</span><input type="time" class="pf-time-input" value="${val}"></label>`;
+            const val = times[i] || defaultAlertTimes(n)[i] || '20:00';
+            const label = single && n === 1 ? 'Alert time' : `Alert time ${i + 1}`;
+            return `<label class="field"><span>${label}</span><input type="time" class="pf-time-input" value="${val}"></label>`;
         }).join('');
     }
 
     function bindTimeFields(peptide, forceMax) {
         const select = $('#pf-times-per-day');
         if (!select) {
-            renderTimeSlots(1, peptide.defaultTimes);
+            renderTimeSlots(1, peptide.defaultTimes || defaultAlertTimes(1));
             return;
         }
+        let lastCount = null;
         const sync = () => {
             const n = Math.max(1, parseInt(select.value, 10) || 1);
             const capped = forceMax != null ? Math.min(n, forceMax) : n;
-            const current = $all('.pf-time-input').map((el) => el.value);
-            const defaults = current.length ? current : (peptide.defaultTimes || ['09:00']);
-            renderTimeSlots(capped, defaults);
+            if (lastCount === capped) return;
+            lastCount = capped;
+            renderTimeSlots(capped, defaultAlertTimes(capped));
         };
         select.addEventListener('change', sync);
         sync();
@@ -694,7 +716,7 @@
         const mode = defaultWeeks ? 'weeks' : 'none';
         const weeksVal = defaultWeeks || 10;
         return `
-            <div class="field field-span" id="pf-stop-block">
+            <div class="field" id="pf-stop-block">
                 <span>Stop (optional)</span>
                 <div class="mode-row" id="pf-stop-mode">
                     <label class="mode-chip">
@@ -703,11 +725,11 @@
                     </label>
                     <label class="mode-chip">
                         <input type="radio" name="pf-stop-mode" value="weeks" ${mode === 'weeks' ? 'checked' : ''}>
-                        <span>After weeks</span>
+                        <span>Weeks</span>
                     </label>
                     <label class="mode-chip">
                         <input type="radio" name="pf-stop-mode" value="date" ${mode === 'date' ? 'checked' : ''}>
-                        <span>On date</span>
+                        <span>Date</span>
                     </label>
                 </div>
                 <div class="pf-stop-detail" id="pf-stop-weeks-wrap" ${mode === 'weeks' ? '' : 'hidden'}>
@@ -831,7 +853,7 @@
                 unit,
                 halfLifeHours,
                 defaultTimesPerDay: 1,
-                defaultTimes: ['09:00'],
+                defaultTimes: defaultAlertTimes(1),
                 defaultDays: [0, 1, 2, 3, 4, 5, 6],
                 custom: true
             };
@@ -865,24 +887,24 @@
                 <label class="field"><span>Current dose (mg)</span><input type="number" inputmode="decimal" id="pf-current" value="0" min="0" step="0.5"></label>
                 <label class="field"><span>Doses already taken at this dose</span><input type="number" inputmode="numeric" id="pf-taken" value="0" min="0" step="1"></label>
                 <label class="field"><span>Target dose (mg)</span><input type="number" inputmode="decimal" id="pf-target" value="12" min="0" step="0.5"></label>
+                <div id="pf-reta-interval-block">
+                    ${intervalFieldHtml(interval, {
+                        min: 1,
+                        max: 14,
+                        hint: 'Commonly 5–7 days between injections. Titration steps after 4 doses at this spacing.'
+                    })}
+                </div>
             </div>
 
             <div id="pf-fixed-reta-block" hidden>
                 <label class="field"><span>Dose each injection (mg)</span><input type="number" inputmode="decimal" id="pf-dose" value="2" min="0" step="0.5"></label>
+                <div class="field planner-spacer" aria-hidden="true"></div>
                 ${scheduleModeHtml({ defaultMode: 'interval', intervalDays: interval })}
-            </div>
-
-            <div id="pf-reta-interval-block">
-                ${intervalFieldHtml(interval, {
-                    min: 1,
-                    max: 14,
-                    hint: 'Commonly 5–7 days between injections. Titration steps after 4 doses at this spacing.'
-                })}
             </div>
 
             <label class="field"><span>Start date (next dose)</span><input type="date" id="pf-start" value="${today}"></label>
             ${stopFieldsHtml(peptide)}
-            <div id="pf-reta-times">${timeFieldsHtml(peptide, { forceMax: 1 })}</div>
+            <div id="pf-reta-times" class="planner-times">${timeFieldsHtml(peptide, { forceMax: 1 })}</div>
         `;
 
         const follow = $('#pf-follow-titration');
@@ -899,11 +921,9 @@
             const on = !!follow?.checked;
             const titBlock = $('#pf-titration-block');
             const fixedBlock = $('#pf-fixed-reta-block');
-            const intervalOnly = $('#pf-reta-interval-block');
             const hint = $('#pf-titration-hint');
             if (titBlock) titBlock.hidden = !on;
             if (fixedBlock) fixedBlock.hidden = on;
-            if (intervalOnly) intervalOnly.hidden = !on;
             if (hint) {
                 hint.textContent = on
                     ? 'Stay at each dose for 4 injections, then move to the next step on the path until target. Spacing is usually 5–7 days.'
@@ -917,7 +937,7 @@
                     ...peptide,
                     titration: on,
                     defaultTimesPerDay: on ? 1 : 2,
-                    defaultTimes: on ? ['09:00'] : ['09:00', '21:00']
+                    defaultTimes: defaultAlertTimes(on ? 1 : 2)
                 };
                 timesHost.innerHTML = timeFieldsHtml(fake, { forceMax: maxTimes });
                 bindTimeFields(fake, maxTimes);
@@ -953,7 +973,7 @@
             wrap.innerHTML = `
                 <label class="field"><span>Dose (${peptide.unit})</span><input type="number" inputmode="decimal" id="pf-dose" value="1" min="0" step="0.1"></label>
                 <label class="field"><span>Event date</span><input type="date" id="pf-start" value="${today}"></label>
-                ${timeFieldsHtml(peptide)}
+                <div class="field-span planner-times">${timeFieldsHtml(peptide)}</div>
                 <p class="hint field-span">PRN peptide — adds a single calendar reminder.</p>
             `;
             bindTimeFields(peptide);
@@ -967,13 +987,14 @@
         wrap.innerHTML = `
             ${customFieldsHtml()}
             <label class="field"><span>Dose (<span id="pf-unit-label">${unit}</span>)</span><input type="number" inputmode="decimal" id="pf-dose" value="${doseDefault}" min="0" step="any"></label>
+            <div class="field planner-spacer" aria-hidden="true"></div>
             <label class="field"><span>Start date</span><input type="date" id="pf-start" value="${today}"></label>
             ${stopFieldsHtml(isCustom ? {} : peptide)}
             ${scheduleModeHtml({
                 defaultMode,
                 intervalDays: peptide.defaultIntervalDays > 1 ? peptide.defaultIntervalDays : 7
             })}
-            ${timeFieldsHtml(isCustom ? { defaultTimesPerDay: 1, defaultTimes: ['09:00'] } : peptide)}
+            <div class="planner-times">${timeFieldsHtml(isCustom ? { defaultTimesPerDay: 1, defaultTimes: defaultAlertTimes(1) } : peptide)}</div>
             <p class="hint field-span">Choose every X days (e.g. every 6) or pick weekdays, then set alert times.</p>
         `;
 
@@ -986,7 +1007,7 @@
             });
         }
         bindScheduleMode(isCustom ? { defaultDays: [0, 1, 2, 3, 4, 5, 6] } : peptide);
-        bindTimeFields(isCustom ? { defaultTimesPerDay: 1, defaultTimes: ['09:00'] } : peptide);
+        bindTimeFields(isCustom ? { defaultTimesPerDay: 1, defaultTimes: defaultAlertTimes(1) } : peptide);
     }
 
     const DAY_NAMES_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -1513,7 +1534,7 @@
             const id = select.value;
             if (id === 'custom') {
                 $('#planner-peptide-note').textContent = 'Type any name — useful for Semax, MT2, or anything else in your stack.';
-                renderFormFields({ id: 'custom', unit: 'mg', defaultTimesPerDay: 1, defaultTimes: ['09:00'], defaultDays: [0, 1, 2, 3, 4, 5, 6] });
+                renderFormFields({ id: 'custom', unit: 'mg', defaultTimesPerDay: 1, defaultTimes: defaultAlertTimes(1), defaultDays: [0, 1, 2, 3, 4, 5, 6] });
                 setCustomVisible(true);
                 return;
             }

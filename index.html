@@ -450,6 +450,40 @@
             display: contents;
         }
 
+        .planner-times {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .planner-spacer {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        #pf-titration-block:not([hidden]),
+        #pf-fixed-reta-block:not([hidden]),
+        #pf-reta-interval-block:not([hidden]) {
+            display: contents;
+        }
+
+        #pf-reta-times.planner-times {
+            display: grid;
+            grid-column: 1 / -1;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        #pf-stop-mode.mode-row {
+            gap: 6px;
+        }
+
+        #pf-stop-mode .mode-chip span {
+            padding: 7px 10px;
+            font-size: 0.85rem;
+        }
+
         .dow-row {
             display: flex;
             flex-wrap: wrap;
@@ -647,6 +681,8 @@
             }
             .tags { justify-content: flex-start; }
             .planner-grid { grid-template-columns: 1fr; }
+            .planner-times { grid-template-columns: 1fr; }
+            .planner-spacer { display: none; }
         }
     </style>
 </head>
@@ -713,7 +749,7 @@
         </div>
     </main>
 
-    <script src="js/schedule-planner.js?v=17"></script>
+    <script src="js/schedule-planner.js?v=18"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';
