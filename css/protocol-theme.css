@@ -224,6 +224,13 @@ body.protocol-page .route-panel.route-nasal {
         var(--panel);
 }
 
+body.protocol-page .route-panel.route-topical {
+    border-top: 4px solid #7a5a1e;
+    background:
+        linear-gradient(180deg, rgba(122, 90, 30, 0.12), transparent 42%),
+        var(--panel);
+}
+
 body.protocol-page .route-panel .route-label {
     display: inline-block;
     font-size: 0.72rem;
@@ -243,6 +250,11 @@ body.protocol-page .route-panel.route-subq .route-label {
 body.protocol-page .route-panel.route-nasal .route-label {
     background: #e4eaf7;
     color: #3557a0;
+}
+
+body.protocol-page .route-panel.route-topical .route-label {
+    background: #f3ead8;
+    color: #7a5a1e;
 }
 
 body.protocol-page .route-panel > h4 {

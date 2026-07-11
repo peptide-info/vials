@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="../global-nav.js?v=10"></script>
+    <script src="../global-nav.js?v=11"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Retatrutide Protocol</title>
@@ -24,12 +24,18 @@
     <hr>
     
     <h3 id="-reconstitution-guide">🧪 Reconstitution Guide</h3>
-    <ul>
-        <li><strong>Diluent:</strong> Add <strong>3.0 mL</strong> of Bacteriostatic (BAC) Water gently down the side of the vial.</li>
-        <li><strong>Mixing:</strong> Do <em>not</em> shake. Swirl gently until the solution is completely clear.</li>
-        <li><strong>Final Concentration:</strong> ≈3.33 mg per 1 mL <em>(1 mg ≈ 30 units on a standard U-100 syringe)</em>.</li>
-        <li><strong>Storage:</strong> Store in refrigerator at <strong>36°F–46°F</strong> (2°C–8°C).</li>
-    </ul>
+    <div class="route-stack">
+        <section class="route-panel route-subq" aria-labelledby="reta10-recon-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4 id="reta10-recon-subq">Subcutaneous reconstitution</h4>
+            <ul>
+                <li><strong>Diluent:</strong> Add <strong>3.0 mL</strong> of Bacteriostatic (BAC) Water gently down the side of the vial.</li>
+                <li><strong>Mixing:</strong> Do <em>not</em> shake. Swirl gently until the solution is completely clear.</li>
+                <li><strong>Final Concentration:</strong> ≈3.33 mg per 1 mL <em>(1 mg ≈ 30 units on a standard U-100 syringe)</em>.</li>
+                <li><strong>Storage:</strong> Store in refrigerator at <strong>36°F–46°F</strong> (2°C–8°C).</li>
+            </ul>
+        </section>
+    </div>
     
     <hr>
     
@@ -37,9 +43,12 @@
     <p><strong>Frequency:</strong> Subcutaneous injection once weekly (every 7 days). Stay at each step for about <strong>4 doses</strong> before increasing, or longer if side effects need more time.</p>
     <p>Two common paths (syringe volumes match this vial’s ≈3.33 mg/mL mix):</p>
 
-    <h4>Faster titration — 2 → 4 → 8 → 12 mg</h4>
-    <p>Larger jumps. Some people insert an optional <strong>6 mg</strong> bridge between 4 and 8 if 4→8 is too aggressive.</p>
-    <table>
+    <div class="route-stack">
+        <section class="route-panel route-subq" aria-labelledby="reta10-faster">
+            <p class="route-label">Sub-Q · Faster</p>
+            <h4 id="reta10-faster">Faster titration — 2 → 4 → 8 → 12 mg</h4>
+            <p>Larger jumps. Some people insert an optional <strong>6 mg</strong> bridge between 4 and 8 if 4→8 is too aggressive.</p>
+            <table>
         <thead>
             <tr>
                 <th style="text-align:left">Timeline</th>
@@ -74,51 +83,56 @@
                 <td style="text-align:left"><strong>360 units</strong> <em>(Requires multiple vials/shots)</em></td>
             </tr>
         </tbody>
-    </table>
+            </table>
+        </section>
 
-    <h4>Slower titration — 2 → 4 → 6 → 8 → 10 → 12 mg</h4>
-    <p>+2 mg after every ~4 weekly doses. Gentler climb; use if you prefer smaller steps.</p>
-    <table>
-        <thead>
-            <tr>
-                <th style="text-align:left">Timeline</th>
-                <th style="text-align:left">Weekly Dose</th>
-                <th style="text-align:left">Syringe Volume (U-100)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td style="text-align:left"><strong>Weeks 1–4</strong></td>
-                <td style="text-align:left">2.0 mg</td>
-                <td style="text-align:left"><strong>60 units</strong></td>
-            </tr>
-            <tr>
-                <td style="text-align:left"><strong>Weeks 5–8</strong></td>
-                <td style="text-align:left">4.0 mg</td>
-                <td style="text-align:left"><strong>120 units</strong> <em>(2 shots)</em></td>
-            </tr>
-            <tr>
-                <td style="text-align:left"><strong>Weeks 9–12</strong></td>
-                <td style="text-align:left">6.0 mg</td>
-                <td style="text-align:left"><strong>180 units</strong> <em>(multiple shots)</em></td>
-            </tr>
-            <tr>
-                <td style="text-align:left"><strong>Weeks 13–16</strong></td>
-                <td style="text-align:left">8.0 mg</td>
-                <td style="text-align:left"><strong>240 units</strong> <em>(multiple shots // exceeds this vial)</em></td>
-            </tr>
-            <tr>
-                <td style="text-align:left"><strong>Weeks 17–20</strong></td>
-                <td style="text-align:left">10.0 mg</td>
-                <td style="text-align:left"><strong>300 units</strong> <em>(multiple vials/shots)</em></td>
-            </tr>
-            <tr>
-                <td style="text-align:left"><strong>Week 21+</strong></td>
-                <td style="text-align:left">12.0 mg <em>(Max)</em></td>
-                <td style="text-align:left"><strong>360 units</strong> <em>(Requires multiple vials/shots)</em></td>
-            </tr>
-        </tbody>
-    </table>
+        <section class="route-panel route-subq" aria-labelledby="reta10-slower">
+            <p class="route-label">Sub-Q · Slower</p>
+            <h4 id="reta10-slower">Slower titration — 2 → 4 → 6 → 8 → 10 → 12 mg</h4>
+            <p>+2 mg after every ~4 weekly doses. Gentler climb; use if you prefer smaller steps.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align:left">Timeline</th>
+                        <th style="text-align:left">Weekly Dose</th>
+                        <th style="text-align:left">Syringe Volume (U-100)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align:left"><strong>Weeks 1–4</strong></td>
+                        <td style="text-align:left">2.0 mg</td>
+                        <td style="text-align:left"><strong>60 units</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left"><strong>Weeks 5–8</strong></td>
+                        <td style="text-align:left">4.0 mg</td>
+                        <td style="text-align:left"><strong>120 units</strong> <em>(2 shots)</em></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left"><strong>Weeks 9–12</strong></td>
+                        <td style="text-align:left">6.0 mg</td>
+                        <td style="text-align:left"><strong>180 units</strong> <em>(multiple shots)</em></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left"><strong>Weeks 13–16</strong></td>
+                        <td style="text-align:left">8.0 mg</td>
+                        <td style="text-align:left"><strong>240 units</strong> <em>(multiple shots // exceeds this vial)</em></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left"><strong>Weeks 17–20</strong></td>
+                        <td style="text-align:left">10.0 mg</td>
+                        <td style="text-align:left"><strong>300 units</strong> <em>(multiple vials/shots)</em></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left"><strong>Week 21+</strong></td>
+                        <td style="text-align:left">12.0 mg <em>(Max)</em></td>
+                        <td style="text-align:left"><strong>360 units</strong> <em>(Requires multiple vials/shots)</em></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
     
     <hr>
     
