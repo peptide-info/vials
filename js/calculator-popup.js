@@ -1,4 +1,4 @@
-(function() {
+﻿(function() {
     // Prevent duplicate injections if the script is somehow called twice
     if (document.getElementById("calc-modal-overlay")) {
         return;
@@ -270,7 +270,7 @@
     overlay.innerHTML = `
         <div class="calc-modal-content">
             <button class="calc-close-btn" id="calc-close-modal">&times;</button>
-            <h2>🧪 Peptide Toolkit</h2>
+            <h2>ðŸ§ª Peptide Toolkit</h2>
 
             <div class="tab-container">
                 <button class="tab-btn active" id="pop-btn-standard">Syringe Unit Calc</button>
@@ -293,7 +293,7 @@
                 <div class="input-group">
                     <label>Peptide Amount</label>
                     <div class="input-with-unit">
-                        <input type="number" id="pop_mg_1" value="5" step="any">
+                        <input type="number" inputmode="decimal" id="pop_mg_1" value="5" step="any">
                         <select disabled><option>mg</option></select>
                     </div>
                     <div class="preset-container" data-target="pop_mg_1">
@@ -307,7 +307,7 @@
                 <div class="input-group">
                     <label>Reconstitution Volume</label>
                     <div class="input-with-unit">
-                        <input type="number" id="pop_ml_1" value="2" step="any">
+                        <input type="number" inputmode="decimal" id="pop_ml_1" value="2" step="any">
                         <select disabled><option>mL</option></select>
                     </div>
                     <div class="preset-container" data-target="pop_ml_1" id="pop_ml_presets">
@@ -322,7 +322,7 @@
                 <div class="input-group">
                     <label>Target Dose</label>
                     <div class="input-with-unit">
-                        <input type="number" id="pop_dose_1" value="2" step="any">
+                        <input type="number" inputmode="decimal" id="pop_dose_1" value="2" step="any">
                         <select id="pop_unit_1">
                             <option value="mg" selected>mg</option>
                             <option value="mcg">mcg</option>
@@ -348,7 +348,7 @@
                 <div class="input-group">
                     <label>Peptide Amount</label>
                     <div class="input-with-unit">
-                        <input type="number" id="pop_mg_2" placeholder="e.g. 30" step="any">
+                        <input type="number" inputmode="decimal" id="pop_mg_2" placeholder="e.g. 30" step="any">
                         <select disabled><option>mg</option></select>
                     </div>
                     <div class="preset-container" data-target="pop_mg_2">
@@ -362,7 +362,7 @@
                 <div class="input-group">
                     <label>Target Dose</label>
                     <div class="input-with-unit">
-                        <input type="number" id="pop_dose_2" placeholder="e.g. 2" step="any">
+                        <input type="number" inputmode="decimal" id="pop_dose_2" placeholder="e.g. 2" step="any">
                         <select id="pop_unit_2">
                             <option value="mg" selected>mg</option>
                             <option value="mcg">mcg</option>
@@ -383,7 +383,7 @@
                 <div class="input-group">
                     <label>Max Allowed Volume Per Dose</label>
                     <div class="input-with-unit">
-                        <input type="number" id="pop_max_units" value="60" step="any">
+                        <input type="number" inputmode="decimal" id="pop_max_units" value="60" step="any">
                         <select disabled><option>units</option></select>
                     </div>
                     <div class="preset-container" data-target="pop_max_units">
@@ -507,9 +507,9 @@
 
             let nearestHtml = `Target volume is <strong>${spraysExact.toFixed(2)} sprays</strong> (not an exact spray count).<br>`;
             nearestHtml += `<span style="font-weight:normal; font-size:13px; color:#333; display:block; margin-top:8px;">Nearest options:</span>`;
-            nearestHtml += `<span style="font-weight:normal; font-size:13px; color:#333; display:block; margin-top:4px;">• <strong>${formatSprayLabel(low)}</strong> → ${formatDoseAmount(lowDose)}${low === 0 ? ' (no dose)' : ''}</span>`;
+            nearestHtml += `<span style="font-weight:normal; font-size:13px; color:#333; display:block; margin-top:4px;">â€¢ <strong>${formatSprayLabel(low)}</strong> â†’ ${formatDoseAmount(lowDose)}${low === 0 ? ' (no dose)' : ''}</span>`;
             if (high !== low) {
-                nearestHtml += `<span style="font-weight:normal; font-size:13px; color:#333; display:block;">• <strong>${formatSprayLabel(high)}</strong> → ${formatDoseAmount(highDose)}</span>`;
+                nearestHtml += `<span style="font-weight:normal; font-size:13px; color:#333; display:block;">â€¢ <strong>${formatSprayLabel(high)}</strong> â†’ ${formatDoseAmount(highDose)}</span>`;
             }
             nearestHtml += `<span class="sub-text" style="display:block; margin-top:6px;">Each spray = 0.1 mL.</span>`;
             result1.innerHTML = nearestHtml;
@@ -520,7 +520,7 @@
         const unitsRequired = mlNeeded * 100;
 
         if (unitsRequired > 100) {
-            result1.innerHTML = `Required Pull: ${unitsRequired.toFixed(1)} units <br><span style="font-size:11px; font-weight:normal; color:#555;">⚠️ Warning: Exceeds a single 100-unit syringe capacity.</span>`;
+            result1.innerHTML = `Required Pull: ${unitsRequired.toFixed(1)} units <br><span style="font-size:11px; font-weight:normal; color:#555;">âš ï¸ Warning: Exceeds a single 100-unit syringe capacity.</span>`;
         } else {
             result1.innerHTML = `Required Pull: ${unitsRequired.toFixed(1)} units`;
         }
@@ -548,11 +548,11 @@
 
         if (maxWaterAllowed <= 0) {
             result2.className = "result warning";
-            result2.innerHTML = `⚠️ Impossible mix: The requested dose is larger than your total vial content.`;
+            result2.innerHTML = `âš ï¸ Impossible mix: The requested dose is larger than your total vial content.`;
         } 
         else if (maxWaterAllowed < 0.5) {
             result2.className = "result warning";
-            result2.innerHTML = `⚠️ Warning: To stay under ${maxU} units, you must drop to ${maxWaterAllowed.toFixed(2)} mL of water. This may be too dense to fully dissolve the powder.`;
+            result2.innerHTML = `âš ï¸ Warning: To stay under ${maxU} units, you must drop to ${maxWaterAllowed.toFixed(2)} mL of water. This may be too dense to fully dissolve the powder.`;
         }
         else {
             const optimalWater = Math.min(maxWaterAllowed, 3.00);

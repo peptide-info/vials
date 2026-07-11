@@ -545,7 +545,7 @@
         return `
             <label class="field" id="pf-interval-wrap">
                 <span>Every X days</span>
-                <input type="number" id="pf-interval" value="${defaultDays}" min="${min}" max="${max}" step="1">
+                <input type="number" inputmode="numeric" id="pf-interval" value="${defaultDays}" min="${min}" max="${max}" step="1">
             </label>
             ${hint ? `<p class="hint field-span" id="pf-interval-hint">${hint}</p>` : ''}
         `;
@@ -669,7 +669,7 @@
             </label>
             <label class="field" id="pf-custom-hl-wrap" hidden>
                 <span>Half-life (hours, for graph)</span>
-                <input type="number" id="pf-custom-hl" value="24" min="0.5" step="any">
+                <input type="number" inputmode="decimal" id="pf-custom-hl" value="24" min="0.5" step="any">
             </label>
         `;
     }
@@ -716,13 +716,13 @@
             <p class="hint field-span" id="pf-titration-hint">Stay at each dose for 4 injections, then +2 mg until target. Spacing is usually 5–7 days.</p>
 
             <div id="pf-titration-block">
-                <label class="field"><span>Current dose (mg)</span><input type="number" id="pf-current" value="0" min="0" step="0.5"></label>
-                <label class="field"><span>Doses already taken at this dose</span><input type="number" id="pf-taken" value="0" min="0" step="1"></label>
-                <label class="field"><span>Target dose (mg)</span><input type="number" id="pf-target" value="10" min="0" step="0.5"></label>
+                <label class="field"><span>Current dose (mg)</span><input type="number" inputmode="decimal" id="pf-current" value="0" min="0" step="0.5"></label>
+                <label class="field"><span>Doses already taken at this dose</span><input type="number" inputmode="numeric" id="pf-taken" value="0" min="0" step="1"></label>
+                <label class="field"><span>Target dose (mg)</span><input type="number" inputmode="decimal" id="pf-target" value="10" min="0" step="0.5"></label>
             </div>
 
             <div id="pf-fixed-reta-block" hidden>
-                <label class="field"><span>Dose each injection (mg)</span><input type="number" id="pf-dose" value="2" min="0" step="0.5"></label>
+                <label class="field"><span>Dose each injection (mg)</span><input type="number" inputmode="decimal" id="pf-dose" value="2" min="0" step="0.5"></label>
                 ${scheduleModeHtml({ defaultMode: 'interval', intervalDays: interval })}
             </div>
 
@@ -796,7 +796,7 @@
 
         if (peptide?.prn) {
             wrap.innerHTML = `
-                <label class="field"><span>Dose (${peptide.unit})</span><input type="number" id="pf-dose" value="1" min="0" step="0.1"></label>
+                <label class="field"><span>Dose (${peptide.unit})</span><input type="number" inputmode="decimal" id="pf-dose" value="1" min="0" step="0.1"></label>
                 <label class="field"><span>Event date</span><input type="date" id="pf-start" value="${today}"></label>
                 ${timeFieldsHtml(peptide)}
                 <p class="hint field-span">PRN peptide — adds a single calendar reminder.</p>
@@ -811,7 +811,7 @@
         const defaultMode = (peptide.defaultIntervalDays && peptide.defaultIntervalDays > 1) ? 'interval' : 'dow';
         wrap.innerHTML = `
             ${customFieldsHtml()}
-            <label class="field"><span>Dose (<span id="pf-unit-label">${unit}</span>)</span><input type="number" id="pf-dose" value="${doseDefault}" min="0" step="any"></label>
+            <label class="field"><span>Dose (<span id="pf-unit-label">${unit}</span>)</span><input type="number" inputmode="decimal" id="pf-dose" value="${doseDefault}" min="0" step="any"></label>
             <label class="field"><span>Start date</span><input type="date" id="pf-start" value="${today}"></label>
             <label class="field"><span>Stop date</span><input type="date" id="pf-stop" value="${formatDateInput(addDays(new Date(), 84))}"></label>
             ${scheduleModeHtml({
