@@ -251,7 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log("Initializing toolkit setup module injection...");
         const calcScript = document.createElement("script");
-        calcScript.src = navBase + 'js/calculator-popup.js?v=11';
+        calcScript.src = navBase + 'js/calculator-popup.js?v=12';
         
         calcScript.onload = () => {
             isCalcScriptLoaded = true;

@@ -270,7 +270,7 @@
     overlay.innerHTML = `
         <div class="calc-modal-content">
             <button class="calc-close-btn" id="calc-close-modal">&times;</button>
-            <h2>ðŸ§ª Peptide Toolkit</h2>
+            <h2>🧪 Peptide Toolkit</h2>
 
             <div class="tab-container">
                 <button class="tab-btn active" id="pop-btn-standard">Syringe Unit Calc</button>
