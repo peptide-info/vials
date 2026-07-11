@@ -358,6 +358,31 @@ body.protocol-page tr.dose-impractical td em {
     color: var(--muted);
 }
 
+body.protocol-page .community-disclaimer {
+    width: min(680px, 100%);
+    margin: 0 auto 10px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-style: italic;
+}
+
+body.protocol-page .community-notes {
+    width: min(680px, 100%);
+    margin: 0 auto 18px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.45);
+}
+
+body.protocol-page .community-notes ul {
+    margin: 0;
+}
+
+body.protocol-page .community-notes li + li {
+    margin-top: 8px;
+}
+
 @media (max-width: 600px) {
     body.protocol-page {
         padding-top: 56px;
