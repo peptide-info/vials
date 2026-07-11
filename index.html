@@ -222,6 +222,204 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .mode-tabs {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px;
+            margin-top: 20px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--panel);
+            backdrop-filter: blur(10px);
+        }
+
+        .mode-tab {
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+        }
+
+        .mode-tab.active {
+            background: #fff;
+            color: var(--accent);
+            box-shadow: 0 1px 0 rgba(28,42,36,0.06);
+        }
+
+        .view[hidden] { display: none !important; }
+
+        .planner-panel {
+            display: grid;
+            gap: 16px;
+            animation: rise 0.45s ease both;
+        }
+
+        .planner-card {
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: var(--panel);
+            backdrop-filter: blur(10px);
+            padding: 16px;
+        }
+
+        .planner-card h2 {
+            font-family: "Fraunces", serif;
+            font-size: 1.35rem;
+            margin: 0 0 6px;
+            letter-spacing: -0.02em;
+        }
+
+        .planner-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        .field input[type="number"],
+        .field input[type="date"],
+        .field select {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font: inherit;
+            color: var(--ink);
+            background: #fff;
+        }
+
+        .field.checkbox {
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 0.88rem;
+            margin: 8px 0 0;
+            line-height: 1.45;
+        }
+
+        .planner-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .btn {
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
+            font-weight: 600;
+            border-radius: 999px;
+            padding: 10px 14px;
+            cursor: pointer;
+        }
+
+        .btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .text-btn {
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .sched-card {
+            border-left: 4px solid var(--swatch, var(--accent));
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.55);
+            margin-bottom: 8px;
+        }
+
+        .sched-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .sched-preview {
+            margin: 8px 0 0;
+            padding-left: 18px;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .graph-wrap {
+            position: relative;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        #planner-graph {
+            width: 100%;
+            height: 260px;
+            display: block;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.55);
+        }
+
+        .graph-empty {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: var(--muted);
+            font-size: 0.95rem;
+            pointer-events: none;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .legend-item i {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
         @media (max-width: 560px) {
             .page { padding-top: 32px; }
             .protocol-list a {
@@ -232,6 +430,7 @@
                     "tags";
             }
             .tags { justify-content: flex-start; }
+            .planner-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -239,22 +438,93 @@
     <main class="page">
         <header class="hero">
             <h1 class="brand">Peptide Info</h1>
-            <p class="lede">Protocol sheets with reconstitution math, dosing tables, and calculator defaults for each vial.</p>
-            <div class="toolbar">
+            <p class="lede" id="hero-lede">Protocol sheets with reconstitution math, dosing tables, and calculator defaults for each vial.</p>
+            <div class="mode-tabs" role="tablist" aria-label="Main views">
+                <button type="button" class="mode-tab active" data-view="protocols" role="tab" aria-selected="true">Protocols</button>
+                <button type="button" class="mode-tab" data-view="planner" role="tab" aria-selected="false">Schedule planner</button>
+            </div>
+            <div class="toolbar" id="protocols-toolbar">
                 <input class="search" id="protocol-search" type="search" placeholder="Search protocols…" aria-label="Search protocols">
                 <span class="count" id="protocol-count"></span>
             </div>
         </header>
 
-        <div id="directory">
-            <p class="status">Loading protocols…</p>
+        <div class="view" id="view-protocols">
+            <div id="directory">
+                <p class="status">Loading protocols…</p>
+            </div>
+        </div>
+
+        <div class="view" id="view-planner" hidden>
+            <div class="planner-panel">
+                <section class="planner-card">
+                    <h2>Build a course</h2>
+                    <p class="hint">Pick a peptide, set dose timing, and save it on this device. Retatrutide includes automatic 2 mg titration blocks.</p>
+                    <label class="field" style="margin-top:12px">
+                        <span>Peptide</span>
+                        <select id="planner-peptide"></select>
+                    </label>
+                    <p class="hint" id="planner-peptide-note"></p>
+                    <div class="planner-grid" id="planner-fields"></div>
+                    <div class="planner-actions">
+                        <button type="button" class="btn primary" id="planner-add">Add to schedule</button>
+                        <button type="button" class="btn" id="planner-export" disabled>Download calendar (.ics)</button>
+                        <button type="button" class="btn" id="planner-clear">Clear all</button>
+                    </div>
+                    <p class="hint">Open the .ics file on iPhone, Android, or desktop calendar apps to import reminders. Works offline after the page loads.</p>
+                </section>
+
+                <section class="planner-card">
+                    <h2>Your schedule</h2>
+                    <div id="planner-schedule-list"></div>
+                </section>
+
+                <section class="planner-card">
+                    <h2>Relative amount in system</h2>
+                    <p class="hint">Simple half-life overlay of your scheduled doses (educational model, not clinical PK).</p>
+                    <div class="graph-wrap">
+                        <canvas id="planner-graph" width="640" height="260" aria-label="Half-life concentration graph"></canvas>
+                        <div class="graph-empty" id="planner-graph-empty">Add a schedule to see the curve</div>
+                    </div>
+                    <div class="legend" id="planner-legend"></div>
+                </section>
+            </div>
         </div>
     </main>
 
+    <script src="js/schedule-planner.js"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';
         const FOLDER_PATH = 'peptides';
+
+        // View switcher
+        const lede = document.getElementById('hero-lede');
+        const protocolsToolbar = document.getElementById('protocols-toolbar');
+        document.querySelectorAll('.mode-tab').forEach((tab) => {
+            tab.addEventListener('click', () => {
+                const view = tab.dataset.view;
+                document.querySelectorAll('.mode-tab').forEach((t) => {
+                    const on = t === tab;
+                    t.classList.toggle('active', on);
+                    t.setAttribute('aria-selected', on ? 'true' : 'false');
+                });
+                document.getElementById('view-protocols').hidden = view !== 'protocols';
+                document.getElementById('view-planner').hidden = view !== 'planner';
+                protocolsToolbar.hidden = view !== 'protocols';
+                lede.textContent = view === 'planner'
+                    ? 'Build dose schedules, preview a relative half-life curve, and export calendar events for phone or desktop.'
+                    : 'Protocol sheets with reconstitution math, dosing tables, and calculator defaults for each vial.';
+                if (view === 'planner') {
+                    window.PeptideSchedulePlanner?.init();
+                    // redraw after layout becomes visible
+                    setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+                }
+            });
+        });
+
+        // Init planner once so storage/UI are ready
+        window.PeptideSchedulePlanner?.init();
 
         const GROUPS = [
             { id: 'metabolic', label: 'Metabolic & Body Comp', note: 'Weekly and daily body-composition protocols' },
