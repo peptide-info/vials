@@ -964,19 +964,25 @@
         return phases;
     }
 
-    /** High-level plan text captured from the form when adding a schedule. */
+    /** High-level plan captured from the form when adding a schedule. */
     function collectPlanSummaryFromForm(peptide, events) {
         const start = parseDateInput($('#pf-start')?.value);
         const stop = parseDateInput($('#pf-stop')?.value);
         const timesPhrase = formatTimesPhrase(getSelectedTimes());
         const unit = peptide.unit || 'mg';
         const name = peptide.name || 'Peptide';
-        const endPhrase = stop ? ` through ${formatShortDate(stop)}` : '';
-        const alertPhrase = timesPhrase ? ` ${timesPhrase}` : '';
+        const throughBullet = stop ? `Through ${formatShortDate(stop)}` : null;
+        const alertBullet = timesPhrase ? `Alerts ${timesPhrase}` : null;
 
         if (peptide.prn) {
             const dose = parseFloat($('#pf-dose')?.value);
-            return `${name} ${formatDosePhrase(dose, unit)} — one-time / PRN on ${formatShortDate(start)}${alertPhrase}.`;
+            return {
+                headline: `${name} ${formatDosePhrase(dose, unit)} — one-time / PRN`,
+                bullets: [
+                    `On ${formatShortDate(start)}`,
+                    alertBullet
+                ].filter(Boolean)
+            };
         }
 
         if (peptide.titration) {
@@ -985,43 +991,70 @@
             if (followTitration) {
                 const phases = dosePhaseStarts(events);
                 if (phases.length) {
-                    const first = phases[0];
-                    let text = `${name} ${formatDosePhrase(first.dose, unit)} starting ${formatShortDate(first.date)}, every ${intervalDays} day${intervalDays === 1 ? '' : 's'}`;
-                    phases.slice(1).forEach((phase) => {
-                        text += `, escalating to ${formatDosePhrase(phase.dose, unit)} on ${formatShortDate(phase.date)}`;
-                    });
-                    return `${text}${endPhrase}${alertPhrase}.`;
+                    const bullets = phases.map((phase, i) => (
+                        i === 0
+                            ? `${formatDosePhrase(phase.dose, unit)} starting ${formatShortDate(phase.date)}`
+                            : `${formatDosePhrase(phase.dose, unit)} from ${formatShortDate(phase.date)}`
+                    ));
+                    if (throughBullet) bullets.push(throughBullet);
+                    if (alertBullet) bullets.push(alertBullet);
+                    return {
+                        headline: `${name} · every ${intervalDays} day${intervalDays === 1 ? '' : 's'}`,
+                        bullets
+                    };
                 }
                 const steps = getRetaTitrationSteps();
-                const pathLabel = ($('#pf-titration-path')?.value || 'slow') === 'fast' ? 'faster' : 'slower';
-                return `${name} — ${pathLabel} titration (${steps.join(' → ')} mg), every ${intervalDays} days, starting ${formatShortDate(start)}${endPhrase}${alertPhrase}.`;
+                const pathLabel = ($('#pf-titration-path')?.value || 'slow') === 'fast' ? 'Faster' : 'Slower';
+                return {
+                    headline: `${name} · ${pathLabel.toLowerCase()} titration · every ${intervalDays} days`,
+                    bullets: [
+                        `${pathLabel} path: ${steps.join(' → ')} mg`,
+                        `Starting ${formatShortDate(start)}`,
+                        throughBullet,
+                        alertBullet
+                    ].filter(Boolean)
+                };
             }
 
             const dose = parseFloat($('#pf-dose')?.value);
             const mode = getScheduleMode();
-            if (mode === 'interval') {
-                return `${name} ${formatDosePhrase(dose, unit)} every ${intervalDays} day${intervalDays === 1 ? '' : 's'}, starting ${formatShortDate(start)}${endPhrase}${alertPhrase}.`;
-            }
-            return `${name} ${formatDosePhrase(dose, unit)} on ${formatDaysOfWeekPhrase(getSelectedDays())}, starting ${formatShortDate(start)}${endPhrase}${alertPhrase}.`;
+            const cadence = mode === 'interval'
+                ? `every ${intervalDays} day${intervalDays === 1 ? '' : 's'}`
+                : `on ${formatDaysOfWeekPhrase(getSelectedDays())}`;
+            return {
+                headline: `${name} ${formatDosePhrase(dose, unit)} · ${cadence}`,
+                bullets: [
+                    `Starting ${formatShortDate(start)}`,
+                    throughBullet,
+                    alertBullet
+                ].filter(Boolean)
+            };
         }
 
         const dose = parseFloat($('#pf-dose')?.value);
         const mode = getScheduleMode();
-        if (mode === 'interval') {
-            const intervalDays = getIntervalDays(7);
-            return `${name} ${formatDosePhrase(dose, unit)} every ${intervalDays} day${intervalDays === 1 ? '' : 's'}, starting ${formatShortDate(start)}${endPhrase}${alertPhrase}.`;
-        }
-
-        return `${name} ${formatDosePhrase(dose, unit)} on ${formatDaysOfWeekPhrase(getSelectedDays())}, starting ${formatShortDate(start)}${endPhrase}${alertPhrase}.`;
+        const cadence = mode === 'interval'
+            ? `every ${getIntervalDays(7)} day${getIntervalDays(7) === 1 ? '' : 's'}`
+            : `on ${formatDaysOfWeekPhrase(getSelectedDays())}`;
+        return {
+            headline: `${name} ${formatDosePhrase(dose, unit)} · ${cadence}`,
+            bullets: [
+                `Starting ${formatShortDate(start)}`,
+                throughBullet,
+                alertBullet
+            ].filter(Boolean)
+        };
     }
 
-    /** Fallback when an older saved schedule has no summary text. */
+    /** Fallback when an older saved schedule has no structured summary. */
     function derivePlanSummaryFromEvents(sched) {
         const events = (sched.events || [])
             .map((ev) => ({ ...ev, date: new Date(ev.date) }))
             .filter((ev) => !Number.isNaN(ev.date.getTime()))
             .sort((a, b) => a.date - b.date);
-        if (!events.length) return `${sched.name} — see calendar attachment for dose times.`;
+        if (!events.length) {
+            return { headline: `${sched.name} — see calendar attachment for dose times.`, bullets: [] };
+        }
 
         const unit = sched.unit || 'mg';
         const first = events[0];
@@ -1049,33 +1082,77 @@
         });
         const activeDays = Object.keys(dowCounts).map(Number).sort((a, b) => a - b);
 
-        let cadence = '';
+        let cadence = 'on a set calendar schedule';
         if (avgGap != null && avgGap >= 1.5) {
             const rounded = Math.round(avgGap);
             cadence = `every ${rounded} day${rounded === 1 ? '' : 's'}`;
         } else if (activeDays.length && activeDays.length < 7) {
             cadence = `on ${formatDaysOfWeekPhrase(activeDays)}`;
-        } else {
-            cadence = 'on a set calendar schedule';
         }
 
         if (doses.length > 1) {
             const phases = dosePhaseStarts(events);
-            let text = `${sched.name} ${formatDosePhrase(phases[0].dose, unit)} starting ${formatShortDate(phases[0].date)}`;
-            if (cadence.startsWith('every')) text += `, ${cadence}`;
-            phases.slice(1).forEach((phase) => {
-                text += `, escalating to ${formatDosePhrase(phase.dose, unit)} on ${formatShortDate(phase.date)}`;
-            });
-            return `${text} through ${formatShortDate(last.date)}.`;
+            return {
+                headline: `${sched.name} · ${cadence}`,
+                bullets: [
+                    ...phases.map((phase, i) => (
+                        i === 0
+                            ? `${formatDosePhrase(phase.dose, unit)} starting ${formatShortDate(phase.date)}`
+                            : `${formatDosePhrase(phase.dose, unit)} from ${formatShortDate(phase.date)}`
+                    )),
+                    `Through ${formatShortDate(last.date)}`
+                ]
+            };
         }
 
-        dosePart = formatDosePhrase(doses[0] != null ? doses[0] : first.dose, unit);
-        return `${sched.name} ${dosePart} ${cadence}, starting ${formatShortDate(first.date)} through ${formatShortDate(last.date)}.`;
+        const dosePart = formatDosePhrase(doses[0] != null ? doses[0] : first.dose, unit);
+        return {
+            headline: `${sched.name} ${dosePart} · ${cadence}`,
+            bullets: [
+                `Starting ${formatShortDate(first.date)}`,
+                `Through ${formatShortDate(last.date)}`
+            ]
+        };
     }
 
-    function scheduleOverviewText(sched) {
-        if (sched.summary && String(sched.summary).trim()) return String(sched.summary).trim();
-        return derivePlanSummaryFromEvents(sched);
+    function scheduleOverview(sched) {
+        const raw = sched.summary;
+        if (raw && typeof raw === 'object' && raw.headline) {
+            return {
+                headline: String(raw.headline).trim(),
+                bullets: Array.isArray(raw.bullets) ? raw.bullets.map(String).filter(Boolean) : []
+            };
+        }
+        // Old string summaries / missing summaries: rebuild from events when possible
+        const derived = derivePlanSummaryFromEvents(sched);
+        if (derived.bullets.length > 1) return derived;
+        if (typeof raw === 'string' && raw.trim()) {
+            return { headline: raw.trim(), bullets: [] };
+        }
+        return derived;
+    }
+
+    function overviewToHtml(overview, { email = false } = {}) {
+        const headline = escapeHtml(overview.headline || '');
+        const bullets = overview.bullets || [];
+        if (!bullets.length) {
+            return email
+                ? `<p style="margin:0;font-size:15px;color:#1c2a24;line-height:1.55;">${headline}</p>`
+                : `<p class="sched-overview">${headline}</p>`;
+        }
+        const items = bullets.map((b) => (
+            email
+                ? `<li style="margin:0 0 4px 0;">${escapeHtml(b)}</li>`
+                : `<li>${escapeHtml(b)}</li>`
+        )).join('');
+        if (email) {
+            return `
+                <p style="margin:0 0 6px 0;font-size:15px;font-weight:700;color:#1c2a24;line-height:1.4;">${headline}</p>
+                <ul style="margin:0;padding-left:18px;font-size:14px;color:#1c2a24;line-height:1.45;">${items}</ul>`;
+        }
+        return `
+            <p class="sched-overview">${headline}</p>
+            <ul class="sched-bullets">${items}</ul>`;
     }
 
     function collectEventsFromForm(peptide) {
@@ -1170,7 +1247,7 @@
                     <strong>${s.name}</strong>
                     <button type="button" data-remove="${s.id}" class="text-btn">Remove</button>
                 </div>
-                <p class="sched-overview">${escapeHtml(scheduleOverviewText(s))}</p>
+                ${overviewToHtml(scheduleOverview(s))}
                 <p class="hint">${s.events.length} calendar alert${s.events.length === 1 ? '' : 's'} · ${halfLifeLabel(resolveHalfLifeHours(s))}</p>
             </article>
         `).join('');
@@ -1524,12 +1601,12 @@
 
     function buildScheduleSummaryHtml(schedules) {
         const blocks = schedules.map((s) => {
-            const overview = escapeHtml(scheduleOverviewText(s));
+            const overview = scheduleOverview(s);
             const count = (s.events || []).length;
             return `
                 <div style="margin:0 0 14px 0;padding:14px 16px;border-left:4px solid #0f7a5f;background:#f3f6f2;border-radius:8px;">
-                    <p style="margin:0;font-size:15px;color:#1c2a24;line-height:1.55;">${overview}</p>
-                    <p style="margin:8px 0 0 0;font-size:12px;color:#5c6f66;">${count} calendar alert${count === 1 ? '' : 's'} in the attached .ics</p>
+                    ${overviewToHtml(overview, { email: true })}
+                    <p style="margin:10px 0 0 0;font-size:12px;color:#5c6f66;">${count} calendar alert${count === 1 ? '' : 's'} in the attached .ics</p>
                 </div>`;
         }).join('');
 
