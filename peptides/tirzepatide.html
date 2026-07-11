@@ -15,7 +15,8 @@
          data-storage-key="vial.tirzepatide"
          data-sizes="10,15,20,30,40,50,60"
          data-default="30"
-         data-bac-ml="3"
+         data-bac-ml="1.2"
+         data-bac-by-vial="10:1,15:1,20:1.2,30:1.2,40:1.6,50:2,60:2.4"
          data-calc-dose="2.5"
          data-calc-unit="mg"
          data-route="subq"
@@ -42,6 +43,7 @@
                 <li><strong>Diluent:</strong> Add <strong data-vial-bac></strong> of Bacteriostatic (BAC) Water gently down the side of the vial.</li>
                 <li><strong>Mixing:</strong> Do <em>not</em> shake. Swirl gently until the solution is completely clear.</li>
                 <li><strong>Final Concentration:</strong> <span data-vial-conc></span>.</li>
+                <li><strong>Single-draw rule:</strong> Mix so weekly doses stay ≤ <strong>60 units</strong>. Practical max here: about <strong data-vial-max-draw></strong>. Higher steps need a larger vial — not multiple shots.</li>
                 <li><strong>Storage:</strong> Store in refrigerator at <strong>36°F–46°F</strong> (2°C–8°C).</li>
             </ul>
             

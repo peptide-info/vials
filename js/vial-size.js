@@ -1,8 +1,14 @@
 /**
  * Vial size chips: recalculate recon concentration + syringe/spray volumes.
- * Page markup: #vial-picker with data-sizes, data-default, data-bac-ml, etc.
+ *
+ * Rules:
+ * - BAC water can vary by vial size (data-bac-by-vial="10:1,30:1.5").
+ * - Single Sub-Q draws must stay ≤ 60 units on a U-100 syringe.
+ * - Never suggest multi-shot draws; point to a larger vial / denser mix instead.
  */
 (function () {
+    const MAX_SINGLE_DRAW_UNITS = 60;
+
     function parseList(raw) {
         return String(raw || '')
             .split(',')
@@ -15,6 +21,17 @@
             .filter((n) => n != null);
     }
 
+    function parseBacMap(raw) {
+        const map = {};
+        String(raw || '').split(',').forEach((pair) => {
+            const [k, v] = pair.split(':').map((s) => s.trim());
+            const vial = parseFloat(k);
+            const bac = parseFloat(v);
+            if (Number.isFinite(vial) && Number.isFinite(bac) && bac > 0) map[vial] = bac;
+        });
+        return map;
+    }
+
     function niceNumber(n) {
         if (!Number.isFinite(n)) return '—';
         if (Math.abs(n - Math.round(n)) < 0.05) return String(Math.round(n));
@@ -22,15 +39,15 @@
         return n.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
     }
 
+    function roundUnits(units) {
+        if (!Number.isFinite(units) || units <= 0) return NaN;
+        return units >= 10 ? Math.round(units) : Math.round(units * 10) / 10;
+    }
+
     function formatUnits(units) {
-        if (!Number.isFinite(units) || units <= 0) return '—';
-        const rounded = units >= 10 ? Math.round(units) : Math.round(units * 10) / 10;
-        let text = `<strong>${niceNumber(rounded)} units</strong>`;
-        if (rounded > 100) {
-            const shots = Math.ceil(rounded / 100);
-            text += ` <em>(${shots} shot${shots === 1 ? '' : 's'})</em>`;
-        }
-        return text;
+        const rounded = roundUnits(units);
+        if (!Number.isFinite(rounded)) return '—';
+        return `<strong>${niceNumber(rounded)} units</strong>`;
     }
 
     function formatSprays(sprays) {
@@ -44,13 +61,43 @@
     }
 
     function mcgPerUnit(vialMg, bacMl) {
-        // total mcg in vial / total units in bacMl
         return (vialMg * 1000) / (bacMl * 100);
     }
 
     function mcgPerSpray(vialMg, sprayMl) {
-        // 0.1 mL metered spray
         return (vialMg * 1000) / sprayMl * 0.1;
+    }
+
+    function collectPageDosesMg() {
+        const doses = [];
+        document.querySelectorAll('[data-units]').forEach((el) => {
+            if (el.hasAttribute('data-dose-mg')) {
+                doses.push(parseFloat(el.getAttribute('data-dose-mg')));
+            }
+            if (el.hasAttribute('data-dose-mg-high')) {
+                doses.push(parseFloat(el.getAttribute('data-dose-mg-high')));
+            }
+            if (el.hasAttribute('data-dose-mcg')) {
+                doses.push(parseFloat(el.getAttribute('data-dose-mcg')) / 1000);
+            }
+            if (el.hasAttribute('data-dose-mcg-high')) {
+                doses.push(parseFloat(el.getAttribute('data-dose-mcg-high')) / 1000);
+            }
+        });
+        return doses.filter((n) => Number.isFinite(n) && n > 0);
+    }
+
+    function resolveBacMl(root, vialMg) {
+        const map = parseBacMap(root.dataset.bacByVial);
+        let bac = map[vialMg];
+        if (!Number.isFinite(bac)) bac = parseFloat(root.dataset.bacMl);
+        if (!Number.isFinite(bac) || bac <= 0) bac = 2;
+        return bac;
+    }
+
+    /** Largest dose that still fits in ≤60 units at this bac/vial. */
+    function maxDoseForSingleDraw(vialMg, bacMl) {
+        return (MAX_SINGLE_DRAW_UNITS / 100) * (vialMg / bacMl);
     }
 
     function applyCalcDefaults(cfg) {
@@ -64,7 +111,6 @@
         window.activeCalcDefaults = next;
         window.activeEmailDefaults = next;
 
-        // Live-update open calculator fields if present
         const mg1 = document.getElementById('pop_mg_1');
         const ml1 = document.getElementById('pop_ml_1');
         const dose1 = document.getElementById('pop_dose_1');
@@ -75,14 +121,47 @@
         if (unit1 && cfg.calcUnit) unit1.value = cfg.calcUnit;
     }
 
+    function unitCellHtml(doseMg, vialMg, bacMl) {
+        if (!Number.isFinite(doseMg) || doseMg <= 0) return '—';
+        if (doseMg > vialMg + 1e-9) {
+            return `<em>Exceeds this vial — choose a larger size</em>`;
+        }
+        const units = unitsForMg(doseMg, vialMg, bacMl);
+        if (units > MAX_SINGLE_DRAW_UNITS + 0.05) {
+            return `<em>Over ${MAX_SINGLE_DRAW_UNITS} units at this mix — choose a larger vial</em>`;
+        }
+        return formatUnits(units);
+    }
+
+    function unitRangeHtml(lowMg, highMg, vialMg, bacMl) {
+        if (!Number.isFinite(lowMg) || !Number.isFinite(highMg)) return '—';
+        if (lowMg > vialMg + 1e-9) {
+            return `<em>Exceeds this vial — choose a larger size</em>`;
+        }
+        const lowU = unitsForMg(lowMg, vialMg, bacMl);
+        const highU = unitsForMg(Math.min(highMg, vialMg), vialMg, bacMl);
+        if (lowU > MAX_SINGLE_DRAW_UNITS + 0.05) {
+            return `<em>Over ${MAX_SINGLE_DRAW_UNITS} units at this mix — choose a larger vial</em>`;
+        }
+        if (highMg > vialMg + 1e-9 || highU > MAX_SINGLE_DRAW_UNITS + 0.05) {
+            const capped = Math.min(
+                maxDoseForSingleDraw(vialMg, bacMl),
+                vialMg
+            );
+            return `<strong>${niceNumber(roundUnits(lowU))} units</strong> <em>(upper end needs a larger vial; ~${niceNumber(capped)} mg max here)</em>`;
+        }
+        return `<strong>${niceNumber(roundUnits(lowU))}–${niceNumber(roundUnits(highU))} units</strong>`;
+    }
+
     function updatePage(root, vialMg) {
-        const bacMl = parseFloat(root.dataset.bacMl) || 2;
+        const bacMl = resolveBacMl(root, vialMg);
         const sprayMl = parseFloat(root.dataset.sprayMl) || 0;
         const mode = (root.dataset.mode || 'subq').toLowerCase();
         const calcDose = parseFloat(root.dataset.calcDose);
         const calcUnit = root.dataset.calcUnit || 'mg';
         const route = root.dataset.route || (mode === 'nasal' ? 'nasal' : 'subq');
         const labelUnit = root.dataset.sizeUnit || 'mg';
+        const maxSingle = maxDoseForSingleDraw(vialMg, bacMl);
 
         document.querySelectorAll('[data-vial-mg]').forEach((el) => {
             el.textContent = `${niceNumber(vialMg)} ${labelUnit}`;
@@ -92,7 +171,6 @@
             el.textContent = `${niceNumber(bacMl)} mL`;
         });
 
-        // Concentration blurbs
         document.querySelectorAll('[data-vial-conc]').forEach((el) => {
             if (mode === 'nasal' && sprayMl > 0) {
                 const perSpray = mcgPerSpray(vialMg, sprayMl);
@@ -109,6 +187,10 @@
             }
         });
 
+        document.querySelectorAll('[data-vial-max-draw]').forEach((el) => {
+            el.textContent = `${niceNumber(Math.min(vialMg, maxSingle))} ${labelUnit}`;
+        });
+
         document.querySelectorAll('[data-units]').forEach((el) => {
             const doseMg = el.hasAttribute('data-dose-mg')
                 ? parseFloat(el.getAttribute('data-dose-mg'))
@@ -120,6 +202,13 @@
                 : (el.hasAttribute('data-dose-mcg-high')
                     ? parseFloat(el.getAttribute('data-dose-mcg-high')) / 1000
                     : NaN);
+
+            const row = el.closest('tr');
+            const impractical = Number.isFinite(doseMg) && (
+                doseMg > vialMg + 1e-9
+                || (mode !== 'nasal' && unitsForMg(doseMg, vialMg, bacMl) > MAX_SINGLE_DRAW_UNITS + 0.05)
+            );
+            if (row) row.classList.toggle('dose-impractical', impractical);
 
             if (mode === 'nasal' && sprayMl > 0) {
                 const per = mcgPerSpray(vialMg, sprayMl);
@@ -134,13 +223,11 @@
             }
 
             if (Number.isFinite(doseMgHigh) && Number.isFinite(doseMg)) {
-                const low = unitsForMg(doseMg, vialMg, bacMl);
-                const high = unitsForMg(doseMgHigh, vialMg, bacMl);
-                el.innerHTML = `<strong>${niceNumber(low >= 10 ? Math.round(low) : Math.round(low * 10) / 10)}–${niceNumber(high >= 10 ? Math.round(high) : Math.round(high * 10) / 10)} units</strong>`;
+                el.innerHTML = unitRangeHtml(doseMg, doseMgHigh, vialMg, bacMl);
                 return;
             }
             if (Number.isFinite(doseMg)) {
-                el.innerHTML = formatUnits(unitsForMg(doseMg, vialMg, bacMl));
+                el.innerHTML = unitCellHtml(doseMg, vialMg, bacMl);
             }
         });
 
@@ -153,7 +240,7 @@
         });
 
         document.dispatchEvent(new CustomEvent('vialsizechange', {
-            detail: { vialMg, bacMl, sprayMl, mode }
+            detail: { vialMg, bacMl, sprayMl, mode, maxSingleDrawMg: maxSingle }
         }));
     }
 
@@ -189,7 +276,6 @@
                 btn.classList.toggle('is-active', on);
             });
             updatePage(root, size);
-            // Keep URL shareable without reload spam
             try {
                 const url = new URL(location.href);
                 url.searchParams.set('vial', String(size));

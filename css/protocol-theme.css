@@ -329,6 +329,15 @@ body.protocol-page .vial-chip[aria-pressed="true"] {
     color: var(--accent);
 }
 
+body.protocol-page tr.dose-impractical td {
+    opacity: 0.55;
+}
+
+body.protocol-page tr.dose-impractical td em {
+    font-size: 0.9em;
+    color: var(--muted);
+}
+
 @media (max-width: 600px) {
     body.protocol-page {
         padding-top: 56px;
