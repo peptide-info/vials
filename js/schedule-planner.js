@@ -1747,21 +1747,49 @@
         const source = $('#planner-graph');
         if (!source) return '';
         try {
-            // Export a small JPEG for email — full retina PNG often crashes Apps Script POST
-            const w = Math.min(640, source.clientWidth || 640);
-            const h = 260;
+            // Small JPEG for email — keep well under Apps Script POST limits
+            const cssW = source.clientWidth || source.width || 640;
+            const cssH = source.clientHeight || 260;
+            const w = Math.min(520, Math.max(280, cssW));
+            const h = Math.min(220, Math.max(160, Math.round(w * (cssH / Math.max(cssW, 1)))));
             const off = document.createElement('canvas');
             off.width = w;
             off.height = h;
             const ctx = off.getContext('2d');
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, w, h);
-            ctx.drawImage(source, 0, 0, source.width, source.height, 0, 0, w, h);
-            const dataUrl = off.toDataURL('image/jpeg', 0.72);
+            const srcW = source.width || cssW;
+            const srcH = source.height || cssH;
+            if (!srcW || !srcH) return '';
+            ctx.drawImage(source, 0, 0, srcW, srcH, 0, 0, w, h);
+            const dataUrl = off.toDataURL('image/jpeg', 0.62);
             const parts = dataUrl.split(',');
             return parts.length > 1 ? parts[1] : '';
         } catch (err) {
             console.warn('Could not export chart', err);
+            return '';
+        }
+    }
+
+    function getChartPngBase64Small() {
+        const source = $('#planner-graph');
+        if (!source) return '';
+        try {
+            const w = 400;
+            const h = 180;
+            const off = document.createElement('canvas');
+            off.width = w;
+            off.height = h;
+            const ctx = off.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, w, h);
+            const srcW = source.width || source.clientWidth || w;
+            const srcH = source.height || source.clientHeight || h;
+            ctx.drawImage(source, 0, 0, srcW, srcH, 0, 0, w, h);
+            const dataUrl = off.toDataURL('image/jpeg', 0.5);
+            const parts = dataUrl.split(',');
+            return parts.length > 1 ? parts[1] : '';
+        } catch (err) {
             return '';
         }
     }
@@ -1787,59 +1815,72 @@
         }));
         if (!schedules.length) return;
 
+        // Ensure the on-page graph is painted before we snapshot it
         drawGraph(schedules);
 
-        const ics = buildIcs(schedules);
-        const scheduleHtml = buildScheduleSummaryHtml(schedules);
-        let chartBase64 = getChartPngBase64();
+        const finishSend = () => {
+            const ics = buildIcs(schedules);
+            const scheduleHtml = buildScheduleSummaryHtml(schedules);
+            let chartBase64 = getChartPngBase64();
 
-        // Keep Apps Script POST well under size limits
-        const MAX_CHART = 180000;
-        if (chartBase64.length > MAX_CHART) {
-            console.warn('Chart too large for email relay, omitting chart', chartBase64.length);
-            chartBase64 = '';
-        }
+            // Keep Apps Script POST well under size limits
+            const MAX_CHART = 120000;
+            if (chartBase64.length > MAX_CHART) {
+                console.warn('Chart too large for email relay, retrying smaller', chartBase64.length);
+                chartBase64 = getChartPngBase64Small();
+            }
+            if (chartBase64.length > MAX_CHART) {
+                console.warn('Chart still too large, omitting', chartBase64.length);
+                chartBase64 = '';
+            }
 
-        if (sendBtn) sendBtn.disabled = true;
-        if (status) {
-            status.style.color = '#0f7a5f';
-            status.textContent = 'Sending schedule email…';
-        }
+            if (sendBtn) sendBtn.disabled = true;
+            if (status) {
+                status.style.color = '#0f7a5f';
+                status.textContent = chartBase64
+                    ? 'Sending schedule email (with chart)…'
+                    : 'Sending schedule email (chart unavailable)…';
+            }
 
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = SCHEDULE_EMAIL_WEB_APP_URL;
-        form.target = 'schedule-email-frame';
-        form.style.display = 'none';
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = SCHEDULE_EMAIL_WEB_APP_URL;
+            form.target = 'schedule-email-frame';
+            form.style.display = 'none';
 
-        const fields = {
-            action: 'schedule',
-            email: emailInput,
-            subject: subjectInput,
-            scheduleHtml,
-            chartBase64,
-            icsContent: ics
+            const fields = {
+                action: 'schedule',
+                email: emailInput,
+                subject: subjectInput,
+                scheduleHtml,
+                chartBase64,
+                icsContent: ics
+            };
+
+            Object.keys(fields).forEach((name) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = fields[name];
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+            form.remove();
+
+            if (status) {
+                status.style.color = '#0f7a5f';
+                status.textContent = 'Sent — check inbox (and spam) for the .ics + chart.';
+            }
+            setTimeout(() => {
+                if (sendBtn) sendBtn.disabled = false;
+                if (typeof onDone === 'function') onDone();
+            }, 1600);
         };
 
-        Object.keys(fields).forEach((name) => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = name;
-            input.value = fields[name];
-            form.appendChild(input);
-        });
-
-        document.body.appendChild(form);
-        form.submit();
-        form.remove();
-
-        if (status) {
-            status.style.color = '#0f7a5f';
-            status.textContent = 'Sent — check inbox (and spam) for the .ics attachment.';
-        }
-        setTimeout(() => {
-            if (typeof onDone === 'function') onDone();
-        }, 1600);
+        // One frame so canvas pixels are committed after drawGraph
+        requestAnimationFrame(() => requestAnimationFrame(finishSend));
     }
 
     window.PeptideSchedulePlanner = { init, PEPTIDES };
