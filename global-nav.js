@@ -287,7 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Initializing email setup module injection...");
         const emailScript = document.createElement("script");
         // This is where your external script file will live in your repository
-        emailScript.src = navBase + "js/email-popup.js?v=3";
+        emailScript.src = navBase + "js/email-popup.js?v=4";
 
         emailScript.onload = () => {
             isEmailScriptLoaded = true;
