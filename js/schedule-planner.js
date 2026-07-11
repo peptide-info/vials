@@ -291,6 +291,113 @@
         });
     }
 
+    function calendarDayKey(date) {
+        return formatDateInput(date);
+    }
+
+    function daysBetweenDates(a, b) {
+        const a0 = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+        const b0 = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+        return Math.round((b0.getTime() - a0.getTime()) / 86400000);
+    }
+
+    function byDayCode(dayIndex) {
+        return ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][dayIndex];
+    }
+
+    /**
+     * Detect a calendar recurrence from sorted same-time-of-day dates.
+     * Returns an RRULE body (without the "RRULE:" prefix) or null.
+     */
+    function detectRecurrenceRule(sortedDates) {
+        if (!sortedDates || sortedDates.length <= 1) return null;
+
+        const diffs = [];
+        for (let i = 1; i < sortedDates.length; i++) {
+            const d = daysBetweenDates(sortedDates[i - 1], sortedDates[i]);
+            if (d < 1) return null;
+            diffs.push(d);
+        }
+
+        if (diffs.every((d) => d === diffs[0])) {
+            return `FREQ=DAILY;INTERVAL=${diffs[0]};COUNT=${sortedDates.length}`;
+        }
+
+        const weekdays = [...new Set(sortedDates.map((d) => d.getDay()))].sort((a, b) => a - b);
+        const daySet = new Set(weekdays);
+        const start = sortedDates[0];
+        const end = sortedDates[sortedDates.length - 1];
+        const expected = [];
+        let cursor = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+        while (cursor <= endDay) {
+            if (daySet.has(cursor.getDay())) expected.push(calendarDayKey(cursor));
+            cursor = addDays(cursor, 1);
+        }
+        const actual = sortedDates.map(calendarDayKey);
+        if (expected.length === actual.length && expected.every((k, i) => k === actual[i])) {
+            return `FREQ=WEEKLY;BYDAY=${weekdays.map(byDayCode).join(',')};COUNT=${sortedDates.length}`;
+        }
+
+        return null;
+    }
+
+    /**
+     * Collapse a schedule's events into series where dose/label + clock time share a regular pattern.
+     * Titration becomes one series per dose step; fixed courses become one (or few) recurring events.
+     */
+    function groupEventsIntoSeries(events) {
+        const groups = new Map();
+        events.forEach((ev) => {
+            const date = new Date(ev.date);
+            const tod = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+            const key = `${ev.label}@@${tod}`;
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key).push({ ...ev, date });
+        });
+
+        const seriesList = [];
+
+        function pushBestChunks(run) {
+            if (!run.length) return;
+            const rule = detectRecurrenceRule(run.map((e) => e.date));
+            if (rule || run.length === 1) {
+                seriesList.push({ events: run, rrule: rule });
+                return;
+            }
+            let i = 0;
+            while (i < run.length) {
+                let bestEnd = i;
+                let bestRule = null;
+                for (let j = i + 1; j < run.length; j++) {
+                    const candidate = detectRecurrenceRule(run.slice(i, j + 1).map((e) => e.date));
+                    if (candidate) {
+                        bestEnd = j;
+                        bestRule = candidate;
+                    } else if (bestRule) {
+                        break;
+                    }
+                }
+                if (bestRule) {
+                    seriesList.push({ events: run.slice(i, bestEnd + 1), rrule: bestRule });
+                    i = bestEnd + 1;
+                } else {
+                    seriesList.push({ events: [run[i]], rrule: null });
+                    i += 1;
+                }
+            }
+        }
+
+        groups.forEach((list) => {
+            list.sort((a, b) => a.date.getTime() - b.date.getTime());
+            pushBestChunks(list);
+        });
+
+        return seriesList;
+    }
+
+    const PLANNER_URL = 'https://peptide-info.github.io/vials/';
+
     function buildIcs(schedules) {
         const lines = [
             'BEGIN:VCALENDAR',
@@ -302,22 +409,28 @@
 
         const stamp = new Date();
         const dtStamp = toIcsUtc(stamp);
+        const desc = escapeIcs(`Peptide schedule from Peptide Info planner\n${PLANNER_URL}`);
 
         schedules.forEach((sched) => {
-            sched.events.forEach((ev, idx) => {
-                const start = ev.date;
+            const seriesList = groupEventsIntoSeries(sched.events || []);
+            seriesList.forEach((series, seriesIdx) => {
+                const first = series.events[0];
+                const start = first.date;
                 const end = new Date(start.getTime() + 30 * 60 * 1000);
-                const uid = `${sched.id}-${idx}-${start.getTime()}@peptide-info`;
-                const summary = escapeIcs(`${sched.name}: ${ev.label}`);
-                const desc = escapeIcs(`Peptide schedule from Peptide Info planner. Half-life model is relative/educational only.`);
+                const uid = `${sched.id}-s${seriesIdx}@peptide-info`;
+                const summary = escapeIcs(`${sched.name}: ${first.label}`);
 
                 lines.push('BEGIN:VEVENT');
                 lines.push(`UID:${uid}`);
                 lines.push(`DTSTAMP:${dtStamp}`);
                 lines.push(`DTSTART:${toIcsLocal(start)}`);
                 lines.push(`DTEND:${toIcsLocal(end)}`);
+                if (series.rrule) {
+                    lines.push(`RRULE:${series.rrule}`);
+                }
                 lines.push(`SUMMARY:${summary}`);
                 lines.push(`DESCRIPTION:${desc}`);
+                lines.push(`URL:${PLANNER_URL}`);
                 lines.push('END:VEVENT');
             });
         });
