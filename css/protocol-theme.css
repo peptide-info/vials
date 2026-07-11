@@ -52,7 +52,9 @@ body.protocol-page > ol,
 body.protocol-page > table,
 body.protocol-page > hr,
 body.protocol-page > blockquote,
-body.protocol-page > div.note {
+body.protocol-page > div.note,
+body.protocol-page > div.route-stack,
+body.protocol-page > section.route-panel {
     width: min(680px, 100%);
     margin-left: auto;
     margin-right: auto;
@@ -189,6 +191,82 @@ body.protocol-page .note {
     border-left: 4px solid var(--accent);
     background: rgba(216, 239, 230, 0.45);
     font-size: 0.95em;
+}
+
+/* Distinct Sub-Q / Nasal (or other route) guide cards */
+body.protocol-page .route-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 14px auto 18px;
+}
+
+body.protocol-page .route-panel {
+    box-sizing: border-box;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px 14px;
+    background: var(--panel);
+    backdrop-filter: blur(8px);
+}
+
+body.protocol-page .route-panel.route-subq {
+    border-top: 4px solid var(--accent);
+    background:
+        linear-gradient(180deg, rgba(15, 122, 95, 0.12), transparent 42%),
+        var(--panel);
+}
+
+body.protocol-page .route-panel.route-nasal {
+    border-top: 4px solid #3557a0;
+    background:
+        linear-gradient(180deg, rgba(53, 87, 160, 0.12), transparent 42%),
+        var(--panel);
+}
+
+body.protocol-page .route-panel .route-label {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 999px;
+    margin: 0 0 8px;
+}
+
+body.protocol-page .route-panel.route-subq .route-label {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+body.protocol-page .route-panel.route-nasal .route-label {
+    background: #e4eaf7;
+    color: #3557a0;
+}
+
+body.protocol-page .route-panel > h4 {
+    font-family: "Fraunces", serif;
+    font-size: 1.18rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 10px;
+    color: var(--ink);
+}
+
+body.protocol-page .route-panel > p:first-of-type {
+    margin-top: 0;
+}
+
+body.protocol-page .route-panel ul,
+body.protocol-page .route-panel ol {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+body.protocol-page .route-panel table {
+    width: 100%;
+    margin: 12px 0 4px;
 }
 
 body.protocol-page a {

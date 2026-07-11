@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="../global-nav.js?v=9"></script>
+    <script src="../global-nav.js?v=10"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PT-141 Protocol</title>
@@ -23,88 +23,105 @@
     <hr>
     
     <h3 id="-reconstitution-guide">🧪 Reconstitution Guide</h3>
+    <p>Pick the route you’ll use — mixes and diluents are different.</p>
 
-    <p><strong>Subcutaneous (injection)</strong></p>
-    <ul>
-        <li><strong>Diluent:</strong> Add <strong>3.0 mL</strong> of Bacteriostatic (BAC) Water gently down the side of the vial.</li>
-        <li><strong>Mixing:</strong> Do <em>not</em> shake. Swirl gently until the solution is completely clear.</li>
-        <li><strong>Final Concentration:</strong> ≈3.33 mg per 1 mL <em>(1 mg ≈ 30 units on a standard U-100 syringe)</em>.</li>
-        <li><strong>Storage:</strong> Store in refrigerator at <strong>36°F–46°F</strong> (2°C–8°C). Protected from light.</li>
-    </ul>
+    <div class="route-stack">
+        <section class="route-panel route-subq" aria-labelledby="pt141-recon-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4 id="pt141-recon-subq">Subcutaneous injection</h4>
+            <ul>
+                <li><strong>Diluent:</strong> Add <strong>3.0 mL</strong> of Bacteriostatic (BAC) Water gently down the side of the vial.</li>
+                <li><strong>Mixing:</strong> Do <em>not</em> shake. Swirl gently until the solution is completely clear.</li>
+                <li><strong>Final Concentration:</strong> ≈3.33 mg per 1 mL <em>(1 mg ≈ 30 units on a standard U-100 syringe)</em>.</li>
+                <li><strong>Storage:</strong> Store in refrigerator at <strong>36°F–46°F</strong> (2°C–8°C). Protected from light.</li>
+            </ul>
+        </section>
 
-    <p><strong>Nasal spray (DIY metered bottle)</strong></p>
-    <p>Use <em>sterile water</em> for nasal mixes — not BAC (benzyl alcohol burns mucosal tissue). Standard pump ≈ <strong>0.1 mL per spray</strong>.</p>
-    <p><strong>What you need:</strong> 10 mg PT-141 vial, sterile water, 10 mL metered nasal spray bottle, sterile syringe, alcohol pads.</p>
-    <ol>
-        <li><strong>Prep:</strong> Warm vial to room temp. Alcohol-wipe stoppers and bottle rim.</li>
-        <li><strong>Reconstitute vial:</strong> Draw <strong>2.0 mL</strong> sterile water. Inject slowly down the glass wall. Swirl gently — do not shake. Vial concentration: <strong>5 mg/mL</strong>.</li>
-        <li><strong>Build spray bottle:</strong> Add <strong>2.0 mL</strong> sterile water to the empty spray bottle, then transfer the full <strong>2.0 mL</strong> PT-141 solution. Total = <strong>4.0 mL</strong>.</li>
-        <li><strong>Final concentration:</strong> 10 mg ÷ 4 mL = <strong>2.5 mg/mL</strong> → <strong>250 mcg per spray</strong>.</li>
-        <li><strong>Seal, label, prime:</strong> Secure the pump; label peptide / 250 mcg per spray / date; prime into a tissue until mist is consistent.</li>
-        <li><strong>Storage:</strong> Refrigerate the spray. Discard if cloudy, odd-smelling, or after ~30 days.</li>
-    </ol>
+        <section class="route-panel route-nasal" aria-labelledby="pt141-recon-nasal">
+            <p class="route-label">Nasal</p>
+            <h4 id="pt141-recon-nasal">Nasal spray (DIY metered bottle)</h4>
+            <p>Use <em>sterile water</em> for nasal mixes — not BAC (benzyl alcohol burns mucosal tissue). Standard pump ≈ <strong>0.1 mL per spray</strong>.</p>
+            <p><strong>What you need:</strong> 10 mg PT-141 vial, sterile water, 10 mL metered nasal spray bottle, sterile syringe, alcohol pads.</p>
+            <ol>
+                <li><strong>Prep:</strong> Warm vial to room temp. Alcohol-wipe stoppers and bottle rim.</li>
+                <li><strong>Reconstitute vial:</strong> Draw <strong>2.0 mL</strong> sterile water. Inject slowly down the glass wall. Swirl gently — do not shake. Vial concentration: <strong>5 mg/mL</strong>.</li>
+                <li><strong>Build spray bottle:</strong> Add <strong>2.0 mL</strong> sterile water to the empty spray bottle, then transfer the full <strong>2.0 mL</strong> PT-141 solution. Total = <strong>4.0 mL</strong>.</li>
+                <li><strong>Final concentration:</strong> 10 mg ÷ 4 mL = <strong>2.5 mg/mL</strong> → <strong>250 mcg per spray</strong>.</li>
+                <li><strong>Seal, label, prime:</strong> Secure the pump; label peptide / 250 mcg per spray / date; prime into a tissue until mist is consistent.</li>
+                <li><strong>Storage:</strong> Refrigerate the spray. Discard if cloudy, odd-smelling, or after ~30 days.</li>
+            </ol>
+        </section>
+    </div>
     
     <hr>
     
     <h3 id="-protocol-titration">📅 Protocol &amp; Dosing</h3>
     <p><strong>General rules:</strong> Use PRN (as-needed), roughly <strong>45 minutes to 6 hours</strong> before anticipated activity. <em>Maximum 8 doses per month. Do not dose more than once in 24 hours.</em> Start low — nausea is common, especially on first exposures.</p>
 
-    <h4>Nasal (default — 250 mcg / spray at 4 mL mix)</h4>
-    <p>Absorption is often faster than Sub-Q for many users. Calculator defaults on this page use Nasal + 4 mL.</p>
-    <table>
-        <thead>
-            <tr>
-                <th style="text-align:left">Tier</th>
-                <th style="text-align:left">Target Dose</th>
-                <th style="text-align:left">Sprays (0.1 mL)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td style="text-align:left"><strong>Low / Test</strong></td>
-                <td style="text-align:left">0.5 mg (500 mcg)</td>
-                <td style="text-align:left"><strong>2 sprays</strong></td>
-            </tr>
-            <tr>
-                <td style="text-align:left"><strong>Standard</strong></td>
-                <td style="text-align:left">1.0 mg</td>
-                <td style="text-align:left"><strong>4 sprays</strong></td>
-            </tr>
-            <tr>
-                <td style="text-align:left"><strong>Moderate–High</strong></td>
-                <td style="text-align:left">1.5–2.0 mg</td>
-                <td style="text-align:left"><strong>6–8 sprays</strong></td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="route-stack">
+        <section class="route-panel route-nasal" aria-labelledby="pt141-dose-nasal">
+            <p class="route-label">Nasal · default</p>
+            <h4 id="pt141-dose-nasal">Nasal dosing (250 mcg / spray at 4 mL mix)</h4>
+            <p>Absorption is often faster than Sub-Q for many users. Calculator defaults on this page use Nasal + 4 mL.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align:left">Tier</th>
+                        <th style="text-align:left">Target Dose</th>
+                        <th style="text-align:left">Sprays (0.1 mL)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align:left"><strong>Low / Test</strong></td>
+                        <td style="text-align:left">0.5 mg (500 mcg)</td>
+                        <td style="text-align:left"><strong>2 sprays</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left"><strong>Standard</strong></td>
+                        <td style="text-align:left">1.0 mg</td>
+                        <td style="text-align:left"><strong>4 sprays</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left"><strong>Moderate–High</strong></td>
+                        <td style="text-align:left">1.5–2.0 mg</td>
+                        <td style="text-align:left"><strong>6–8 sprays</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
 
-    <h4>Subcutaneous (3 mL BAC mix)</h4>
-    <table>
-        <thead>
-            <tr>
-                <th style="text-align:left">Tier</th>
-                <th style="text-align:left">Target Dose</th>
-                <th style="text-align:left">Syringe Volume (U-100)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td style="text-align:left"><strong>Low / Test Dose</strong></td>
-                <td style="text-align:left">0.5 mg to 1.0 mg</td>
-                <td style="text-align:left"><strong>15 to 30 units</strong></td>
-            </tr>
-            <tr>
-                <td style="text-align:left"><strong>Moderate / Standard</strong></td>
-                <td style="text-align:left">1.5 mg to 1.75 mg</td>
-                <td style="text-align:left"><strong>45 to 52.5 units</strong></td>
-            </tr>
-            <tr>
-                <td style="text-align:left"><strong>High / Maximum</strong></td>
-                <td style="text-align:left">2.0 mg to 2.5 mg</td>
-                <td style="text-align:left"><strong>60 to 75 units</strong></td>
-            </tr>
-        </tbody>
-    </table>
+        <section class="route-panel route-subq" aria-labelledby="pt141-dose-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4 id="pt141-dose-subq">Subcutaneous dosing (3 mL BAC mix)</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align:left">Tier</th>
+                        <th style="text-align:left">Target Dose</th>
+                        <th style="text-align:left">Syringe Volume (U-100)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align:left"><strong>Low / Test Dose</strong></td>
+                        <td style="text-align:left">0.5 mg to 1.0 mg</td>
+                        <td style="text-align:left"><strong>15 to 30 units</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left"><strong>Moderate / Standard</strong></td>
+                        <td style="text-align:left">1.5 mg to 1.75 mg</td>
+                        <td style="text-align:left"><strong>45 to 52.5 units</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left"><strong>High / Maximum</strong></td>
+                        <td style="text-align:left">2.0 mg to 2.5 mg</td>
+                        <td style="text-align:left"><strong>60 to 75 units</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
     
     <hr>
     
