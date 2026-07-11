@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { filename: 'retatrutide-10mg',                    mg: 10,  ml: 3,   dose: 2,     unit: 'mg',  route: 'subq' },
         { filename: 'retatrutide-30mg',                    mg: 30,  ml: 3,   dose: 6,     unit: 'mg',  route: 'subq' },
         { filename: 'selank-5mg',                          mg: 5,   ml: 4,   dose: 250,   unit: 'mcg', route: 'nasal' },
-        { filename: 'tesamorelin-10mg',                    mg: 10,  ml: 3,   dose: 2,     unit: 'mg',  route: 'subq' }
+        { filename: 'tesamorelin-10mg',                    mg: 30,  ml: 3,   dose: 2,     unit: 'mg',  route: 'subq' }
     ];
 
     // ABSOLUTE SYSTEM FALLBACKS (If a page isn't in the list above)
@@ -240,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const navBase = navScriptEl
             ? navScriptEl.src.replace(/global-nav\.js(\?.*)?$/, '')
             : 'https://peptide-info.github.io/vials/';
-        calcScript.src = navBase + 'js/calculator-popup.js?v=6';
+        calcScript.src = navBase + 'js/calculator-popup.js?v=7';
         
         calcScript.onload = () => {
             isCalcScriptLoaded = true;
