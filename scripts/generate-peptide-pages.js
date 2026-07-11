@@ -417,6 +417,54 @@ files['bpc-157-tb-500.html'] = page({
   warnings: ['Verify the printed BPC:TB ratio on the vial label.', 'Same malignancy-caution notes as standalone repair peptides.']
 });
 
+files['glow.html'] = page({
+  title: 'GLOW',
+  format: 'Lyophilized 3-peptide blend (GHK-Cu + BPC-157 + TB-500)',
+  sizes: [70], defaultSize: 70, bacMl: 2, calcDose: 3.5, calcUnit: 'mg', route: 'subq',
+  storageKey: 'vial.glow',
+  mechanism: 'Community “GLOW” repair/skin blend: copper-tripeptide GHK-Cu plus the BPC-157 / TB-500 repair pair in one vial (no KPV — that is <a href="klow.html">KLOW</a>).',
+  bullets: [
+    'Typical vial: <strong>70 mg</strong> total = <strong>50 mg GHK-Cu</strong> + <strong>10 mg BPC-157</strong> + <strong>10 mg TB-500</strong> (5:1:1).',
+    'GHK-Cu is discussed for collagen / remodeling themes; BPC and TB for soft-tissue repair and cell-migration research.',
+    'Dose rows use <em>total blend mass</em>. At 2 mL BAC, ~10 units ≈ 3.5 mg total → ~2.5 mg GHK-Cu + ~0.5 mg BPC + ~0.5 mg TB.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Once daily Sub-Q is the usual community pattern (some run 5 on / 2 off). Cycles often 8–12 weeks with a break — watch copper load from the GHK-Cu majority.</p><p>Confirm the printed ratio on your label; vendor blends can differ.</p>',
+  tables: {
+    recon: subqRecon('GLOW blend reconstitution'),
+    dose: doseTable([
+      { tier: 'Conservative', doseLabel: '1.75 mg total (~5 units @ 2 mL)', mg: 1.75 },
+      { tier: 'Standard', doseLabel: '3.5 mg total (~10 units @ 2 mL)', mg: 3.5 },
+      { tier: 'Higher', doseLabel: '7.0 mg total (~20 units @ 2 mL)', mg: 7 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Injection-site irritation (copper peptides can sting), flushing, transient fatigue or headache.'],
+  warnings: ['Verify GHK:BPC:TB amounts on the vial — not all “GLOW” SKUs match 50/10/10.', 'Same malignancy-caution notes as standalone repair peptides; copper accumulation is a reason to cycle off.', 'Do not confuse with <a href="klow.html">KLOW</a> (adds KPV).']
+});
+
+files['klow.html'] = page({
+  title: 'KLOW',
+  format: 'Lyophilized 4-peptide blend (GHK-Cu + KPV + BPC-157 + TB-500)',
+  sizes: [80], defaultSize: 80, bacMl: 2, calcDose: 4, calcUnit: 'mg', route: 'subq',
+  storageKey: 'vial.klow',
+  mechanism: 'Community “KLOW” blend = <a href="glow.html">GLOW</a> (GHK-Cu + BPC-157 + TB-500) plus <strong>KPV</strong> for an extra anti-inflammatory (NF-κB–related) research angle in one draw.',
+  bullets: [
+    'Typical vial: <strong>80 mg</strong> total = <strong>50 mg GHK-Cu</strong> + <strong>10 mg KPV</strong> + <strong>10 mg BPC-157</strong> + <strong>10 mg TB-500</strong> (5:1:1:1).',
+    'Same repair/remodeling stack as GLOW; KPV is the differentiator for inflammation-focused protocols.',
+    'Dose rows use <em>total blend mass</em>. At 2 mL BAC, ~10 units ≈ 4 mg total → ~2.5 mg GHK-Cu + ~0.5 mg each of KPV, BPC, and TB.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Once daily Sub-Q is common (some load 5×/week then step down). Cycles often 8–12 weeks on, then several weeks off for copper clearance.</p><p>Confirm the printed 50/10/10/10 split on your label.</p>',
+  tables: {
+    recon: subqRecon('KLOW blend reconstitution'),
+    dose: doseTable([
+      { tier: 'Conservative', doseLabel: '2.0 mg total (~5 units @ 2 mL)', mg: 2 },
+      { tier: 'Standard', doseLabel: '4.0 mg total (~10 units @ 2 mL)', mg: 4 },
+      { tier: 'Higher', doseLabel: '8.0 mg total (~20 units @ 2 mL)', mg: 8 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Site sting/irritation from GHK-Cu, mild fatigue, headache; KPV is sometimes reported to soften site reactions vs GLOW alone.'],
+  warnings: ['Verify all four printed amounts — marketing names vary.', 'Cycle off periodically; copper load tracks the GHK-Cu majority.', 'Same malignancy-caution notes as standalone repair peptides.']
+});
+
 files['ipamorelin.html'] = page({
   title: 'Ipamorelin',
   format: 'Lyophilized Powder (selective GH secretagogue / GHRP analogue)',
@@ -591,7 +639,7 @@ files['kpv.html'] = page({
   bullets: [
     'Discussed for GI comfort / inflammatory research themes.',
     'Sub-Q is common on protocol sheets; oral research uses exist separately.',
-    'Often stacked in community “GLOW/KLOW” marketing blends with GHK/BPC/TB.'
+    'Often stacked in community <a href="glow.html">GLOW</a> / <a href="klow.html">KLOW</a> blends with GHK/BPC/TB.'
   ],
   dosingIntro: '<p><strong>Frequency:</strong> 1–2× daily Sub-Q is a common research-sheet pattern.</p>',
   tables: {

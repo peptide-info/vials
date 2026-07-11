@@ -165,6 +165,32 @@
             note: 'Blend vial · enter GHK mg per draw (BPC scales with it) · graph uses ~5 h'
         },
         {
+            id: 'glow',
+            name: 'GLOW',
+            page: 'glow.html',
+            halfLifeHours: 6,
+            defaultIntervalDays: 1,
+            unit: 'mg',
+            defaultDose: 3.5,
+            defaultTimesPerDay: 1,
+            defaultTimes: defaultAlertTimes(1),
+            defaultDays: [0, 1, 2, 3, 4, 5, 6],
+            note: 'GHK-Cu + BPC-157 + TB-500 · dose = total blend mg · often daily'
+        },
+        {
+            id: 'klow',
+            name: 'KLOW',
+            page: 'klow.html',
+            halfLifeHours: 6,
+            defaultIntervalDays: 1,
+            unit: 'mg',
+            defaultDose: 4,
+            defaultTimesPerDay: 1,
+            defaultTimes: defaultAlertTimes(1),
+            defaultDays: [0, 1, 2, 3, 4, 5, 6],
+            note: 'GLOW + KPV · dose = total blend mg · often daily'
+        },
+        {
             id: 'kpv',
             name: 'KPV',
             page: 'kpv.html',

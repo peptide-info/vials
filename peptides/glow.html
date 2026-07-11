@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../global-nav.js?v=15"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLOW Protocol</title>
+</head>
+<body>
+
+    <h1>GLOW</h1>
+    <p><strong>Format:</strong> Lyophilized 3-peptide blend (GHK-Cu + BPC-157 + TB-500) · Vial <span data-vial-mg>70 mg</span></p>
+
+    <hr>
+
+    <h3>🧬 Mechanism of Action</h3>
+    <p>Community “GLOW” repair/skin blend: copper-tripeptide GHK-Cu plus the BPC-157 / TB-500 repair pair in one vial (no KPV — that is <a href="klow.html">KLOW</a>).</p>
+    <ul>
+        <li>Typical vial: <strong>70 mg</strong> total = <strong>50 mg GHK-Cu</strong> + <strong>10 mg BPC-157</strong> + <strong>10 mg TB-500</strong> (5:1:1).</li>
+        <li>GHK-Cu is discussed for collagen / remodeling themes; BPC and TB for soft-tissue repair and cell-migration research.</li>
+        <li>Dose rows use <em>total blend mass</em>. At 2 mL BAC, ~10 units ≈ 3.5 mg total → ~2.5 mg GHK-Cu + ~0.5 mg BPC + ~0.5 mg TB.</li>
+    </ul>
+
+    <hr>
+
+    <h3>🧪 Reconstitution Guide</h3>
+
+    <div id="vial-picker"
+         data-storage-key="vial.glow"
+         data-sizes="70"
+         data-default="70"
+         data-bac-ml="2"
+         data-calc-dose="3.5"
+         data-calc-unit="mg"
+         data-route="subq"
+         data-mode="subq"></div>
+
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4>GLOW blend reconstitution</h4>
+            <ul>
+                <li><strong>Diluent:</strong> Add <strong data-vial-bac></strong> of Bacteriostatic (BAC) Water gently down the side of the vial. Use the BAC water chips above to compare mixes — dosing units update live.</li>
+                <li><strong>Mixing:</strong> Do <em>not</em> shake. Swirl gently until the solution is completely clear.</li>
+                <li><strong>Final Concentration:</strong> <span data-vial-conc></span>.</li>
+                <li><strong>Storage:</strong> Store in refrigerator at <strong>36°F–46°F</strong> (2°C–8°C).</li>
+            </ul>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>📅 Protocol &amp; Dosing</h3>
+    <p><strong>Frequency:</strong> Once daily Sub-Q is the usual community pattern (some run 5 on / 2 off). Cycles often 8–12 weeks with a break — watch copper load from the GHK-Cu majority.</p>
+    <p>Confirm the printed ratio on your label; vendor blends can differ.</p>
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Sub-Q</p>
+            <h4>Subcutaneous dosing</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th>Target Dose</th>
+                        <th>Syringe Volume (U-100)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Conservative</strong></td><td>1.75 mg total (~5 units @ 2 mL)</td><td data-units data-dose-mg="1.75"></td></tr>
+                    <tr><td><strong>Standard</strong></td><td>3.5 mg total (~10 units @ 2 mL)</td><td data-units data-dose-mg="3.5"></td></tr>
+                    <tr><td><strong>Higher</strong></td><td>7.0 mg total (~20 units @ 2 mL)</td><td data-units data-dose-mg="7"></td></tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>⚠️ Safety &amp; Side Effects</h3>
+    <ul>
+        <li><strong>Common:</strong> Injection-site irritation (copper peptides can sting), flushing, transient fatigue or headache.</li>
+    </ul>
+
+    <blockquote>
+        <p><strong>CRITICAL WARNINGS:</strong></p>
+        <ul>
+            <li>Verify GHK:BPC:TB amounts on the vial — not all “GLOW” SKUs match 50/10/10.</li>
+            <li>Same malignancy-caution notes as standalone repair peptides; copper accumulation is a reason to cycle off.</li>
+            <li>Do not confuse with <a href="klow.html">KLOW</a> (adds KPV).</li>
+            <li><strong>For laboratory research use only.</strong></li>
+        </ul>
+    </blockquote>
+
+    <script src="../js/vial-size.js?v=3"></script>
+</body>
+</html>

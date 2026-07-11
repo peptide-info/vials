@@ -53,6 +53,8 @@ document.addEventListener("DOMContentLoaded", () => {
         { filename: 'ghk-cu-100mg-with-bpc-157-10mg',      mg: 50,  ml: 3,   dose: 2.5,   unit: 'mg',  route: 'subq' },
         { filename: 'cjc-1295-no-dac-with-ipamorelin',     mg: 10,  ml: 2,   dose: 300,   unit: 'mcg', route: 'subq' },
         { filename: 'bpc-157-tb-500',                      mg: 10,  ml: 2,   dose: 250,   unit: 'mcg', route: 'subq' },
+        { filename: 'glow',                                mg: 70,  ml: 2,   dose: 3.5,   unit: 'mg',  route: 'subq' },
+        { filename: 'klow',                                mg: 80,  ml: 2,   dose: 4,     unit: 'mg',  route: 'subq' },
         { filename: 'cjc-1295-no-dac',                     mg: 5,   ml: 2,   dose: 100,   unit: 'mcg', route: 'subq' },
         { filename: 'cjc-1295-dac',                        mg: 5,   ml: 2,   dose: 2,     unit: 'mg',  route: 'subq' },
         { filename: 'thymosin-alpha-1',                    mg: 5,   ml: 2,   dose: 1.6,   unit: 'mg',  route: 'subq' },
