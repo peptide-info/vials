@@ -588,6 +588,22 @@
     tabBtnReverse.addEventListener("click", () => switchTab('reverse'));
 
     // Form live recalculation listeners
+    function sanitizeLeadingZeros(el) {
+        if (!el || el.type !== 'number') return;
+        let s = String(el.value ?? '');
+        if (s === '' || s === '-' || s === '.' || s === '-.') return;
+        const neg = s.startsWith('-');
+        if (neg) s = s.slice(1);
+        if (s.startsWith('.')) s = `0${s}`;
+        if (/^0+\d/.test(s)) s = s.replace(/^0+/, '');
+        if (s.startsWith('.')) s = `0${s}`;
+        if (s === '') s = '0';
+        const next = `${neg ? '-' : ''}${s}`;
+        if (next !== el.value) el.value = next;
+    }
+    [inputs.mg1, inputs.ml1, inputs.dose1, inputs.mg2, inputs.dose2, inputs.maxUnits].forEach((el) => {
+        el.addEventListener('input', () => sanitizeLeadingZeros(el));
+    });
     [inputs.mg1, inputs.ml1, inputs.dose1].forEach(el => el.addEventListener('input', calculateStandard));
     [inputs.mg2, inputs.dose2, inputs.maxUnits].forEach(el => el.addEventListener('input', calculateReverse));
     inputs.unit1.addEventListener('change', calculateStandard);

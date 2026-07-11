@@ -9,14 +9,14 @@
         {
             id: 'reta',
             name: 'Retatrutide',
-            page: 'retatrutide-10mg.html',
-            halfLifeHours: 150,
+            page: 'retatrutide-30mg.html',
+            halfLifeHours: 144,
             defaultIntervalDays: 7,
             unit: 'mg',
             titration: true,
             defaultTimesPerDay: 1,
             defaultTimes: ['09:00'],
-            note: 'Usually every 5–7 days · optional +2 mg titration after 4 doses at each step'
+            note: 'Usually every 5–7 days · optional +2 mg titration after 4 doses at each step · graph ≈6 day half-life'
         },
         {
             id: 'tesa',
@@ -136,13 +136,37 @@
         return `${h}:${min} ${ampm}`;
     }
 
-    function parseTimeInput(value) {
-        const raw = value || '09:00';
-        const [hh, mm] = raw.split(':').map(Number);
-        return {
-            hours: Number.isFinite(hh) ? hh : 9,
-            minutes: Number.isFinite(mm) ? mm : 0
-        };
+    function sanitizeNumberInputValue(value) {
+        if (value == null || value === '') return value;
+        let s = String(value).trim();
+        if (s === '-' || s === '.' || s === '-.') return s;
+        const neg = s.startsWith('-');
+        if (neg) s = s.slice(1);
+        if (s.startsWith('.')) s = `0${s}`;
+        // Strip leading zeros: 07 → 7, 00.5 → 0.5, 000 → 0 (keep a lone 0 / 0.x)
+        if (/^0+\d/.test(s)) s = s.replace(/^0+/, '');
+        if (s.startsWith('.')) s = `0${s}`;
+        if (s === '') s = '0';
+        return `${neg ? '-' : ''}${s}`;
+    }
+
+    function bindNumberInputGuards(root) {
+        if (!root || root.dataset.numGuardBound === '1') return;
+        root.dataset.numGuardBound = '1';
+        root.addEventListener('input', (e) => {
+            const el = e.target;
+            if (!(el instanceof HTMLInputElement)) return;
+            if (el.type !== 'number') return;
+            const next = sanitizeNumberInputValue(el.value);
+            if (next !== el.value) el.value = next;
+        });
+        root.addEventListener('blur', (e) => {
+            const el = e.target;
+            if (!(el instanceof HTMLInputElement) || el.type !== 'number') return;
+            if (el.value === '' || el.value === '-' || el.value === '.') return;
+            const next = sanitizeNumberInputValue(el.value);
+            if (next !== el.value) el.value = next;
+        }, true);
     }
 
     function applyTime(date, timeStr) {
@@ -296,7 +320,8 @@
     }
 
     function relativeConcentration(events, halfLifeHours, sampleHours) {
-        const k = Math.LN2 / halfLifeHours;
+        const hl = Math.max(0.25, Number(halfLifeHours) || 24);
+        const k = Math.LN2 / hl;
         return sampleHours.map((tHours) => {
             let c = 0;
             for (const ev of events) {
@@ -305,6 +330,26 @@
             }
             return c;
         });
+    }
+
+    /** Dense sample grid so weekly peaks don't alias into a fake rise/fall pattern. */
+    function buildSampleHours(hoursSpan, doseTimesHours) {
+        const span = Math.max(24, hoursSpan);
+        const step = Math.min(4, Math.max(1.5, span / 800));
+        const points = new Set([0, span]);
+        for (let t = 0; t <= span; t += step) points.add(Math.round(t * 1000) / 1000);
+        (doseTimesHours || []).forEach((t0) => {
+            if (t0 < 0 || t0 > span) return;
+            points.add(t0);
+            points.add(Math.min(span, t0 + 0.05));
+        });
+        return [...points].sort((a, b) => a - b);
+    }
+
+    function resolveHalfLifeHours(sched) {
+        const fromConfig = peptideById(sched.peptideId)?.halfLifeHours;
+        if (fromConfig != null && !sched.custom) return fromConfig;
+        return sched.halfLifeHours || 24;
     }
 
     function calendarDayKey(date) {
@@ -924,7 +969,7 @@
                     <strong>${s.name}</strong>
                     <button type="button" data-remove="${s.id}" class="text-btn">Remove</button>
                 </div>
-                <p class="hint">${s.events.length} dose event${s.events.length === 1 ? '' : 's'} · ${halfLifeLabel(s.halfLifeHours)}</p>
+                <p class="hint">${s.events.length} dose event${s.events.length === 1 ? '' : 's'} · ${halfLifeLabel(resolveHalfLifeHours(s))}</p>
                 <ol class="sched-preview">
                     ${s.events.slice(0, 8).map((ev) => {
                         const when = new Date(ev.date);
@@ -980,27 +1025,44 @@
             empty.classList.remove('is-visible');
         }
 
+        const dayMs = 24 * 3600 * 1000;
         const allEvents = schedules.flatMap((s) => s.events.map((ev) => ({
             ...ev,
             date: new Date(ev.date),
-            halfLifeHours: s.halfLifeHours,
+            halfLifeHours: resolveHalfLifeHours(s),
             dose: Number(ev.dose) || 0
         })));
 
         const tMin = Math.min(...allEvents.map((e) => e.date.getTime()));
         const tMaxEvent = Math.max(...allEvents.map((e) => e.date.getTime()));
-        const tMax = tMaxEvent + 14 * 24 * 3600 * 1000;
-        const hoursSpan = Math.max(24, (tMax - tMin) / 3600000);
-        const samples = 240;
-        const sampleHours = Array.from({ length: samples }, (_, i) => (i / (samples - 1)) * hoursSpan);
+
+        // Prefer a readable window: through early maintenance, not 6+ months of the same sawtooth.
+        let firstMaintain = null;
+        allEvents.forEach((ev) => {
+            if (String(ev.label || '').includes('maintain')) {
+                const t = ev.date.getTime();
+                if (firstMaintain == null || t < firstMaintain) firstMaintain = t;
+            }
+        });
+        const tGraphMax = firstMaintain != null
+            ? Math.min(tMaxEvent + 14 * dayMs, firstMaintain + 10 * 7 * dayMs)
+            : Math.min(tMaxEvent + 14 * dayMs, tMin + 18 * 7 * dayMs);
+
+        const hoursSpan = Math.max(24, (tGraphMax - tMin) / 3600000);
+        const doseTimes = allEvents
+            .map((e) => (e.date.getTime() - tMin) / 3600000)
+            .filter((t) => t <= hoursSpan);
+        const sampleHours = buildSampleHours(hoursSpan, doseTimes);
+        const samples = sampleHours.length;
 
         const series = schedules.map((s, idx) => {
+            const hl = resolveHalfLifeHours(s);
             const evs = s.events.map((ev) => ({
                 dose: Number(ev.dose) || 0,
                 t0Hours: (new Date(ev.date).getTime() - tMin) / 3600000
             }));
-            const values = relativeConcentration(evs, s.halfLifeHours, sampleHours);
-            return { name: s.name, unit: s.unit || 'mg', color: COLORS[idx % COLORS.length], values };
+            const values = relativeConcentration(evs, hl, sampleHours);
+            return { name: s.name, unit: s.unit || 'mg', color: COLORS[idx % COLORS.length], values, halfLifeHours: hl };
         });
 
         const peak = Math.max(...series.flatMap((s) => s.values), 0.0001);
@@ -1030,7 +1092,7 @@
         series.forEach((s) => {
             ctx.beginPath();
             s.values.forEach((v, i) => {
-                const x = pad.l + (i / (samples - 1)) * w;
+                const x = pad.l + (sampleHours[i] / hoursSpan) * w;
                 const y = pad.t + h - (v / peak) * h;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
@@ -1048,7 +1110,6 @@
         ctx.fillText('Start', pad.l, cssH - 8);
         ctx.fillText('→ time', pad.l + w - 40, cssH - 8);
 
-        // Y-axis unit label
         ctx.save();
         ctx.translate(12, pad.t + h / 2);
         ctx.rotate(-Math.PI / 2);
@@ -1081,6 +1142,8 @@
             return;
         }
         initialized = true;
+
+        bindNumberInputGuards(document.getElementById('view-planner') || document);
 
         select.innerHTML = PEPTIDES.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')
             + '<option value="custom">Custom peptide…</option>';
