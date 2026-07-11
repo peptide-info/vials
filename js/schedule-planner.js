@@ -59,6 +59,18 @@
             note: 'Daily Sub-Q'
         },
         {
+            id: 'ghk-bpc',
+            name: 'GHK-Cu + BPC-157',
+            halfLifeHours: 5,
+            defaultIntervalDays: 1,
+            unit: 'mg',
+            defaultDose: 2.5,
+            defaultTimesPerDay: 1,
+            defaultTimes: ['09:00'],
+            defaultDays: [0, 1, 2, 3, 4, 5, 6],
+            note: 'Blend vial · enter GHK mg per draw (BPC scales with it) · graph uses ~5 h'
+        },
+        {
             id: 'selank',
             name: 'Selank',
             halfLifeHours: 3,
@@ -654,7 +666,7 @@
 
         // Standard / custom — days of week or every X days
         const unit = isCustom ? 'mg' : peptide.unit;
-        const doseDefault = unit === 'mg' ? 2 : 250;
+        const doseDefault = peptide.defaultDose != null ? peptide.defaultDose : (unit === 'mg' ? 2 : 250);
         const defaultMode = (peptide.defaultIntervalDays && peptide.defaultIntervalDays > 1) ? 'interval' : 'dow';
         wrap.innerHTML = `
             ${customFieldsHtml()}

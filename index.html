@@ -321,6 +321,19 @@
             margin-top: 14px;
         }
 
+        .section-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .section-head h2 {
+            margin: 0;
+        }
+
         .btn {
             border: 1px solid var(--line);
             background: #fff;
@@ -614,14 +627,16 @@
                     <div class="planner-grid" id="planner-fields"></div>
                     <div class="planner-actions">
                         <button type="button" class="btn primary" id="planner-add">Add to schedule</button>
-                        <button type="button" class="btn" id="planner-export" disabled>Download calendar (.ics)</button>
                         <button type="button" class="btn" id="planner-clear">Clear all</button>
                     </div>
-                    <p class="hint">Open the .ics file on iPhone, Android, or desktop calendar apps to import reminders. Works offline after the page loads.</p>
                 </section>
 
                 <section class="planner-card">
-                    <h2>Your schedule</h2>
+                    <div class="section-head">
+                        <h2>Your schedule</h2>
+                        <button type="button" class="btn" id="planner-export" disabled>Download calendar (.ics)</button>
+                    </div>
+                    <p class="hint">Open the .ics on iPhone, Android, or desktop calendar apps to import reminders.</p>
                     <div id="planner-schedule-list"></div>
                 </section>
 
@@ -638,7 +653,7 @@
         </div>
     </main>
 
-    <script src="js/schedule-planner.js?v=4"></script>
+    <script src="js/schedule-planner.js?v=5"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';
