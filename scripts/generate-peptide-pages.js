@@ -36,8 +36,6 @@ function page(opts) {
     <h1>${title}</h1>
     <p><strong>Format:</strong> ${format} · Vial <span data-vial-mg>${defaultSize} ${sizeUnit || 'mg'}</span></p>
 
-    <div ${pickerAttrs}></div>
-
     <hr>
 
     <h3>🧬 Mechanism of Action</h3>
@@ -49,6 +47,7 @@ ${bullets.map((b) => `        <li>${b}</li>`).join('\n')}
     <hr>
 
     <h3>🧪 Reconstitution Guide</h3>
+    <div ${pickerAttrs}></div>
     <div class="route-stack">
 ${tables.recon}
     </div>
@@ -76,7 +75,7 @@ ${warnings.map((w) => `            <li>${w}</li>`).join('\n')}
         </ul>
     </blockquote>
 ${extraHtml || ''}
-    <script src="../js/vial-size.js?v=1"></script>
+    <script src="../js/vial-size.js?v=3"></script>
 </body>
 </html>
 `;
@@ -87,7 +86,7 @@ function subqRecon(label = 'Subcutaneous reconstitution', note = '') {
             <p class="route-label">Sub-Q</p>
             <h4>${label}</h4>
             <ul>
-                <li><strong>Diluent:</strong> Add <strong data-vial-bac></strong> of Bacteriostatic (BAC) Water gently down the side of the vial.</li>
+                <li><strong>Diluent:</strong> Add <strong data-vial-bac></strong> of Bacteriostatic (BAC) Water gently down the side of the vial. Use the BAC water chips above to compare mixes — dosing units update live.</li>
                 <li><strong>Mixing:</strong> Do <em>not</em> shake. Swirl gently until the solution is completely clear.</li>
                 <li><strong>Final Concentration:</strong> <span data-vial-conc></span>.</li>
                 <li><strong>Storage:</strong> Store in refrigerator at <strong>36°F–46°F</strong> (2°C–8°C).</li>
