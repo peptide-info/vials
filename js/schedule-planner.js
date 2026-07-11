@@ -169,6 +169,15 @@
         }, true);
     }
 
+    function parseTimeInput(value) {
+        const raw = value || '09:00';
+        const [hh, mm] = raw.split(':').map(Number);
+        return {
+            hours: Number.isFinite(hh) ? hh : 9,
+            minutes: Number.isFinite(mm) ? mm : 0
+        };
+    }
+
     function applyTime(date, timeStr) {
         const { hours, minutes } = parseTimeInput(timeStr);
         const next = new Date(date.getTime());
