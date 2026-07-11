@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. DYNAMIC ASSET DICTIONARY (Absolute web paths with cache-busting)
     const ASSET_MAP = {
         'retatrutide': 'https://peptide-info.github.io/vials/assets/retatrutide.jpg?v=1',
+        'tesamorelin': 'https://peptide-info.github.io/vials/assets/default.png?v=1',
+        'ghk':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
         'selank':      'https://peptide-info.github.io/vials/assets/default.png?v=1',
         'cjc':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
         'bpc':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
@@ -16,14 +18,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // 2. PEPTIDE CONFIGURATION ARRAY (Add New Pages Here)
     // ==========================================
     // route: 'subq' (syringe units) or 'nasal' (0.1 mL sprays)
+    // NOTE: more-specific filenames must be listed before shorter prefixes they contain
     const PEPTIDE_CONFIGS = [
-        { filename: 'bac-water-3ml',                 mg: '',  ml: '',  dose: '',   unit: 'mg',  route: 'subq' },
-        { filename: 'bpc-157-5mg',                    mg: 5,   ml: 2,   dose: 375,   unit: 'mcg', route: 'subq' },
-        { filename: 'cjc-1295-no-dac-with-ipamorelin',mg: 10,  ml: 2,   dose: 300,   unit: 'mcg', route: 'subq' },
-        { filename: 'pt-141-10mg',                    mg: 10,  ml: 4,   dose: 1,     unit: 'mg',  route: 'nasal' },
-        { filename: 'retatrutide-10mg',               mg: 10,  ml: 1,   dose: 2,     unit: 'mg',  route: 'subq' },
-        { filename: 'retatrutide-30mg',               mg: 30,  ml: 3,   dose: 6,     unit: 'mg',  route: 'subq' },
-        { filename: 'selank-5mg',                      mg: 5,   ml: 4,   dose: 250,   unit: 'mcg', route: 'nasal' }
+        { filename: 'bac-water-3ml',                      mg: '',  ml: '',  dose: '',   unit: 'mg',  route: 'subq' },
+        { filename: 'bpc-157-5mg',                         mg: 5,   ml: 2,   dose: 375,   unit: 'mcg', route: 'subq' },
+        { filename: 'cjc-1295-no-dac-with-ipamorelin',     mg: 10,  ml: 2,   dose: 300,   unit: 'mcg', route: 'subq' },
+        { filename: 'ghk-cu-100mg-with-bpc-157-10mg',      mg: 50,  ml: 3,   dose: 2.5,   unit: 'mg',  route: 'subq' },
+        { filename: 'ghk-cu-100mg',                        mg: 100, ml: 5,   dose: 2,     unit: 'mg',  route: 'subq' },
+        { filename: 'pt-141-10mg',                         mg: 10,  ml: 4,   dose: 1,     unit: 'mg',  route: 'nasal' },
+        { filename: 'retatrutide-10mg',                    mg: 10,  ml: 1,   dose: 2,     unit: 'mg',  route: 'subq' },
+        { filename: 'retatrutide-30mg',                    mg: 30,  ml: 3,   dose: 6,     unit: 'mg',  route: 'subq' },
+        { filename: 'selank-5mg',                          mg: 5,   ml: 4,   dose: 250,   unit: 'mcg', route: 'nasal' },
+        { filename: 'tesamorelin-10mg',                    mg: 10,  ml: 2,   dose: 2,     unit: 'mg',  route: 'subq' }
     ];
 
     // ABSOLUTE SYSTEM FALLBACKS (If a page isn't in the list above)
@@ -234,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const navBase = navScriptEl
             ? navScriptEl.src.replace(/global-nav\.js(\?.*)?$/, '')
             : 'https://peptide-info.github.io/vials/';
-        calcScript.src = navBase + 'js/calculator-popup.js?v=4';
+        calcScript.src = navBase + 'js/calculator-popup.js?v=5';
         
         calcScript.onload = () => {
             isCalcScriptLoaded = true;
