@@ -1878,46 +1878,5 @@
         requestAnimationFrame(() => requestAnimationFrame(finishSend));
     }
 
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = SCHEDULE_EMAIL_WEB_APP_URL;
-            form.target = 'schedule-email-frame';
-            form.style.display = 'none';
-
-            const fields = {
-                action: 'schedule',
-                email: emailInput,
-                subject: subjectInput,
-                scheduleHtml,
-                chartBase64,
-                icsContent: ics
-            };
-
-            Object.keys(fields).forEach((name) => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = name;
-                input.value = fields[name];
-                form.appendChild(input);
-            });
-
-            document.body.appendChild(form);
-            form.submit();
-            form.remove();
-
-            if (status) {
-                status.style.color = '#0f7a5f';
-                status.textContent = 'Sent — check inbox (and spam) for the .ics + chart.';
-            }
-            setTimeout(() => {
-                if (sendBtn) sendBtn.disabled = false;
-                if (typeof onDone === 'function') onDone();
-            }, 1600);
-        };
-
-        // One frame so canvas pixels are committed after drawGraph
-        requestAnimationFrame(() => requestAnimationFrame(finishSend));
-    }
-
     window.PeptideSchedulePlanner = { init, PEPTIDES };
 })();
