@@ -788,40 +788,40 @@
             { id: 'gh', label: 'GH Secretagogues', note: 'Pulsatile GH support and nightly GHRH protocols' },
             { id: 'repair', label: 'Repair & Recovery', note: 'Tissue repair, skin, and recovery blends' },
             { id: 'nasal', label: 'Nasal & CNS', note: 'Intranasal, sleep, and CNS-leaning compounds' },
-            { id: 'supplies', label: 'Supplies', note: 'Diluent reference' },
-            { id: 'other', label: 'Other', note: 'Longevity, immune, and uncategorized sheets' }
+            { id: 'other', label: 'Other', note: 'Longevity, immune, and uncategorized sheets' },
+            { id: 'supplies', label: 'Supplies', note: 'Diluent reference' }
         ];
 
         // Display metadata + grouping. Unknown GitHub files still appear under Other.
         const CATALOG = {
-            'retatrutide.html': { title: 'Retatrutide', meta: 'Triple agonist · fat loss', group: 'metabolic', tags: ['Sub-Q'] },
-            'tirzepatide.html': { title: 'Tirzepatide', meta: 'Dual agonist · appetite control', group: 'metabolic', tags: ['Sub-Q'] },
-            'semaglutide.html': { title: 'Semaglutide', meta: 'GLP-1 · weight & glucose', group: 'metabolic', tags: ['Sub-Q'] },
-            'cagrilintide.html': { title: 'Cagrilintide', meta: 'Amylin · appetite silencing', group: 'metabolic', tags: ['Sub-Q'] },
-            'tesamorelin.html': { title: 'Tesamorelin', meta: 'Visceral fat · GH support', group: 'gh', tags: ['Sub-Q'] },
-            'ipamorelin.html': { title: 'Ipamorelin', meta: 'Clean GH pulse · recovery', group: 'gh', tags: ['Sub-Q'] },
-            'cjc-1295-no-dac.html': { title: 'CJC-1295 No DAC', meta: 'Pulsatile GHRH booster', group: 'gh', tags: ['Sub-Q'] },
-            'cjc-1295-dac.html': { title: 'CJC-1295 with DAC', meta: 'Long-acting GHRH — not No DAC', group: 'gh', tags: ['Sub-Q'] },
-            'cjc-1295-no-dac-with-ipamorelin.html': { title: 'CJC-1295 No DAC + Ipamorelin', meta: 'Classic GH pulse stack', group: 'gh', tags: ['Sub-Q', 'Blend'] },
-            'bpc-157.html': { title: 'BPC-157', meta: 'Soft-tissue repair', group: 'repair', tags: ['Sub-Q'] },
-            'tb-500.html': { title: 'TB-500', meta: 'Mobility & recovery', group: 'repair', tags: ['Sub-Q'] },
-            'bpc-157-tb-500.html': { title: 'BPC-157 + TB-500', meta: 'Wolverine stack', group: 'repair', tags: ['Sub-Q', 'Blend'] },
-            'glow.html': { title: 'GLOW', meta: 'Skin & repair blend', group: 'repair', tags: ['Sub-Q', 'Blend'] },
-            'klow.html': { title: 'KLOW', meta: 'Repair + anti-inflammatory blend', group: 'repair', tags: ['Sub-Q', 'Blend'] },
-            'ghk-cu.html': { title: 'GHK-Cu', meta: 'Collagen & skin repair', group: 'repair', tags: ['Sub-Q'] },
-            'ghk-cu-100mg-with-bpc-157-10mg.html': { title: 'GHK-Cu + BPC-157', meta: 'Skin heal blend + topical', group: 'repair', tags: ['Blend', 'Topical'] },
-            'kpv.html': { title: 'KPV', meta: 'Gut & inflammation', group: 'repair', tags: ['Sub-Q'] },
-            'selank.html': { title: 'Selank', meta: 'Calm · anti-anxiety', group: 'nasal', tags: ['Nasal'] },
-            'semax.html': { title: 'Semax', meta: 'Focus & cognition', group: 'nasal', tags: ['Nasal'] },
-            'pt-141.html': { title: 'PT-141', meta: 'Libido & arousal', group: 'nasal', tags: ['Nasal', 'Sub-Q'] },
-            'melanotan-2.html': { title: 'Melanotan II', meta: 'Tanning & pigment', group: 'other', tags: ['Sub-Q'] },
-            'epitalon.html': { title: 'Epitalon', meta: 'Longevity courses', group: 'other', tags: ['Sub-Q'] },
-            'mots-c.html': { title: 'MOTS-c', meta: 'Metabolic · mito support', group: 'metabolic', tags: ['Sub-Q'] },
-            'nad.html': { title: 'NAD+', meta: 'Cellular energy cofactor', group: 'other', tags: ['Sub-Q'] },
-            'dsip.html': { title: 'DSIP', meta: 'Sleep support', group: 'other', tags: ['Sub-Q'] },
-            'thymosin-alpha-1.html': { title: 'Thymosin Alpha-1', meta: 'Immune support', group: 'other', tags: ['Sub-Q'] },
-            'bac-water-3ml.html': { title: 'Bacteriostatic Water', meta: 'Diluent reference', group: 'supplies', tags: ['Supply'] }
-        };
+            'retatrutide.html': { title: 'Retatrutide', meta: '10–60 mg · triple agonist fat loss', group: 'metabolic', tags: ['Sub-Q'] },
+            'tirzepatide.html': { title: 'Tirzepatide', meta: '10–60 mg · dual agonist appetite control', group: 'metabolic', tags: ['Sub-Q'] },
+            'semaglutide.html': { title: 'Semaglutide', meta: '10–30 mg · GLP-1 weight & glucose', group: 'metabolic', tags: ['Sub-Q'] },
+            'cagrilintide.html': { title: 'Cagrilintide', meta: '5–10 mg · amylin appetite control', group: 'metabolic', tags: ['Sub-Q'] },
+            'tesamorelin.html': { title: 'Tesamorelin', meta: '5–10 mg · visceral fat & GH support', group: 'gh', tags: ['Sub-Q'] },
+            'ipamorelin.html': { title: 'Ipamorelin', meta: '5–10 mg · clean GH pulse & recovery', group: 'gh', tags: ['Sub-Q'] },
+            'cjc-1295-no-dac.html': { title: 'CJC-1295 No DAC', meta: '5–10 mg · pulsatile GHRH booster', group: 'gh', tags: ['Sub-Q'] },
+            'cjc-1295-dac.html': { title: 'CJC-1295 with DAC', meta: '5 mg · long-acting GHRH', group: 'gh', tags: ['Sub-Q'] },
+            'cjc-1295-no-dac-with-ipamorelin.html': { title: 'CJC-1295 No DAC + Ipamorelin', meta: '5 mg + 5 mg · classic GH pulse stack', group: 'gh', tags: ['Sub-Q', 'Blend'] },
+            'bpc-157.html': { title: 'BPC-157', meta: '5–20 mg · soft-tissue repair', group: 'repair', tags: ['Sub-Q'] },
+            'tb-500.html': { title: 'TB-500', meta: '5–10 mg · mobility & recovery', group: 'repair', tags: ['Sub-Q'] },
+            'bpc-157-tb-500.html': { title: 'BPC-157 + TB-500', meta: '10–20 mg · Wolverine stack', group: 'repair', tags: ['Sub-Q', 'Blend'] },
+            'glow.html': { title: 'GLOW', meta: '70 mg · skin & repair blend', group: 'repair', tags: ['Sub-Q', 'Blend'] },
+            'klow.html': { title: 'KLOW', meta: '80 mg · repair + anti-inflammatory blend', group: 'repair', tags: ['Sub-Q', 'Blend'] },
+            'ghk-cu.html': { title: 'GHK-Cu', meta: '50–100 mg · collagen & skin repair', group: 'repair', tags: ['Sub-Q'] },
+            'ghk-cu-100mg-with-bpc-157-10mg.html': { title: 'GHK-Cu + BPC-157', meta: '50+10 mg · skin heal blend + topical', group: 'repair', tags: ['Blend', 'Topical'] },
+            'kpv.html': { title: 'KPV', meta: '5–10 mg · gut & inflammation', group: 'repair', tags: ['Sub-Q'] },
+            'selank.html': { title: 'Selank', meta: '5–10 mg · calm & anti-anxiety', group: 'nasal', tags: ['Nasal'] },
+            'semax.html': { title: 'Semax', meta: '5–10 mg · focus & cognition', group: 'nasal', tags: ['Nasal'] },
+            'pt-141.html': { title: 'PT-141', meta: '10 mg · libido & arousal', group: 'nasal', tags: ['Nasal', 'Sub-Q'] },
+            'melanotan-2.html': { title: 'Melanotan II', meta: '10 mg · tanning & pigment', group: 'other', tags: ['Sub-Q'] },
+            'epitalon.html': { title: 'Epitalon', meta: '10–50 mg · longevity courses', group: 'other', tags: ['Sub-Q'] },
+            'mots-c.html': { title: 'MOTS-c', meta: '10–40 mg · metabolic energy support', group: 'metabolic', tags: ['Sub-Q'] },
+            'nad.html': { title: 'NAD+', meta: '100–1000 mg · cellular energy cofactor', group: 'other', tags: ['Sub-Q'] },
+            'dsip.html': { title: 'DSIP', meta: '5–15 mg · sleep support', group: 'other', tags: ['Sub-Q'] },
+            'thymosin-alpha-1.html': { title: 'Thymosin Alpha-1', meta: '5–10 mg · immune support', group: 'other', tags: ['Sub-Q'] },
+            'bac-water-3ml.html': { title: 'Bacteriostatic Water', meta: '3 mL · diluent reference', group: 'supplies', tags: ['Supply'] }
+        }
 
         function tagClass(tag) {
             const t = tag.toLowerCase();

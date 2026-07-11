@@ -53,6 +53,8 @@ body.protocol-page > table,
 body.protocol-page > hr,
 body.protocol-page > blockquote,
 body.protocol-page > div.note,
+body.protocol-page > div.community-notes,
+body.protocol-page > p.community-disclaimer,
 body.protocol-page > div.route-stack,
 body.protocol-page > section.route-panel {
     width: min(680px, 100%);
@@ -359,7 +361,9 @@ body.protocol-page tr.dose-impractical td em {
 }
 
 body.protocol-page .community-disclaimer {
-    width: min(680px, 100%);
+    max-width: 680px;
+    width: 100%;
+    box-sizing: border-box;
     margin: 0 auto 10px;
     font-size: 0.9rem;
     color: var(--muted);
@@ -367,7 +371,9 @@ body.protocol-page .community-disclaimer {
 }
 
 body.protocol-page .community-notes {
-    width: min(680px, 100%);
+    max-width: 680px;
+    width: 100%;
+    box-sizing: border-box;
     margin: 0 auto 18px;
     padding: 14px 16px;
     border-radius: 12px;
@@ -377,6 +383,9 @@ body.protocol-page .community-notes {
 
 body.protocol-page .community-notes ul {
     margin: 0;
+    padding-left: 1.25rem;
+    width: auto;
+    max-width: none;
 }
 
 body.protocol-page .community-notes li + li {

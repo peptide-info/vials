@@ -46,17 +46,17 @@ const NOTES = {
     avoidWith: 'Food/carbs in the peri-dose window if you care about pulse quality. Older GHRPs (GHRP-2/6) if you want the clean Ipa profile.',
     safety: 'Usually rated as one of the gentler GH secretagogues. Still a GH-axis agent — edema and IGF-1 sides matter at high frequency.'
   },
+    'cjc-1295-dac.html': {
+    usedFor: 'Infrequent GH/IGF-1 elevation when someone wants fewer pins than short-acting CJC stacks.',
+    watch: 'More sustained GH bleed → more water retention, joint stiffness, and “always on” IGF-1 sides for some people.',
+    avoidWith: 'CJC-1295 No DAC at the same time. Don’t dose it like a multi-daily pulse peptide.',
+    safety: 'Community consensus is mixed — many prefer No DAC + Ipa for a cleaner pulse. With DAC needs extra caution and is easy to confuse at pharmacies/vendors.'
+  },
   'cjc-1295-no-dac.html': {
     usedFor: 'Amplifying natural GH pulses — classic partner with Ipamorelin for recovery and body-comp support.',
     watch: 'Flushing, water retention, lethargy the next morning if dose is high.',
-    avoidWith: 'CJC-1295 with DAC (different drug behavior). Don’t run No DAC on a With-DAC schedule.',
-    safety: 'Short-acting and widely stacked. Confirm the vial literally says No DAC / Mod GRF — mislabels happen.'
-  },
-  'cjc-1295-dac.html': {
-    usedFor: 'Infrequent GH/IGF-1 elevation when someone wants fewer pins than No DAC stacks.',
-    watch: 'More sustained GH bleed → more water retention, joint stiffness, and “always on” IGF-1 sides for some people.',
-    avoidWith: 'CJC No DAC / Mod GRF at the same time. Don’t dose it like a multi-daily pulse peptide.',
-    safety: 'Community consensus is mixed — many prefer No DAC + Ipa for a cleaner pulse. With DAC needs extra caution and is easy to confuse at pharmacies/vendors.'
+    avoidWith: 'CJC-1295 with DAC (different drug behavior). Don’t run a With-DAC schedule on a No DAC vial.',
+    safety: 'Short-acting and widely stacked. Confirm the vial literally says No DAC — mislabels happen.'
   },
   'cjc-1295-no-dac-with-ipamorelin.html': {
     usedFor: 'The classic “pulse stack” for sleep, recovery, and lean body-comp support in one blend vial.',

@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const themeLink = document.createElement('link');
         themeLink.id = 'protocol-theme-css';
         themeLink.rel = 'stylesheet';
-        themeLink.href = navBase + 'css/protocol-theme.css?v=7';
+        themeLink.href = navBase + 'css/protocol-theme.css?v=8';
         document.head.appendChild(themeLink);
     }
     document.body.classList.add('protocol-page');
