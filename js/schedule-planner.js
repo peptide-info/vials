@@ -1655,6 +1655,7 @@
             .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
             .map((p) => `<option value="${p.id}">${p.name}</option>`).join('')
             + '<option value="custom">Custom peptide…</option>';
+        select.value = 'reta';
 
         const sync = () => {
             const id = select.value;
