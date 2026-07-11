@@ -25,7 +25,8 @@
             unit: 'mg',
             defaultTimesPerDay: 1,
             defaultTimes: ['21:00'],
-            note: 'Daily (5 on / 2 off common)'
+            defaultDays: [1, 2, 3, 4, 5],
+            note: 'Usually weekdays — defaults to Mon–Fri'
         },
         {
             id: 'cjc',
@@ -230,30 +231,18 @@
         return events;
     }
 
-    function buildFixedEvents({ dose, intervalDays, startDate, stopDate, skipWeekends, fiveOnTwoOff }) {
+    function buildFixedEvents({ dose, startDate, stopDate, daysOfWeek }) {
         const events = [];
-        if (!intervalDays || intervalDays <= 0) return events;
-
+        const allowed = new Set((daysOfWeek && daysOfWeek.length) ? daysOfWeek : [0, 1, 2, 3, 4, 5, 6]);
         let cursor = new Date(startDate.getTime());
+        cursor.setHours(0, 0, 0, 0);
         const end = stopDate || addDays(startDate, 90);
-        let dayIndex = 0;
 
         while (cursor <= end) {
-            let take = true;
-            if (fiveOnTwoOff) {
-                const cycleDay = dayIndex % 7;
-                take = cycleDay < 5;
-            } else if (skipWeekends) {
-                const dow = cursor.getDay();
-                take = dow !== 0 && dow !== 6;
-            }
-
-            if (take) {
+            if (allowed.has(cursor.getDay())) {
                 events.push({ date: new Date(cursor), dose, label: String(dose) });
             }
-
-            cursor = addDays(cursor, fiveOnTwoOff ? 1 : intervalDays);
-            dayIndex += fiveOnTwoOff ? 1 : intervalDays;
+            cursor = addDays(cursor, 1);
         }
 
         return events;
@@ -335,47 +324,150 @@
     }
 
     function timeFieldsHtml(peptide) {
-        const count = peptide.defaultTimesPerDay || 1;
+        const count = Math.max(1, peptide.defaultTimesPerDay || 1);
         const defaults = peptide.defaultTimes || ['09:00'];
         const maxTimes = peptide.titration || peptide.prn ? 1 : 4;
         const options = Array.from({ length: maxTimes }, (_, i) => {
             const n = i + 1;
-            return `<option value="${n}" ${n === count ? 'selected' : ''}>${n}× per day</option>`;
-        }).join('');
-
-        const inputs = Array.from({ length: maxTimes }, (_, i) => {
-            const hidden = i >= count ? 'hidden' : '';
-            const val = defaults[i] || defaults[defaults.length - 1] || '09:00';
-            return `<label class="field pf-time-wrap" data-time-index="${i}" ${hidden}><span>Time ${i + 1}</span><input type="time" class="pf-time-input" value="${val}"></label>`;
+            return `<option value="${n}" ${n === Math.min(count, maxTimes) ? 'selected' : ''}>${n}× per day</option>`;
         }).join('');
 
         return `
             <label class="field"><span>Times per day</span>
                 <select id="pf-times-per-day">${options}</select>
             </label>
-            ${inputs}
+            <div id="pf-time-slots" class="time-slots"></div>
         `;
     }
 
-    function bindTimeFields() {
+    function renderTimeSlots(count, defaults = ['09:00']) {
+        const host = $('#pf-time-slots');
+        if (!host) return;
+        const n = Math.max(1, count);
+        host.innerHTML = Array.from({ length: n }, (_, i) => {
+            const val = defaults[i] || defaults[defaults.length - 1] || '09:00';
+            return `<label class="field"><span>Alert time ${i + 1}</span><input type="time" class="pf-time-input" value="${val}"></label>`;
+        }).join('');
+    }
+
+    function bindTimeFields(peptide) {
         const select = $('#pf-times-per-day');
-        if (!select) return;
+        if (!select) {
+            renderTimeSlots(1, peptide.defaultTimes);
+            return;
+        }
         const sync = () => {
             const n = Math.max(1, parseInt(select.value, 10) || 1);
-            $all('.pf-time-wrap').forEach((el) => {
-                const idx = parseInt(el.getAttribute('data-time-index'), 10);
-                el.hidden = idx >= n;
-            });
+            const current = $all('.pf-time-input').map((el) => el.value);
+            const defaults = current.length ? current : (peptide.defaultTimes || ['09:00']);
+            renderTimeSlots(n, defaults);
         };
         select.addEventListener('change', sync);
         sync();
     }
 
+    function daysOfWeekHtml(peptide) {
+        const labels = [
+            { d: 0, short: 'Sun' },
+            { d: 1, short: 'Mon' },
+            { d: 2, short: 'Tue' },
+            { d: 3, short: 'Wed' },
+            { d: 4, short: 'Thu' },
+            { d: 5, short: 'Fri' },
+            { d: 6, short: 'Sat' }
+        ];
+        const selected = new Set(peptide.defaultDays || [0, 1, 2, 3, 4, 5, 6]);
+        return `
+            <div class="field field-span">
+                <span>Days of week</span>
+                <div class="dow-row" id="pf-dow">
+                    ${labels.map(({ d, short }) => `
+                        <label class="dow-chip">
+                            <input type="checkbox" value="${d}" ${selected.has(d) ? 'checked' : ''}>
+                            <span>${short}</span>
+                        </label>
+                    `).join('')}
+                </div>
+                <div class="dow-presets">
+                    <button type="button" class="chip-btn" data-dow="1,2,3,4,5">Mon–Fri</button>
+                    <button type="button" class="chip-btn" data-dow="0,1,2,3,4,5,6">Every day</button>
+                    <button type="button" class="chip-btn" data-dow="1,3,5">M/W/F</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function bindDowPresets() {
+        $all('[data-dow]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const wanted = new Set(btn.getAttribute('data-dow').split(',').map(Number));
+                $all('#pf-dow input[type="checkbox"]').forEach((cb) => {
+                    cb.checked = wanted.has(parseInt(cb.value, 10));
+                });
+            });
+        });
+    }
+
+    function getSelectedDays() {
+        const checked = $all('#pf-dow input[type="checkbox"]:checked').map((cb) => parseInt(cb.value, 10));
+        return checked.length ? checked : [0, 1, 2, 3, 4, 5, 6];
+    }
+
+    function customFieldsHtml() {
+        return `
+            <label class="field field-span" id="pf-custom-wrap" hidden>
+                <span>Custom peptide name</span>
+                <input type="text" id="pf-custom-name" placeholder="e.g. Semax" maxlength="60">
+            </label>
+            <label class="field" id="pf-custom-unit-wrap" hidden>
+                <span>Unit</span>
+                <select id="pf-custom-unit">
+                    <option value="mg" selected>mg</option>
+                    <option value="mcg">mcg</option>
+                </select>
+            </label>
+            <label class="field" id="pf-custom-hl-wrap" hidden>
+                <span>Half-life (hours, for graph)</span>
+                <input type="number" id="pf-custom-hl" value="24" min="0.5" step="any">
+            </label>
+        `;
+    }
+
+    function setCustomVisible(show) {
+        ['pf-custom-wrap', 'pf-custom-unit-wrap', 'pf-custom-hl-wrap'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.hidden = !show;
+        });
+    }
+
+    function resolvePeptideSelection() {
+        const select = $('#planner-peptide');
+        const id = select?.value;
+        if (id === 'custom') {
+            const name = ($('#pf-custom-name')?.value || '').trim();
+            if (!name) throw new Error('Enter a custom peptide name');
+            const unit = $('#pf-custom-unit')?.value || 'mg';
+            const halfLifeHours = parseFloat($('#pf-custom-hl')?.value) || 24;
+            return {
+                id: 'custom',
+                name,
+                unit,
+                halfLifeHours,
+                defaultTimesPerDay: 1,
+                defaultTimes: ['09:00'],
+                defaultDays: [0, 1, 2, 3, 4, 5, 6],
+                custom: true
+            };
+        }
+        return peptideById(id);
+    }
+
     function renderFormFields(peptide) {
         const wrap = $('#planner-fields');
         const today = formatDateInput(new Date());
+        const isCustom = peptide?.id === 'custom' || $('#planner-peptide')?.value === 'custom';
 
-        if (peptide.titration) {
+        if (peptide?.titration) {
             wrap.innerHTML = `
                 <label class="field"><span>Current dose (mg)</span><input type="number" id="pf-current" value="4" min="0" step="0.5"></label>
                 <label class="field"><span>Doses already taken at this dose</span><input type="number" id="pf-taken" value="2" min="0" step="1"></label>
@@ -383,43 +475,45 @@
                 <label class="field"><span>Start date (next dose)</span><input type="date" id="pf-start" value="${today}"></label>
                 <label class="field"><span>Stop date (optional)</span><input type="date" id="pf-stop"></label>
                 ${timeFieldsHtml(peptide)}
-                <p class="hint">Titration: finish a 4-dose block at the current dose, then +2 mg every 4 weekly doses until target, then maintain. Set the weekly alert time below.</p>
+                <p class="hint field-span">Titration: finish a 4-dose block at the current dose, then +2 mg every 4 weekly doses until target, then maintain.</p>
             `;
-            bindTimeFields();
+            bindTimeFields(peptide);
             return;
         }
 
-        if (peptide.prn) {
+        if (peptide?.prn) {
             wrap.innerHTML = `
                 <label class="field"><span>Dose (${peptide.unit})</span><input type="number" id="pf-dose" value="1" min="0" step="0.1"></label>
                 <label class="field"><span>Event date</span><input type="date" id="pf-start" value="${today}"></label>
                 ${timeFieldsHtml(peptide)}
-                <p class="hint">PRN peptide — adds a single calendar reminder (not a repeating course).</p>
+                <p class="hint field-span">PRN peptide — adds a single calendar reminder.</p>
             `;
-            bindTimeFields();
+            bindTimeFields(peptide);
             return;
         }
 
-        const isTesa = peptide.id === 'tesa';
+        // Standard / custom daily-style course
+        const unit = isCustom ? 'mg' : peptide.unit;
+        const doseDefault = unit === 'mg' ? 2 : 250;
         wrap.innerHTML = `
-            <label class="field"><span>Dose (${peptide.unit})</span><input type="number" id="pf-dose" value="${peptide.unit === 'mg' ? 2 : 250}" min="0" step="any"></label>
-            <label class="field"><span>Every (days)</span><input type="number" id="pf-interval" value="${peptide.defaultIntervalDays}" min="1" step="1" ${isTesa ? 'disabled' : ''}></label>
-            <label class="field checkbox"><input type="checkbox" id="pf-5on2" ${isTesa ? 'checked' : ''}><span>5 days on / 2 days off</span></label>
+            ${customFieldsHtml()}
+            <label class="field"><span>Dose (<span id="pf-unit-label">${unit}</span>)</span><input type="number" id="pf-dose" value="${doseDefault}" min="0" step="any"></label>
             <label class="field"><span>Start date</span><input type="date" id="pf-start" value="${today}"></label>
             <label class="field"><span>Stop date</span><input type="date" id="pf-stop" value="${formatDateInput(addDays(new Date(), 84))}"></label>
-            ${timeFieldsHtml(peptide)}
-            <p class="hint">For 2× daily (e.g. CJC), set times per day to 2 and choose both alert times.</p>
+            ${daysOfWeekHtml(isCustom ? { defaultDays: [0, 1, 2, 3, 4, 5, 6] } : peptide)}
+            ${timeFieldsHtml(isCustom ? { defaultTimesPerDay: 1, defaultTimes: ['09:00'] } : peptide)}
+            <p class="hint field-span">Pick which weekdays count, then set how many alerts you want each of those days.</p>
         `;
 
-        const five = $('#pf-5on2');
-        const interval = $('#pf-interval');
-        if (five && interval) {
-            five.addEventListener('change', () => {
-                interval.disabled = five.checked;
+        setCustomVisible(isCustom);
+        if (isCustom) {
+            $('#pf-custom-unit')?.addEventListener('change', (e) => {
+                const label = $('#pf-unit-label');
+                if (label) label.textContent = e.target.value;
             });
-            interval.disabled = five.checked;
         }
-        bindTimeFields();
+        bindDowPresets();
+        bindTimeFields(isCustom ? { defaultTimesPerDay: 1, defaultTimes: ['09:00'] } : peptide);
     }
 
     function collectEventsFromForm(peptide) {
@@ -445,10 +539,9 @@
         }
 
         const dose = parseFloat($('#pf-dose').value);
-        const fiveOnTwoOff = $('#pf-5on2')?.checked;
-        const intervalDays = fiveOnTwoOff ? 1 : (parseFloat($('#pf-interval').value) || 1);
         const stop = parseDateInput($('#pf-stop')?.value);
-        const dayEvents = buildFixedEvents({ dose, intervalDays, startDate: start, stopDate: stop, fiveOnTwoOff });
+        const daysOfWeek = getSelectedDays();
+        const dayEvents = buildFixedEvents({ dose, startDate: start, stopDate: stop, daysOfWeek });
         return expandEventsWithTimes(dayEvents, times, peptide.unit);
     }
 
@@ -510,10 +603,16 @@
         ctx.clearRect(0, 0, cssW, cssH);
 
         if (!schedules.length || schedules.every((s) => !s.events.length)) {
-            empty.hidden = false;
+            if (empty) {
+                empty.hidden = false;
+                empty.classList.add('is-visible');
+            }
             return;
         }
-        empty.hidden = true;
+        if (empty) {
+            empty.hidden = true;
+            empty.classList.remove('is-visible');
+        }
 
         const allEvents = schedules.flatMap((s) => s.events.map((ev) => ({
             ...ev,
@@ -617,10 +716,18 @@
         }
         initialized = true;
 
-        select.innerHTML = PEPTIDES.map((p) => `<option value="${p.id}">${p.name}</option>`).join('');
+        select.innerHTML = PEPTIDES.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')
+            + '<option value="custom">Custom peptide…</option>';
 
         const sync = () => {
-            const peptide = peptideById(select.value);
+            const id = select.value;
+            if (id === 'custom') {
+                $('#planner-peptide-note').textContent = 'Type any name — useful for Semax, MT2, or anything else in your stack.';
+                renderFormFields({ id: 'custom', unit: 'mg', defaultTimesPerDay: 1, defaultTimes: ['09:00'], defaultDays: [0, 1, 2, 3, 4, 5, 6] });
+                setCustomVisible(true);
+                return;
+            }
+            const peptide = peptideById(id);
             $('#planner-peptide-note').textContent = peptide?.note || '';
             renderFormFields(peptide);
         };
@@ -629,9 +736,9 @@
 
         $('#planner-add')?.addEventListener('click', () => {
             try {
-                const peptide = peptideById(select.value);
+                const peptide = resolvePeptideSelection();
                 const events = collectEventsFromForm(peptide);
-                if (!events.length) throw new Error('No events generated — check dates / interval');
+                if (!events.length) throw new Error('No events generated — check dates and days of week');
 
                 const schedules = loadSchedules();
                 schedules.push({
@@ -648,6 +755,7 @@
                 });
                 saveSchedules(schedules);
                 refresh();
+                document.getElementById('planner-schedule-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } catch (err) {
                 alert(err.message || String(err));
             }

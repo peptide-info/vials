@@ -391,11 +391,99 @@
         .graph-empty {
             position: absolute;
             inset: 0;
-            display: grid;
+            display: none;
             place-items: center;
             color: var(--muted);
             font-size: 0.95rem;
             pointer-events: none;
+            background: rgba(255,255,255,0.35);
+            border-radius: 12px;
+        }
+
+        .graph-empty.is-visible,
+        .graph-empty:not([hidden]) {
+            display: grid;
+        }
+
+        .graph-empty[hidden] {
+            display: none !important;
+        }
+
+        .field-span {
+            grid-column: 1 / -1;
+        }
+
+        .time-slots {
+            display: contents;
+        }
+
+        .dow-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .dow-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            cursor: pointer;
+        }
+
+        .dow-chip input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .dow-chip span {
+            display: inline-block;
+            min-width: 2.4rem;
+            text-align: center;
+            padding: 8px 6px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .dow-chip input:checked + span {
+            background: var(--accent-soft);
+            border-color: rgba(15, 122, 95, 0.35);
+            color: var(--accent);
+        }
+
+        .dow-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .chip-btn {
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.8);
+            color: var(--muted);
+            font: inherit;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border-radius: 999px;
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        .chip-btn:hover {
+            border-color: rgba(15, 122, 95, 0.35);
+            color: var(--accent);
+        }
+
+        #pf-custom-wrap[hidden],
+        #pf-custom-unit-wrap[hidden],
+        #pf-custom-hl-wrap[hidden] {
+            display: none !important;
         }
 
         .legend {
@@ -459,7 +547,7 @@
             <div class="planner-panel">
                 <section class="planner-card">
                     <h2>Build a course</h2>
-                    <p class="hint">Pick a peptide, set dose timing, and save it on this device. Retatrutide includes automatic 2 mg titration blocks.</p>
+                    <p class="hint">Pick a peptide (or Custom), set dose days and alert times, then save. Retatrutide includes automatic 2 mg titration blocks.</p>
                     <label class="field" style="margin-top:12px">
                         <span>Peptide</span>
                         <select id="planner-peptide"></select>
@@ -492,7 +580,7 @@
         </div>
     </main>
 
-    <script src="js/schedule-planner.js?v=2"></script>
+    <script src="js/schedule-planner.js?v=3"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';
