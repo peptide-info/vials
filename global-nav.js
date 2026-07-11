@@ -234,7 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const navBase = navScriptEl
             ? navScriptEl.src.replace(/global-nav\.js(\?.*)?$/, '')
             : 'https://peptide-info.github.io/vials/';
-        calcScript.src = navBase + 'js/calculator-popup.js';
+        calcScript.src = navBase + 'js/calculator-popup.js?v=3';
         
         calcScript.onload = () => {
             isCalcScriptLoaded = true;
