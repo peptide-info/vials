@@ -480,8 +480,8 @@
                 </section>
 
                 <section class="planner-card">
-                    <h2>Relative amount in system</h2>
-                    <p class="hint">Simple half-life overlay of your scheduled doses (educational model, not clinical PK).</p>
+                    <h2>Estimated amount still around</h2>
+                    <p class="hint">Uses each peptide’s approximate half-life (how long until about half is gone) to sketch leftover dose over time. Educational only — not lab PK.</p>
                     <div class="graph-wrap">
                         <canvas id="planner-graph" width="640" height="260" aria-label="Half-life concentration graph"></canvas>
                         <div class="graph-empty" id="planner-graph-empty">Add a schedule to see the curve</div>
@@ -492,7 +492,7 @@
         </div>
     </main>
 
-    <script src="js/schedule-planner.js"></script>
+    <script src="js/schedule-planner.js?v=2"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';

@@ -3,7 +3,7 @@
  * Educational relative model only — not pharmacokinetic advice.
  */
 (function () {
-    const STORAGE_KEY = 'peptideInfoSchedules.v1';
+    const STORAGE_KEY = 'peptideInfoSchedules.v2';
 
     const PEPTIDES = [
         {
@@ -13,7 +13,9 @@
             defaultIntervalDays: 7,
             unit: 'mg',
             titration: true,
-            note: 'Weekly · ~6–7 day half-life'
+            defaultTimesPerDay: 1,
+            defaultTimes: ['09:00'],
+            note: 'Weekly · graph uses ~6–7 day half-life'
         },
         {
             id: 'tesa',
@@ -21,7 +23,9 @@
             halfLifeHours: 12,
             defaultIntervalDays: 1,
             unit: 'mg',
-            note: 'Daily (5 on / 2 off common) · short effective window'
+            defaultTimesPerDay: 1,
+            defaultTimes: ['21:00'],
+            note: 'Daily (5 on / 2 off common)'
         },
         {
             id: 'cjc',
@@ -29,7 +33,9 @@
             halfLifeHours: 2,
             defaultIntervalDays: 1,
             unit: 'mcg',
-            note: '1–2× daily · short pulse'
+            defaultTimesPerDay: 2,
+            defaultTimes: ['08:00', '21:00'],
+            note: 'Often 1–2× daily — set both alert times below'
         },
         {
             id: 'bpc',
@@ -37,6 +43,8 @@
             halfLifeHours: 4,
             defaultIntervalDays: 1,
             unit: 'mcg',
+            defaultTimesPerDay: 2,
+            defaultTimes: ['08:00', '20:00'],
             note: '1–2× daily'
         },
         {
@@ -45,6 +53,8 @@
             halfLifeHours: 6,
             defaultIntervalDays: 1,
             unit: 'mg',
+            defaultTimesPerDay: 1,
+            defaultTimes: ['09:00'],
             note: 'Daily Sub-Q'
         },
         {
@@ -53,6 +63,8 @@
             halfLifeHours: 3,
             defaultIntervalDays: 1,
             unit: 'mcg',
+            defaultTimesPerDay: 2,
+            defaultTimes: ['09:00', '15:00'],
             note: 'Nasal 1–2× daily'
         },
         {
@@ -62,11 +74,14 @@
             defaultIntervalDays: 0,
             unit: 'mg',
             prn: true,
+            defaultTimesPerDay: 1,
+            defaultTimes: ['18:00'],
             note: 'PRN only · max 1× / 24h'
         }
     ];
 
     const COLORS = ['#0f7a5f', '#3557a0', '#7a5a1e', '#8b3a4a', '#2f6f6a', '#5c4d8a', '#3d6b3d'];
+    const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     function $(sel, root = document) { return root.querySelector(sel); }
     function $all(sel, root = document) { return [...root.querySelectorAll(sel)]; }
@@ -74,7 +89,7 @@
     function parseDateInput(value) {
         if (!value) return null;
         const [y, m, d] = value.split('-').map(Number);
-        return new Date(y, m - 1, d, 9, 0, 0, 0);
+        return new Date(y, m - 1, d, 0, 0, 0, 0);
     }
 
     function formatDateInput(date) {
@@ -82,6 +97,69 @@
         const m = String(date.getMonth() + 1).padStart(2, '0');
         const d = String(date.getDate()).padStart(2, '0');
         return `${y}-${m}-${d}`;
+    }
+
+    function formatDisplayDate(date) {
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        const y = date.getFullYear();
+        return `${m}/${d}/${y} (${WEEKDAYS[date.getDay()]})`;
+    }
+
+    function formatDisplayTime(date) {
+        let h = date.getHours();
+        const min = String(date.getMinutes()).padStart(2, '0');
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12;
+        if (h === 0) h = 12;
+        return `${h}:${min} ${ampm}`;
+    }
+
+    function parseTimeInput(value) {
+        const raw = value || '09:00';
+        const [hh, mm] = raw.split(':').map(Number);
+        return {
+            hours: Number.isFinite(hh) ? hh : 9,
+            minutes: Number.isFinite(mm) ? mm : 0
+        };
+    }
+
+    function applyTime(date, timeStr) {
+        const { hours, minutes } = parseTimeInput(timeStr);
+        const next = new Date(date.getTime());
+        next.setHours(hours, minutes, 0, 0);
+        return next;
+    }
+
+    function getSelectedTimes() {
+        const timesPerDay = Math.max(1, parseInt($('#pf-times-per-day')?.value || '1', 10));
+        const times = $all('.pf-time-input').map((el) => el.value || '09:00').slice(0, timesPerDay);
+        while (times.length < timesPerDay) times.push(times[times.length - 1] || '09:00');
+        return times;
+    }
+
+    function expandEventsWithTimes(dayEvents, times, unit) {
+        const out = [];
+        dayEvents.forEach((ev) => {
+            times.forEach((timeStr) => {
+                const when = applyTime(ev.date, timeStr);
+                out.push({
+                    date: when,
+                    dose: ev.dose,
+                    label: ev.label.includes(unit) ? ev.label : `${ev.dose} ${unit}`
+                });
+            });
+        });
+        return out;
+    }
+
+    function halfLifeLabel(hours) {
+        if (hours >= 24) {
+            const days = hours / 24;
+            const rounded = Math.round(days * 10) / 10;
+            return `graph half-life ≈ ${rounded} day${rounded === 1 ? '' : 's'} (${hours}h)`;
+        }
+        return `graph half-life ≈ ${hours} hour${hours === 1 ? '' : 's'}`;
     }
 
     function addDays(date, days) {
@@ -256,6 +334,43 @@
         URL.revokeObjectURL(url);
     }
 
+    function timeFieldsHtml(peptide) {
+        const count = peptide.defaultTimesPerDay || 1;
+        const defaults = peptide.defaultTimes || ['09:00'];
+        const maxTimes = peptide.titration || peptide.prn ? 1 : 4;
+        const options = Array.from({ length: maxTimes }, (_, i) => {
+            const n = i + 1;
+            return `<option value="${n}" ${n === count ? 'selected' : ''}>${n}× per day</option>`;
+        }).join('');
+
+        const inputs = Array.from({ length: maxTimes }, (_, i) => {
+            const hidden = i >= count ? 'hidden' : '';
+            const val = defaults[i] || defaults[defaults.length - 1] || '09:00';
+            return `<label class="field pf-time-wrap" data-time-index="${i}" ${hidden}><span>Time ${i + 1}</span><input type="time" class="pf-time-input" value="${val}"></label>`;
+        }).join('');
+
+        return `
+            <label class="field"><span>Times per day</span>
+                <select id="pf-times-per-day">${options}</select>
+            </label>
+            ${inputs}
+        `;
+    }
+
+    function bindTimeFields() {
+        const select = $('#pf-times-per-day');
+        if (!select) return;
+        const sync = () => {
+            const n = Math.max(1, parseInt(select.value, 10) || 1);
+            $all('.pf-time-wrap').forEach((el) => {
+                const idx = parseInt(el.getAttribute('data-time-index'), 10);
+                el.hidden = idx >= n;
+            });
+        };
+        select.addEventListener('change', sync);
+        sync();
+    }
+
     function renderFormFields(peptide) {
         const wrap = $('#planner-fields');
         const today = formatDateInput(new Date());
@@ -267,8 +382,10 @@
                 <label class="field"><span>Target dose (mg)</span><input type="number" id="pf-target" value="10" min="0" step="0.5"></label>
                 <label class="field"><span>Start date (next dose)</span><input type="date" id="pf-start" value="${today}"></label>
                 <label class="field"><span>Stop date (optional)</span><input type="date" id="pf-stop"></label>
-                <p class="hint">Titration: finish a 4-dose block at the current dose, then +2 mg every 4 weekly doses until target, then maintain.</p>
+                ${timeFieldsHtml(peptide)}
+                <p class="hint">Titration: finish a 4-dose block at the current dose, then +2 mg every 4 weekly doses until target, then maintain. Set the weekly alert time below.</p>
             `;
+            bindTimeFields();
             return;
         }
 
@@ -276,8 +393,10 @@
             wrap.innerHTML = `
                 <label class="field"><span>Dose (${peptide.unit})</span><input type="number" id="pf-dose" value="1" min="0" step="0.1"></label>
                 <label class="field"><span>Event date</span><input type="date" id="pf-start" value="${today}"></label>
+                ${timeFieldsHtml(peptide)}
                 <p class="hint">PRN peptide — adds a single calendar reminder (not a repeating course).</p>
             `;
+            bindTimeFields();
             return;
         }
 
@@ -288,6 +407,8 @@
             <label class="field checkbox"><input type="checkbox" id="pf-5on2" ${isTesa ? 'checked' : ''}><span>5 days on / 2 days off</span></label>
             <label class="field"><span>Start date</span><input type="date" id="pf-start" value="${today}"></label>
             <label class="field"><span>Stop date</span><input type="date" id="pf-stop" value="${formatDateInput(addDays(new Date(), 84))}"></label>
+            ${timeFieldsHtml(peptide)}
+            <p class="hint">For 2× daily (e.g. CJC), set times per day to 2 and choose both alert times.</p>
         `;
 
         const five = $('#pf-5on2');
@@ -298,11 +419,13 @@
             });
             interval.disabled = five.checked;
         }
+        bindTimeFields();
     }
 
     function collectEventsFromForm(peptide) {
         const start = parseDateInput($('#pf-start')?.value);
         if (!start) throw new Error('Start date required');
+        const times = getSelectedTimes();
 
         if (peptide.titration) {
             const currentDose = parseFloat($('#pf-current').value);
@@ -311,19 +434,22 @@
             const stop = parseDateInput($('#pf-stop')?.value);
             if (!(currentDose >= 0) || !(targetDose > 0)) throw new Error('Check titration doses');
             if (targetDose < currentDose) throw new Error('Target dose should be ≥ current dose');
-            return buildRetaEvents({ currentDose, dosesAlreadyTaken, targetDose, startDate: start, stopDate: stop });
+            const dayEvents = buildRetaEvents({ currentDose, dosesAlreadyTaken, targetDose, startDate: start, stopDate: stop });
+            return expandEventsWithTimes(dayEvents, times, peptide.unit);
         }
 
         if (peptide.prn) {
             const dose = parseFloat($('#pf-dose').value);
-            return [{ date: start, dose, label: `${dose} ${peptide.unit}` }];
+            const dayEvents = [{ date: start, dose, label: `${dose} ${peptide.unit}` }];
+            return expandEventsWithTimes(dayEvents, times, peptide.unit);
         }
 
         const dose = parseFloat($('#pf-dose').value);
         const fiveOnTwoOff = $('#pf-5on2')?.checked;
         const intervalDays = fiveOnTwoOff ? 1 : (parseFloat($('#pf-interval').value) || 1);
         const stop = parseDateInput($('#pf-stop')?.value);
-        return buildFixedEvents({ dose, intervalDays, startDate: start, stopDate: stop, fiveOnTwoOff });
+        const dayEvents = buildFixedEvents({ dose, intervalDays, startDate: start, stopDate: stop, fiveOnTwoOff });
+        return expandEventsWithTimes(dayEvents, times, peptide.unit);
     }
 
     function renderScheduleList(schedules) {
@@ -339,9 +465,12 @@
                     <strong>${s.name}</strong>
                     <button type="button" data-remove="${s.id}" class="text-btn">Remove</button>
                 </div>
-                <p class="hint">${s.events.length} dose event${s.events.length === 1 ? '' : 's'} · t½ ≈ ${s.halfLifeHours}h</p>
+                <p class="hint">${s.events.length} dose event${s.events.length === 1 ? '' : 's'} · ${halfLifeLabel(s.halfLifeHours)}</p>
                 <ol class="sched-preview">
-                    ${s.events.slice(0, 8).map((ev) => `<li>${formatDateInput(new Date(ev.date))} — ${ev.label}</li>`).join('')}
+                    ${s.events.slice(0, 8).map((ev) => {
+                        const when = new Date(ev.date);
+                        return `<li>${formatDisplayDate(when)} · ${formatDisplayTime(when)} — ${ev.label}</li>`;
+                    }).join('')}
                     ${s.events.length > 8 ? `<li>… +${s.events.length - 8} more</li>` : ''}
                 </ol>
             </article>
@@ -356,6 +485,16 @@
         });
     }
 
+    function formatAxisNumber(value, unit) {
+        if (unit === 'mcg') {
+            if (value >= 100) return String(Math.round(value));
+            return value >= 10 ? value.toFixed(0) : value.toFixed(1);
+        }
+        if (value >= 10) return value.toFixed(0);
+        if (value >= 1) return value.toFixed(1);
+        return value.toFixed(2);
+    }
+
     function drawGraph(schedules) {
         const canvas = $('#planner-graph');
         const empty = $('#planner-graph-empty');
@@ -364,7 +503,7 @@
         const ctx = canvas.getContext('2d');
         const dpr = window.devicePixelRatio || 1;
         const cssW = canvas.clientWidth || 640;
-        const cssH = 260;
+        const cssH = 280;
         canvas.width = Math.floor(cssW * dpr);
         canvas.height = Math.floor(cssH * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -380,7 +519,6 @@
             ...ev,
             date: new Date(ev.date),
             halfLifeHours: s.halfLifeHours,
-            color: s.color,
             dose: Number(ev.dose) || 0
         })));
 
@@ -397,22 +535,31 @@
                 t0Hours: (new Date(ev.date).getTime() - tMin) / 3600000
             }));
             const values = relativeConcentration(evs, s.halfLifeHours, sampleHours);
-            return { name: s.name, color: COLORS[idx % COLORS.length], values };
+            return { name: s.name, unit: s.unit || 'mg', color: COLORS[idx % COLORS.length], values };
         });
 
         const peak = Math.max(...series.flatMap((s) => s.values), 0.0001);
-        const pad = { l: 36, r: 12, t: 16, b: 28 };
+        const axisUnit = series.length === 1 ? series[0].unit : 'dose units';
+        const pad = { l: 52, r: 12, t: 22, b: 30 };
         const w = cssW - pad.l - pad.r;
         const h = cssH - pad.t - pad.b;
 
         ctx.strokeStyle = 'rgba(28,42,36,0.12)';
         ctx.lineWidth = 1;
+        ctx.fillStyle = '#5c6f66';
+        ctx.font = '11px Outfit, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+
         for (let i = 0; i <= 4; i++) {
-            const y = pad.t + (h * i) / 4;
+            const frac = i / 4;
+            const y = pad.t + h - frac * h;
+            const value = peak * frac;
             ctx.beginPath();
             ctx.moveTo(pad.l, y);
             ctx.lineTo(pad.l + w, y);
             ctx.stroke();
+            ctx.fillText(formatAxisNumber(value, axisUnit === 'dose units' ? 'mg' : axisUnit), pad.l - 8, y);
         }
 
         series.forEach((s) => {
@@ -428,14 +575,24 @@
             ctx.stroke();
         });
 
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
         ctx.fillStyle = '#5c6f66';
         ctx.font = '12px Outfit, sans-serif';
-        ctx.fillText('Relative amount in system (superposition of doses)', pad.l, 12);
+        ctx.fillText(`Estimated amount still around (${axisUnit})`, pad.l, 14);
         ctx.fillText('Start', pad.l, cssH - 8);
         ctx.fillText('→ time', pad.l + w - 40, cssH - 8);
 
+        // Y-axis unit label
+        ctx.save();
+        ctx.translate(12, pad.t + h / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = 'center';
+        ctx.fillText(axisUnit, 0, 0);
+        ctx.restore();
+
         const legend = $('#planner-legend');
-        legend.innerHTML = series.map((s) => `<span class="legend-item"><i style="background:${s.color}"></i>${s.name}</span>`).join('');
+        legend.innerHTML = series.map((s) => `<span class="legend-item"><i style="background:${s.color}"></i>${s.name} (${s.unit})</span>`).join('');
     }
 
     function refresh() {
