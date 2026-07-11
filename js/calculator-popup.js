@@ -1,4 +1,4 @@
-﻿(function() {
+(function() {
     // Prevent duplicate injections if the script is somehow called twice
     if (document.getElementById("calc-modal-overlay")) {
         return;
