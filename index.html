@@ -699,8 +699,8 @@
             .planner-grid { grid-template-columns: 1fr; }
             .planner-times { grid-template-columns: 1fr; }
             .planner-spacer { display: none; }
-            .pricing-table-wrap { overflow-x: auto; }
-            .pricing-people-row { grid-template-columns: 1fr; }
+            .pricing-table-wrap { overflow: auto; max-height: min(55vh, 480px); }
+            .pricing-people-row { grid-template-columns: 1fr 1fr; }
         }
 
         /* Pricing inquiry */
@@ -719,16 +719,19 @@
         }
 
         .pricing-table-wrap {
-            overflow-x: auto;
+            overflow: auto;
+            max-height: min(60vh, 560px);
             margin-top: 12px;
             border: 1px solid var(--line);
             border-radius: 12px;
             background: #fff;
+            -webkit-overflow-scrolling: touch;
         }
 
         .pricing-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             font-size: 0.92rem;
         }
 
@@ -745,12 +748,75 @@
             text-transform: uppercase;
             letter-spacing: 0.04em;
             color: var(--muted);
-            background: rgba(255,255,255,0.7);
+            background: #f7faf7;
             position: sticky;
             top: 0;
+            z-index: 2;
+            box-shadow: 0 1px 0 var(--line);
         }
 
         .pricing-table tr:last-child td { border-bottom: 0; }
+
+        .pricing-people-card {
+            padding: 12px 14px;
+        }
+
+        .pricing-people-card .pricing-people-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .pricing-people-card h2 {
+            font-size: 1rem;
+            margin: 0;
+            font-family: "Outfit", sans-serif;
+            font-weight: 600;
+            letter-spacing: 0;
+        }
+
+        .pricing-people-card .hint {
+            margin: 0 0 8px;
+            font-size: 0.82rem;
+        }
+
+        .pricing-people-card .planner-actions {
+            gap: 6px;
+        }
+
+        .pricing-people-card .btn {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+
+        .pricing-people-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            margin-top: 0;
+        }
+
+        .pricing-person-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.78rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .pricing-person-field input {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 7px 10px;
+            font: inherit;
+            font-size: 0.9rem;
+            color: var(--ink);
+            background: #fff;
+        }
 
         .pricing-cat {
             font-weight: 600;
@@ -831,31 +897,6 @@
             text-align: center;
             font-variant-numeric: tabular-nums;
             font-weight: 600;
-        }
-
-        .pricing-people-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
-            margin-top: 12px;
-        }
-
-        .pricing-person-field {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            font-size: 0.88rem;
-            color: var(--muted);
-            font-weight: 500;
-        }
-
-        .pricing-person-field input {
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            padding: 10px 12px;
-            font: inherit;
-            color: var(--ink);
-            background: #fff;
         }
 
         .pricing-split-block {
@@ -1086,11 +1127,23 @@
 
         <div class="view" id="view-pricing" hidden>
             <div class="pricing-panel">
+                <section class="planner-card pricing-people-card">
+                    <div class="pricing-people-head">
+                        <h2>People on this order</h2>
+                        <div class="planner-actions" style="margin-top:0">
+                            <button type="button" class="btn" id="pricing-add-person">Add</button>
+                            <button type="button" class="btn" id="pricing-remove-person">Remove</button>
+                        </div>
+                    </div>
+                    <p class="hint">Optional names for splitting (up to 5). Shipping $50 is shared evenly.</p>
+                    <div class="pricing-people-row" id="pricing-people"></div>
+                </section>
+
                 <section class="planner-card">
                     <div class="pricing-toolbar">
                         <div>
                             <h2>Pricing inquiry</h2>
-                            <p class="hint" style="margin:0">Each line is priced per box (10 vials). Shipping from overseas is a flat <strong>$50</strong> shared evenly across people on the order. Delivery typically takes <strong>3–4 weeks</strong>. Assign every vial before totals unlock.</p>
+                            <p class="hint" style="margin:0">Each line is priced per box (10 vials). Shipping from overseas is a flat <strong>$50</strong>. Delivery typically takes <strong>3–4 weeks</strong>. Assign every vial before totals unlock.</p>
                         </div>
                     </div>
                     <p class="pricing-status" id="pricing-load-status">Loading catalog…</p>
@@ -1112,17 +1165,7 @@
                 </section>
 
                 <section class="planner-card">
-                    <div class="section-head">
-                        <h2>People on this order</h2>
-                        <div class="planner-actions" style="margin-top:0">
-                            <button type="button" class="btn" id="pricing-add-person">Add person</button>
-                            <button type="button" class="btn" id="pricing-remove-person">Remove person</button>
-                        </div>
-                    </div>
-                    <p class="hint">Up to 5 people. Type names, then split vials for each product with quantity &gt; 0.</p>
-                    <div class="pricing-people-row" id="pricing-people"></div>
-
-                    <div class="pricing-split-block">
+                    <div class="pricing-split-block" style="margin-top:0;padding-top:0;border-top:0">
                         <h3>Vial splits</h3>
                         <p class="hint" id="pricing-split-empty">Add boxes above to split vials.</p>
                         <div class="pricing-split-grid" id="pricing-splits"></div>
@@ -1180,7 +1223,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=25"></script>
-    <script src="js/pricing-inquiry.js?v=4"></script>
+    <script src="js/pricing-inquiry.js?v=5"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';
