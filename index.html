@@ -950,13 +950,48 @@
             font-weight: 500;
         }
 
+        .pricing-split-row .split-input-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .pricing-split-row input[type="number"] {
             border: 1px solid var(--line);
             border-radius: 8px;
             padding: 8px 10px;
             font: inherit;
             width: 100%;
+            min-width: 0;
             box-sizing: border-box;
+        }
+
+        .pricing-rest-btn {
+            flex: 0 0 auto;
+            border: 1px solid var(--line);
+            background: #f3f6f2;
+            color: var(--muted);
+            font: inherit;
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 6px 7px;
+            border-radius: 7px;
+            cursor: pointer;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        .pricing-rest-btn:hover,
+        .pricing-rest-btn:focus-visible {
+            color: var(--accent);
+            border-color: rgba(15,122,95,0.35);
+        }
+
+        .pricing-rest-btn[hidden] { display: none !important; }
+
+        .pricing-split-left {
+            font-weight: 600;
+            color: var(--accent);
         }
 
         .pricing-error {
@@ -1190,7 +1225,7 @@
 
                 <section class="planner-card">
                     <h2>Email this request</h2>
-                    <p class="hint">Sends the order summary to your inbox and CC’s <strong>peptidesinformation@gmail.com</strong>. Vial splits must be complete first.</p>
+                    <p class="hint">Sends the order summary to your inbox and CC’s the site admin. Vial splits must be complete first.</p>
                     <label class="field" for="pricing-email" style="margin-top:12px">
                         <span>Your email</span>
                         <input type="email" id="pricing-email" placeholder="you@example.com" autocomplete="email">
@@ -1223,7 +1258,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=25"></script>
-    <script src="js/pricing-inquiry.js?v=6"></script>
+    <script src="js/pricing-inquiry.js?v=7"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';

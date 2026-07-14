@@ -325,6 +325,8 @@
                 arr[0] = need;
             }
             state.splits[key] = arr;
+            if (boxes > 0) normalizeSplits(key);
+            else delete state.splits[key];
         });
     }
 
@@ -538,7 +540,7 @@
         });
 
         if (data && data.ok) {
-            show(`Sent to ${email} (CC peptidesinformation@gmail.com).`);
+            show(`Sent to ${email} (CC’d to the site admin).`);
         } else {
             show((data && data.error) || 'Could not send email. Redeploy Apps Script if needed.');
         }
@@ -612,6 +614,63 @@
         });
     }
 
+    function needVials(catNo) {
+        return (Number(state.qty[catNo]) || 0) * state.vialsPerBox;
+    }
+
+    function ensureSplitArray(catNo) {
+        if (!Array.isArray(state.splits[catNo])) state.splits[catNo] = [];
+        while (state.splits[catNo].length < state.people.length) state.splits[catNo].push(0);
+        if (state.splits[catNo].length > state.people.length) {
+            state.splits[catNo] = state.splits[catNo].slice(0, state.people.length);
+        }
+        return state.splits[catNo];
+    }
+
+    /** Cap assignments so they never exceed vials available for that line. */
+    function normalizeSplits(catNo) {
+        const need = needVials(catNo);
+        const arr = ensureSplitArray(catNo).map((v) => {
+            const n = parseInt(v, 10);
+            return Number.isFinite(n) && n > 0 ? n : 0;
+        });
+        let sum = arr.reduce((a, b) => a + b, 0);
+        if (sum > need) {
+            let excess = sum - need;
+            for (let i = arr.length - 1; i >= 0 && excess > 0; i--) {
+                const cut = Math.min(arr[i], excess);
+                arr[i] -= cut;
+                excess -= cut;
+            }
+        }
+        state.splits[catNo] = arr;
+        return arr;
+    }
+
+    function setSplitAmount(catNo, idx, raw) {
+        const need = needVials(catNo);
+        const arr = ensureSplitArray(catNo);
+        let v = parseInt(raw, 10);
+        if (!Number.isFinite(v) || v < 0) v = 0;
+        const others = arr.reduce((a, b, i) => (i === idx ? a : a + (Number(b) || 0)), 0);
+        const max = Math.max(0, need - others);
+        v = Math.min(v, max);
+        arr[idx] = v;
+        state.splits[catNo] = arr;
+        return v;
+    }
+
+    function giveRestToPerson(catNo, idx) {
+        const need = needVials(catNo);
+        const arr = ensureSplitArray(catNo);
+        const others = arr.reduce((a, b, i) => (i === idx ? a : a + (Number(b) || 0)), 0);
+        arr[idx] = Math.max(0, need - others);
+        state.splits[catNo] = arr;
+        persistCart();
+        renderSplits();
+        renderTotalsOnly();
+    }
+
     function renderSplits() {
         const root = $('pricing-splits');
         const empty = $('pricing-split-empty');
@@ -628,23 +687,39 @@
         root.innerHTML = active.map((p) => {
             const boxes = Number(state.qty[p.catNo]) || 0;
             const need = boxes * state.vialsPerBox;
-            const arr = state.splits[p.catNo] || state.people.map(() => 0);
+            const arr = normalizeSplits(p.catNo);
+            const assigned = arr.reduce((a, b) => a + b, 0);
+            const left = Math.max(0, need - assigned);
+            const leftHtml = left > 0
+                ? `<span class="pricing-split-left">${left} left</span>`
+                : `<span>all assigned</span>`;
+
             const inputs = state.people.map((person, i) => {
                 const label = String(person.name || '').trim() || `Person ${i + 1}`;
+                const others = arr.reduce((a, b, j) => (j === i ? a : a + (Number(b) || 0)), 0);
+                const max = Math.max(0, need - others);
+                const showRest = left > 0;
                 return `
                     <label>
                         <span>${escapeHtml(label)}</span>
-                        <input type="number" min="0" step="1" inputmode="numeric"
-                            data-split-cat="${escapeAttr(p.catNo)}" data-split-idx="${i}"
-                            value="${Number(arr[i]) || 0}">
+                        <div class="split-input-row">
+                            <input type="number" min="0" max="${max}" step="1" inputmode="numeric"
+                                data-split-cat="${escapeAttr(p.catNo)}" data-split-idx="${i}"
+                                value="${Number(arr[i]) || 0}">
+                            <button type="button" class="pricing-rest-btn"
+                                data-rest-cat="${escapeAttr(p.catNo)}" data-rest-idx="${i}"
+                                ${showRest ? '' : 'hidden'}
+                                title="Give remaining ${left} vial${left === 1 ? '' : 's'} to ${escapeAttr(label)}">+rest</button>
+                        </div>
                     </label>
                 `;
             }).join('');
+
             return `
                 <div class="pricing-split-row">
                     <div class="pricing-split-prod">
                         ${escapeHtml(p.catNo)} · ${escapeHtml(p.name)}
-                        <span>${boxes} box${boxes === 1 ? '' : 'es'} = ${need} vials</span>
+                        <span>${boxes} box${boxes === 1 ? '' : 'es'} = ${need} vials · ${leftHtml}</span>
                     </div>
                     ${inputs}
                 </div>
@@ -652,16 +727,48 @@
         }).join('');
 
         root.querySelectorAll('input[data-split-cat]').forEach((input) => {
-            input.addEventListener('input', () => {
+            const clampOnly = () => {
                 const cat = input.dataset.splitCat;
                 const idx = parseInt(input.dataset.splitIdx, 10);
-                let v = parseInt(input.value, 10);
-                if (!Number.isFinite(v) || v < 0) v = 0;
-                if (!Array.isArray(state.splits[cat])) state.splits[cat] = state.people.map(() => 0);
-                while (state.splits[cat].length < state.people.length) state.splits[cat].push(0);
-                state.splits[cat][idx] = v;
+                const capped = setSplitAmount(cat, idx, input.value);
+                if (String(capped) !== input.value) input.value = String(capped);
                 persistCart();
                 renderTotalsOnly();
+                // Refresh left counts / +rest without stealing focus
+                const row = input.closest('.pricing-split-row');
+                if (!row) return;
+                const need = needVials(cat);
+                const arr = state.splits[cat] || [];
+                const assigned = arr.reduce((a, b) => a + (Number(b) || 0), 0);
+                const left = Math.max(0, need - assigned);
+                const meta = row.querySelector('.pricing-split-prod span');
+                const boxes = Number(state.qty[cat]) || 0;
+                if (meta) {
+                    meta.innerHTML = `${boxes} box${boxes === 1 ? '' : 'es'} = ${need} vials · ${
+                        left > 0
+                            ? `<span class="pricing-split-left">${left} left</span>`
+                            : '<span>all assigned</span>'
+                    }`;
+                }
+                row.querySelectorAll('[data-rest-cat]').forEach((btn) => {
+                    btn.hidden = left <= 0;
+                    const bi = parseInt(btn.dataset.restIdx, 10);
+                    const label = String(state.people[bi]?.name || '').trim() || `Person ${bi + 1}`;
+                    btn.title = `Give remaining ${left} vial${left === 1 ? '' : 's'} to ${label}`;
+                });
+                row.querySelectorAll('input[data-split-cat]').forEach((inp) => {
+                    const i = parseInt(inp.dataset.splitIdx, 10);
+                    const others = arr.reduce((a, b, j) => (j === i ? a : a + (Number(b) || 0)), 0);
+                    inp.max = String(Math.max(0, need - others));
+                });
+            };
+            input.addEventListener('input', clampOnly);
+            input.addEventListener('change', clampOnly);
+        });
+
+        root.querySelectorAll('[data-rest-cat]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                giveRestToPerson(btn.dataset.restCat, parseInt(btn.dataset.restIdx, 10));
             });
         });
     }
