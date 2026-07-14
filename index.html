@@ -1299,21 +1299,8 @@
                 </section>
 
                 <section class="planner-card">
-                    <h2>Save / restore this order</h2>
-                    <p class="hint">Export a JSON file for later. Import it here to restore boxes, people, and vial splits (catalog prices refresh from the sheet).</p>
-                    <div class="planner-actions">
-                        <button type="button" class="btn" id="pricing-export">Export order (.json)</button>
-                        <label class="btn" style="cursor:pointer;display:inline-flex;align-items:center;">
-                            Import order
-                            <input type="file" id="pricing-import" accept=".json,application/json" hidden>
-                        </label>
-                    </div>
-                    <p class="pricing-status" id="pricing-import-status" hidden></p>
-                </section>
-
-                <section class="planner-card">
                     <h2>Email this request</h2>
-                    <p class="hint">Sends the order summary to your inbox and CC’s the site admin. Vial splits must be complete first.</p>
+                    <p class="hint">Sends the order summary (and a JSON copy) to your inbox and CC’s the site admin. Vial splits must be complete first.</p>
                     <label class="field" for="pricing-email" style="margin-top:12px">
                         <span>Your email</span>
                         <input type="email" id="pricing-email" placeholder="you@example.com" autocomplete="email">
@@ -1323,6 +1310,16 @@
                     </div>
                     <p class="pricing-status" id="pricing-email-status" hidden></p>
                 </section>
+
+                <div class="pricing-save-footer">
+                    <button type="button" class="pricing-save-link" id="pricing-export">Export .json</button>
+                    <span aria-hidden="true">·</span>
+                    <label class="pricing-save-link" style="cursor:pointer">
+                        Import .json
+                        <input type="file" id="pricing-import" accept=".json,application/json" hidden>
+                    </label>
+                    <p class="pricing-status" id="pricing-import-status" hidden></p>
+                </div>
             </div>
         </div>
     </main>
