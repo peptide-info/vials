@@ -701,20 +701,9 @@
             .planner-spacer { display: none; }
             .pricing-table-wrap { overflow: auto; max-height: min(55vh, 480px); }
             .pricing-people-row { grid-template-columns: 1fr; }
-            .pricing-table { font-size: 0.82rem; table-layout: fixed; width: 100%; }
+            .pricing-table { font-size: 0.82rem; }
             .pricing-table th,
-            .pricing-table td { padding: 8px 6px; }
-            .pricing-table .pricing-name { max-width: none; width: 32%; }
-            .pricing-table th:nth-child(1),
-            .pricing-table td:nth-child(1) { width: 32%; }
-            .pricing-table th:nth-child(2),
-            .pricing-table td:nth-child(2) { width: 14%; }
-            .pricing-table th:nth-child(3),
-            .pricing-table td:nth-child(3) { width: 16%; }
-            .pricing-table th:nth-child(4),
-            .pricing-table td:nth-child(4) { width: 16%; font-size: 0.78rem; }
-            .pricing-table th:nth-child(5),
-            .pricing-table td:nth-child(5) { width: 22%; }
+            .pricing-table td { padding: 8px 8px; white-space: nowrap; }
             .qty-ctrl button { width: 32px; height: 32px; }
             .pricing-split-row {
                 grid-template-columns: 1fr;
@@ -762,19 +751,11 @@
             text-align: left;
             border-bottom: 1px solid var(--line);
             vertical-align: middle;
+            white-space: nowrap;
         }
 
-        .pricing-table td:first-child,
         .pricing-table .pricing-name {
             font-weight: 600;
-            max-width: 0; /* let table distribute; ellipsis needs a bound */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .pricing-table .pricing-name {
-            max-width: 9.5rem;
         }
 
         .pricing-table th {
@@ -1291,7 +1272,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=25"></script>
-    <script src="js/pricing-inquiry.js?v=9"></script>
+    <script src="js/pricing-inquiry.js?v=10"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';
