@@ -1116,6 +1116,48 @@
             color: var(--accent);
         }
 
+        .pricing-save-footer {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px 8px;
+            justify-content: center;
+            padding: 4px 0 2px;
+            color: var(--muted);
+            font-size: 0.72rem;
+        }
+
+        .pricing-save-footer > span {
+            opacity: 0.45;
+        }
+
+        .pricing-save-link {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            background: none;
+            color: var(--muted);
+            font: inherit;
+            font-size: inherit;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            cursor: pointer;
+            opacity: 0.75;
+        }
+
+        .pricing-save-link:hover,
+        .pricing-save-link:focus-visible {
+            color: var(--accent);
+            opacity: 1;
+        }
+
+        .pricing-save-footer .pricing-status {
+            flex-basis: 100%;
+            text-align: center;
+            margin: 2px 0 0;
+            font-size: 0.72rem;
+        }
+
         .pricing-modal[hidden] { display: none !important; }
 
         .pricing-modal {
