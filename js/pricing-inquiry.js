@@ -35,7 +35,17 @@
     }
 
     function perMg(product) {
-        const mg = product.amtMg;
+        const unit = String(product.amt || '').toLowerCase().replace(/\s+/g, '');
+        // Only mg / mcg get a $/mg figure — not iu, ml, etc.
+        if (!/^\d+(?:\.\d+)?(?:mg|mcg)$/.test(unit)) return null;
+        let mg = product.amtMg;
+        if (!Number.isFinite(mg) || mg <= 0) {
+            const mMg = unit.match(/^([\d.]+)mg$/);
+            const mMcg = unit.match(/^([\d.]+)mcg$/);
+            if (mMg) mg = parseFloat(mMg[1]);
+            else if (mMcg) mg = parseFloat(mMcg[1]) / 1000;
+            else return null;
+        }
         if (!Number.isFinite(mg) || mg <= 0) return null;
         return product.price / (state.vialsPerBox * mg);
     }
