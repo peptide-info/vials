@@ -1090,7 +1090,7 @@
                     <div class="pricing-toolbar">
                         <div>
                             <h2>Pricing inquiry</h2>
-                            <p class="hint" style="margin:0">Hong Kong warehouse box pricing (10 vials per box). Assign every vial before totals unlock. Shipping is a flat $50 shared evenly.</p>
+                            <p class="hint" style="margin:0">Each line is priced per box (10 vials). Shipping from overseas is a flat <strong>$50</strong> shared evenly across people on the order. Delivery typically takes <strong>3–4 weeks</strong>. Assign every vial before totals unlock.</p>
                         </div>
                         <button type="button" class="btn" id="pricing-lock-btn">Lock again</button>
                     </div>
@@ -1132,6 +1132,32 @@
 
                     <div class="pricing-totals" id="pricing-totals" hidden></div>
                 </section>
+
+                <section class="planner-card">
+                    <h2>Save / restore this order</h2>
+                    <p class="hint">Export a JSON file for later. Import it here to restore boxes, people, and vial splits (catalog prices refresh from the sheet).</p>
+                    <div class="planner-actions">
+                        <button type="button" class="btn" id="pricing-export">Export order (.json)</button>
+                        <label class="btn" style="cursor:pointer;display:inline-flex;align-items:center;">
+                            Import order
+                            <input type="file" id="pricing-import" accept=".json,application/json" hidden>
+                        </label>
+                    </div>
+                    <p class="pricing-status" id="pricing-import-status" hidden></p>
+                </section>
+
+                <section class="planner-card">
+                    <h2>Email this request</h2>
+                    <p class="hint">Sends the order summary to your inbox and CC’s <strong>peptidesinformation@gmail.com</strong>. Vial splits must be complete first.</p>
+                    <label class="field" for="pricing-email" style="margin-top:12px">
+                        <span>Your email</span>
+                        <input type="email" id="pricing-email" placeholder="you@example.com" autocomplete="email">
+                    </label>
+                    <div class="planner-actions">
+                        <button type="button" class="btn primary" id="pricing-email-send">Email order</button>
+                    </div>
+                    <p class="pricing-status" id="pricing-email-status" hidden></p>
+                </section>
             </div>
         </div>
     </main>
@@ -1155,7 +1181,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=25"></script>
-    <script src="js/pricing-inquiry.js?v=2"></script>
+    <script src="js/pricing-inquiry.js?v=3"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';
@@ -1167,7 +1193,7 @@
         const LEDES = {
             protocols: 'Protocol sheets with reconstitution math, dosing tables, and calculator defaults for each vial.',
             planner: 'Create your dosing schedule, preview the half-life curve, then download or email an .ics calendar file so your phone or desktop can alert you when to dose.',
-            pricing: 'Private warehouse pricing inquiry — unlock to build a multi-person box order with vial splits and shipping.'
+            pricing: 'Private pricing inquiry — unlock to build a multi-person box order with vial splits and overseas shipping.'
         };
 
         function showMainView(view) {

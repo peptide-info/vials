@@ -10,13 +10,14 @@
     const VIALS_PER_BOX = 10;
     const SHIPPING_FLAT = 50;
     const MAX_PEOPLE = 5;
+    const ORDER_FILE_VERSION = 1;
 
     const state = {
         token: sessionStorage.getItem(STORAGE_TOKEN) || '',
         products: [],
-        qty: {},          // catNo -> boxes
+        qty: {},
         people: [{ name: 'Person 1' }],
-        splits: {},       // catNo -> [vials per person]
+        splits: {},
         warehouse: 'HK',
         shippingFlat: SHIPPING_FLAT,
         vialsPerBox: VIALS_PER_BOX,
@@ -82,32 +83,60 @@
         try {
             const raw = sessionStorage.getItem(STORAGE_CART);
             if (!raw) return;
-            const data = JSON.parse(raw);
-            if (data.qty && typeof data.qty === 'object') state.qty = data.qty;
-            if (Array.isArray(data.people) && data.people.length) {
-                state.people = data.people.slice(0, MAX_PEOPLE).map((p, i) => ({
-                    name: (p && p.name != null ? String(p.name) : '') || `Person ${i + 1}`
-                }));
-            }
-            if (data.splits && typeof data.splits === 'object') state.splits = data.splits;
+            applyCartPayload(JSON.parse(raw));
         } catch (ignore) {}
+    }
+
+    function applyCartPayload(data) {
+        if (!data || typeof data !== 'object') return;
+        if (data.qty && typeof data.qty === 'object') state.qty = data.qty;
+        if (Array.isArray(data.people) && data.people.length) {
+            state.people = data.people.slice(0, MAX_PEOPLE).map((p, i) => ({
+                name: (p && p.name != null ? String(p.name) : '') || `Person ${i + 1}`
+            }));
+        }
+        if (data.splits && typeof data.splits === 'object') state.splits = data.splits;
     }
 
     function gasRequest(params) {
         const qs = new URLSearchParams(params).toString();
         const url = `${SCRIPT_URL}?${qs}`;
 
-        return fetch(url, { method: 'GET', redirect: 'follow' })
-            .then((res) => res.text())
-            .then((text) => {
+        return fetch(url, { method: 'GET', redirect: 'follow', credentials: 'omit' })
+            .then(async (res) => {
+                const text = await res.text();
                 try {
                     return JSON.parse(text);
                 } catch (err) {
-                    // JSONP / redirect HTML failure → JSONP fallback
+                    if (text && text.length < 300 && /error/i.test(text)) {
+                        return { ok: false, error: text.trim() };
+                    }
                     return gasJsonp(params);
                 }
             })
             .catch(() => gasJsonp(params));
+    }
+
+    /** Prefer POST for large payloads (order email). */
+    function gasPost(params) {
+        const body = new URLSearchParams(params);
+        return fetch(SCRIPT_URL, {
+            method: 'POST',
+            redirect: 'follow',
+            credentials: 'omit',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body
+        })
+            .then(async (res) => {
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch (err) {
+                    if (/success/i.test(text)) return { ok: true };
+                    return { ok: false, error: text.slice(0, 200) || 'Request failed' };
+                }
+            })
+            .catch((err) => ({ ok: false, error: String(err.message || err) }));
     }
 
     function gasJsonp(params) {
@@ -117,7 +146,7 @@
             const t = setTimeout(() => {
                 cleanup();
                 reject(new Error('Pricing request timed out'));
-            }, 20000);
+            }, 25000);
 
             function cleanup() {
                 clearTimeout(t);
@@ -171,7 +200,7 @@
                 if (err) {
                     err.hidden = false;
                     if (data && data.version && data.ok == null) {
-                        err.textContent = `Apps Script is not updated yet (live is ${data.version}). Paste PricingInquiry.gs + EmailSchedule.gs, set PRICING_PASSWORD, then Deploy → New version.`;
+                        err.textContent = `Apps Script is not updated yet (live is ${data.version}). Deploy a New version of EmailSchedule.gs + PricingInquiry.gs.`;
                     } else {
                         err.textContent = (data && data.error) || 'Incorrect password.';
                     }
@@ -185,8 +214,9 @@
             sessionStorage.setItem(STORAGE_TOKEN, state.token);
             setTabLocked(false);
             closeModal();
-            await loadCatalog();
+            // Switch tab immediately, then load catalog
             window.showMainView?.('pricing');
+            await loadCatalog();
             return true;
         } catch (e) {
             if (err) {
@@ -227,11 +257,16 @@
         try {
             const data = await gasRequest({ action: 'pricingCatalog', token: state.token });
             if (!data || !data.ok) {
+                const msg = (data && data.error) || 'Could not load catalog.';
                 if (data && /expired|unlock/i.test(String(data.error || ''))) {
-                    lockAgain();
+                    if (status) status.textContent = msg;
+                    state.token = '';
+                    sessionStorage.removeItem(STORAGE_TOKEN);
+                    setTabLocked(true);
                     promptUnlock();
+                    return;
                 }
-                if (status) status.textContent = (data && data.error) || 'Could not load catalog.';
+                if (status) status.textContent = msg;
                 return;
             }
             state.products = Array.isArray(data.products) ? data.products : [];
@@ -244,7 +279,9 @@
             if (status) status.hidden = true;
             if (wrap) wrap.hidden = false;
         } catch (e) {
-            if (status) status.textContent = 'Could not load catalog. Redeploy Apps Script if this persists.';
+            if (status) {
+                status.textContent = `Could not load catalog (${e && e.message ? e.message : 'network'}). Redeploy Apps Script (New version) if this persists.`;
+            }
         } finally {
             state.loading = false;
         }
@@ -262,7 +299,6 @@
                 const x = parseInt(v, 10);
                 return Number.isFinite(x) && x > 0 ? x : 0;
             });
-            // Soft default: if only one person and nothing assigned, give them all vials
             if (need > 0 && n === 1 && arr.reduce((a, b) => a + b, 0) === 0) {
                 arr[0] = need;
             }
@@ -284,7 +320,6 @@
             if (state.people.length === 1) {
                 state.splits[catNo] = [need];
             } else if (sum === 0) {
-                // leave zeros so user must assign (error shows)
                 state.splits[catNo] = arr.map(() => 0);
             }
         }
@@ -352,6 +387,139 @@
 
         const grand = productGrand + state.shippingFlat;
         return { incomplete: [], rows: perPerson, productGrand, grand };
+    }
+
+    function buildOrderPayload() {
+        return {
+            version: ORDER_FILE_VERSION,
+            exportedAt: new Date().toISOString(),
+            vialsPerBox: state.vialsPerBox,
+            shippingFlat: state.shippingFlat,
+            people: state.people,
+            qty: state.qty,
+            splits: state.splits
+        };
+    }
+
+    function buildOrderHtml() {
+        const totals = computeTotals();
+        const lines = state.products.filter((p) => (Number(state.qty[p.catNo]) || 0) > 0);
+        let html = '<div style="font-family:Segoe UI,Arial,sans-serif;color:#1c2a24">';
+        html += '<h2>Pricing inquiry order</h2>';
+        html += `<p>Each box = ${state.vialsPerBox} vials. Overseas shipping flat ${money(state.shippingFlat)}. Delivery typically 3–4 weeks.</p>`;
+        html += '<table cellpadding="8" cellspacing="0" border="1" style="border-collapse:collapse;width:100%">';
+        html += '<tr><th align="left">Cat.No</th><th align="left">Name</th><th>Amt</th><th>Boxes</th><th>Price/box</th><th>Line</th></tr>';
+        lines.forEach((p) => {
+            const boxes = Number(state.qty[p.catNo]) || 0;
+            html += `<tr><td>${escapeHtml(p.catNo)}</td><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.amt)}</td><td align="center">${boxes}</td><td align="right">${money(p.price)}</td><td align="right">${money(boxes * p.price)}</td></tr>`;
+        });
+        html += '</table>';
+
+        html += '<h3>People &amp; vial splits</h3>';
+        state.people.forEach((person, i) => {
+            const label = String(person.name || '').trim() || `Person ${i + 1}`;
+            html += `<p><strong>${escapeHtml(label)}</strong></p><ul>`;
+            lines.forEach((p) => {
+                const v = Number((state.splits[p.catNo] || [])[i]) || 0;
+                if (v > 0) html += `<li>${escapeHtml(p.catNo)} ${escapeHtml(p.name)}: ${v} vials</li>`;
+            });
+            html += '</ul>';
+        });
+
+        if (totals.rows) {
+            html += '<h3>Totals</h3><ul>';
+            totals.rows.forEach((row, i) => {
+                const label = String(state.people[i].name || '').trim() || `Person ${i + 1}`;
+                html += `<li>${escapeHtml(label)}: ${money(row.total)} (products ${money(row.products)} + ship ${money(row.shipping)})</li>`;
+            });
+            html += `<li><strong>Order total: ${money(totals.grand)}</strong></li></ul>`;
+        } else {
+            html += '<p><em>Vial assignments incomplete — totals omitted.</em></p>';
+        }
+        html += '</div>';
+        return html;
+    }
+
+    function exportOrder() {
+        const payload = buildOrderPayload();
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `pricing-order-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    function importOrder(file) {
+        const status = $('pricing-import-status');
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const data = JSON.parse(String(reader.result || ''));
+                if (!data || typeof data !== 'object') throw new Error('Invalid file');
+                applyCartPayload(data);
+                ensureSplitsShape();
+                persistCart();
+                renderAll();
+                if (status) {
+                    status.hidden = false;
+                    status.textContent = 'Order imported. Review quantities and vial splits.';
+                }
+            } catch (e) {
+                if (status) {
+                    status.hidden = false;
+                    status.textContent = 'Could not import that file. Use a Pricing inquiry .json export.';
+                }
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    async function emailOrder() {
+        const status = $('pricing-email-status');
+        const email = String($('pricing-email')?.value || '').trim();
+        const show = (msg) => {
+            if (status) {
+                status.hidden = false;
+                status.textContent = msg;
+            }
+        };
+
+        if (!state.token) {
+            show('Unlock pricing first.');
+            promptUnlock();
+            return;
+        }
+        if (!email || !email.includes('@')) {
+            show('Enter your email address.');
+            return;
+        }
+        const incomplete = incompleteProducts();
+        if (incomplete.length) {
+            show('Finish assigning vials before emailing.');
+            return;
+        }
+        if (!state.products.some((p) => (Number(state.qty[p.catNo]) || 0) > 0)) {
+            show('Add at least one box to the order first.');
+            return;
+        }
+
+        show('Sending…');
+        const data = await gasPost({
+            action: 'pricingSendOrder',
+            token: state.token,
+            email,
+            subject: 'Peptide Info — pricing inquiry order',
+            orderHtml: buildOrderHtml(),
+            orderJson: JSON.stringify(buildOrderPayload(), null, 2)
+        });
+
+        if (data && data.ok) {
+            show(`Sent to ${email} (CC peptidesinformation@gmail.com).`);
+        } else {
+            show((data && data.error) || 'Could not send email. Redeploy Apps Script if needed.');
+        }
     }
 
     function renderPeople() {
@@ -585,6 +753,13 @@
         $('pricing-lock-btn')?.addEventListener('click', lockAgain);
         $('pricing-add-person')?.addEventListener('click', addPerson);
         $('pricing-remove-person')?.addEventListener('click', removePerson);
+        $('pricing-export')?.addEventListener('click', exportOrder);
+        $('pricing-import')?.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            importOrder(file);
+            e.target.value = '';
+        });
+        $('pricing-email-send')?.addEventListener('click', emailOrder);
     }
 
     async function onShow() {
@@ -600,10 +775,7 @@
         restoreCart();
         bindUi();
         setTabLocked(!isUnlocked());
-        if (isUnlocked()) {
-            // Validate token quietly; load when user opens tab
-            setTabLocked(false);
-        }
+        if (isUnlocked()) setTabLocked(false);
     }
 
     window.PricingInquiry = {
