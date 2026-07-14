@@ -34,34 +34,57 @@
         return '$' + n.toFixed(2);
     }
 
-    function perMg(product) {
-        const unit = String(product.amt || '').toLowerCase().replace(/\s+/g, '');
-        // Only mg / mcg get a $/mg figure — not iu, ml, etc.
-        if (!/^\d+(?:\.\d+)?(?:mg|mcg)$/.test(unit)) return null;
-        let mg = product.amtMg;
-        if (!Number.isFinite(mg) || mg <= 0) {
-            const mMg = unit.match(/^([\d.]+)mg$/);
-            const mMcg = unit.match(/^([\d.]+)mcg$/);
-            if (mMg) mg = parseFloat(mMg[1]);
-            else if (mMcg) mg = parseFloat(mMcg[1]) / 1000;
-            else return null;
-        }
-        if (!Number.isFinite(mg) || mg <= 0) return null;
-        return product.price / (state.vialsPerBox * mg);
+    /** Parse vial amount → { qty, unit } from strings like 10mg, 100mcg, 10ml, 5000iu. */
+    function parseAmt(product) {
+        const raw = String(product.amt || '').toLowerCase().replace(/\s+/g, '');
+        const m = raw.match(/^([\d.]+)(mg|mcg|ml|iu|g)$/);
+        if (!m) return null;
+        const qty = parseFloat(m[1]);
+        if (!Number.isFinite(qty) || qty <= 0) return null;
+        return { qty, unit: m[2] };
     }
 
-    function weekTip(product, dollarPerMg) {
+    function unitLabel(unit) {
+        if (unit === 'ml') return 'mL';
+        if (unit === 'iu') return 'IU';
+        if (unit === 'mcg') return 'mcg';
+        if (unit === 'mg') return 'mg';
+        if (unit === 'g') return 'g';
+        return String(unit || '');
+    }
+
+    /** $/unit of the vial’s native amount unit (mg, mL, IU, …). */
+    function perUnit(product) {
+        const parsed = parseAmt(product);
+        if (!parsed) return null;
+        const rate = product.price / (state.vialsPerBox * parsed.qty);
+        if (!Number.isFinite(rate) || rate <= 0) return null;
+        return { rate, unit: parsed.unit };
+    }
+
+    /** $/mg for the table column — mg/mcg only. */
+    function perMg(product) {
+        const u = perUnit(product);
+        if (!u) return null;
+        if (u.unit === 'mg') return u.rate;
+        if (u.unit === 'mcg') return u.rate * 1000; // $/mcg → $/mg
+        return null;
+    }
+
+    function weekTip(product, unitInfo) {
         const min = product.minMgWeek;
         const max = product.maxMgWeek;
         const notes = String(product.notes || '').trim();
         let costLine = '';
-        if (Number.isFinite(dollarPerMg) && (Number.isFinite(min) || Number.isFinite(max))) {
+        if (unitInfo && (Number.isFinite(min) || Number.isFinite(max))) {
+            const u = unitLabel(unitInfo.unit);
+            const rate = unitInfo.rate;
             if (Number.isFinite(min) && Number.isFinite(max)) {
-                costLine = `Est. $/week: ${money(dollarPerMg * min)}–${money(dollarPerMg * max)} (${min}–${max} mg/week)`;
+                costLine = `Est. $/week: ${money(rate * min)}–${money(rate * max)} (${min}–${max} ${u}/week)`;
             } else if (Number.isFinite(min)) {
-                costLine = `Est. $/week: ~${money(dollarPerMg * min)} (from ${min} mg/week)`;
+                costLine = `Est. $/week: ~${money(rate * min)} (from ${min} ${u}/week)`;
             } else {
-                costLine = `Est. $/week: ~${money(dollarPerMg * max)} (from ${max} mg/week)`;
+                costLine = `Est. $/week: ~${money(rate * max)} (from ${max} ${u}/week)`;
             }
         }
         if (costLine && notes) return `${notes}\n${costLine}`;
@@ -609,7 +632,7 @@
         tbody.innerHTML = state.products.map((p) => {
             const q = Number(state.qty[p.catNo]) || 0;
             const dpm = perMg(p);
-            const tip = weekTip(p, dpm);
+            const tip = weekTip(p, perUnit(p));
             const tipHtml = tip
                 ? `<button type="button" class="pricing-tip" data-tip="${escapeAttr(tip)}" aria-label="${escapeAttr(tip)}">i</button>`
                 : '';
