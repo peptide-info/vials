@@ -727,8 +727,9 @@
             `;
 
             const kids = g.items.map((p) => {
-                const row = renderProductRow(p, { hideName: true });
-                return open ? row : row.replace('<tr ', '<tr hidden ');
+                let row = renderProductRow(p, { hideName: true });
+                if (!open) row = row.replace(/<tr(\s)/, '<tr hidden$1');
+                return row;
             }).join('');
 
             return head + kids;
