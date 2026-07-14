@@ -242,7 +242,19 @@
             status.textContent = 'Locked. Enter the password to view pricing.';
         }
         if (wrap) wrap.hidden = true;
-        window.showMainView?.('protocols');
+    }
+
+    function clearUnlockOnReload() {
+        // sessionStorage survives refresh; drop the token on explicit reload only.
+        try {
+            const nav = performance.getEntriesByType('navigation')[0];
+            if (nav && nav.type === 'reload') {
+                sessionStorage.removeItem(STORAGE_TOKEN);
+                state.token = '';
+                state.loaded = false;
+                state.products = [];
+            }
+        } catch (ignore) {}
     }
 
     async function loadCatalog() {
@@ -750,7 +762,6 @@
         $('pricing-modal')?.addEventListener('click', (e) => {
             if (e.target.id === 'pricing-modal') closeModal();
         });
-        $('pricing-lock-btn')?.addEventListener('click', lockAgain);
         $('pricing-add-person')?.addEventListener('click', addPerson);
         $('pricing-remove-person')?.addEventListener('click', removePerson);
         $('pricing-export')?.addEventListener('click', exportOrder);
@@ -772,6 +783,7 @@
     }
 
     function boot() {
+        clearUnlockOnReload();
         restoreCart();
         bindUi();
         setTabLocked(!isUnlocked());
