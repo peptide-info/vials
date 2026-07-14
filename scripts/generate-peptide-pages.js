@@ -26,7 +26,7 @@ function page(opts) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="../global-nav.js?v=14"></script>
+    <script src="../global-nav.js?v=15"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title} Protocol</title>
@@ -75,7 +75,7 @@ ${warnings.map((w) => `            <li>${w}</li>`).join('\n')}
         </ul>
     </blockquote>
 ${extraHtml || ''}
-    <script src="../js/vial-size.js?v=3"></script>
+    <script src="../js/vial-size.js?v=4"></script>
 </body>
 </html>
 `;
@@ -562,7 +562,7 @@ files['epitalon.html'] = page({
 files['mots-c.html'] = page({
   title: 'MOTS-c',
   format: 'Lyophilized Powder (mitochondrial-derived peptide)',
-  sizes: [10, 40], defaultSize: 10, bacMl: 2, calcDose: 5, calcUnit: 'mg', route: 'subq',
+  sizes: [10, 40], defaultSize: 10, bacMl: 1, calcDose: 5, calcUnit: 'mg', route: 'subq',
   storageKey: 'vial.mots-c',
   mechanism: 'Mitochondrial open reading frame peptide studied for metabolic flexibility, exercise-mimetic signaling, and insulin-sensitivity research.',
   bullets: [

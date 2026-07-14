@@ -355,9 +355,15 @@ body.protocol-page tr.dose-impractical td {
     opacity: 0.55;
 }
 
-body.protocol-page tr.dose-impractical td em {
+body.protocol-page tr.dose-impractical td em,
+body.protocol-page .unit-note {
     font-size: 0.9em;
     color: var(--muted);
+    font-weight: 400;
+}
+
+body.protocol-page tr.dose-over-pen td[data-units] strong {
+    color: inherit;
 }
 
 body.protocol-page .community-disclaimer {

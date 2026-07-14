@@ -2,10 +2,11 @@
  * Vial size + BAC volume chips: recalculate recon concentration + syringe/spray volumes.
  *
  * Rules:
- * - BAC water can vary by vial size (data-bac-by-vial="10:1,30:1.5") as the default suggestion.
+ * - BAC water can vary by vial size (data-bac-by-vial="10:1,30:1.5") as an author preference.
+ * - Suggestion prefers the largest chip that keeps table doses ≤ 60 units (insulin/peptide pen max).
  * - User can override BAC with chips: 1 / 1.5 / 2 / 2.5 / 3 mL.
- * - Single Sub-Q draws must stay ≤ 60 units on a U-100 syringe.
- * - Never suggest multi-shot draws; point to a larger vial / denser mix instead.
+ * - Table always shows unit draws; notes when a draw exceeds the 60u pen max (100u syringes still OK).
+ * - Doses larger than the selected vial still flag “choose a larger size”.
  */
 (function () {
     const MAX_SINGLE_DRAW_UNITS = 60;
@@ -52,6 +53,10 @@
         return `<strong>${niceNumber(rounded)} units</strong>`;
     }
 
+    function penMaxNote() {
+        return `<em class="unit-note">(over ${MAX_SINGLE_DRAW_UNITS}u pen max)</em>`;
+    }
+
     function formatSprays(sprays) {
         if (!Number.isFinite(sprays) || sprays <= 0) return '—';
         const rounded = Math.round(sprays * 10) / 10;
@@ -70,16 +75,72 @@
         return (vialMg * 1000) / sprayMl * 0.1;
     }
 
-    function recommendedBacMl(root, vialMg) {
-        const map = parseBacMap(root.dataset.bacByVial);
-        let bac = map[vialMg];
-        if (!Number.isFinite(bac)) bac = parseFloat(root.dataset.bacMl);
-        if (!Number.isFinite(bac) || bac <= 0) bac = 2;
-        // Snap to nearest chip option when close
+    function snapToBacOption(bac) {
+        if (!Number.isFinite(bac) || bac <= 0) return BAC_OPTIONS[0];
+        if (BAC_OPTIONS.includes(bac)) return bac;
         const nearest = BAC_OPTIONS.reduce((best, opt) => (
             Math.abs(opt - bac) < Math.abs(best - bac) ? opt : best
         ), BAC_OPTIONS[0]);
-        return Math.abs(nearest - bac) < 0.05 ? nearest : bac;
+        return Math.abs(nearest - bac) < 0.05 ? nearest : nearest;
+    }
+
+    function doseMgFromUnitsEl(el) {
+        if (el.hasAttribute('data-dose-mg')) return parseFloat(el.getAttribute('data-dose-mg'));
+        if (el.hasAttribute('data-dose-mcg')) return parseFloat(el.getAttribute('data-dose-mcg')) / 1000;
+        return NaN;
+    }
+
+    function doseMgHighFromUnitsEl(el) {
+        if (el.hasAttribute('data-dose-mg-high')) return parseFloat(el.getAttribute('data-dose-mg-high'));
+        if (el.hasAttribute('data-dose-mcg-high')) return parseFloat(el.getAttribute('data-dose-mcg-high')) / 1000;
+        return NaN;
+    }
+
+    /** Table doses that physically fit in the selected vial (used for BAC suggestion). */
+    function collectInVialDoses(vialMg) {
+        const doses = [];
+        document.querySelectorAll('[data-units]').forEach((el) => {
+            const low = doseMgFromUnitsEl(el);
+            const high = doseMgHighFromUnitsEl(el);
+            if (Number.isFinite(low) && low > 0 && low <= vialMg + 1e-9) doses.push(low);
+            if (Number.isFinite(high) && high > 0 && high <= vialMg + 1e-9) doses.push(high);
+        });
+        return doses;
+    }
+
+    function bacKeepsDosesUnderPenMax(vialMg, bacMl, doses) {
+        if (!doses.length) return true;
+        return doses.every((d) => unitsForMg(d, vialMg, bacMl) <= MAX_SINGLE_DRAW_UNITS + 0.05);
+    }
+
+    function recommendedBacMl(root, vialMg) {
+        const map = parseBacMap(root.dataset.bacByVial);
+        const doses = collectInVialDoses(vialMg);
+        const authorRaw = Number.isFinite(map[vialMg])
+            ? map[vialMg]
+            : parseFloat(root.dataset.bacMl);
+        const author = Number.isFinite(authorRaw) && authorRaw > 0
+            ? snapToBacOption(authorRaw)
+            : null;
+
+        const working = BAC_OPTIONS.filter((bac) => bacKeepsDosesUnderPenMax(vialMg, bac, doses));
+
+        // Prefer author BAC when it still keeps table doses ≤ pen max
+        if (author != null && bacKeepsDosesUnderPenMax(vialMg, author, doses)) {
+            return author;
+        }
+
+        // Otherwise largest workable BAC (more comfortable volume) still under 60u
+        if (working.length) {
+            return working[working.length - 1];
+        }
+
+        // Impossible with chip set (dose is a large fraction of the vial) → densest mix
+        return BAC_OPTIONS[0];
+    }
+
+    function suggestedBacKeepsPenMax(root, vialMg, suggestedBac) {
+        return bacKeepsDosesUnderPenMax(vialMg, suggestedBac, collectInVialDoses(vialMg));
     }
 
     function maxDoseForSingleDraw(vialMg, bacMl) {
@@ -113,10 +174,11 @@
             return `<em>Exceeds this vial — choose a larger size</em>`;
         }
         const units = unitsForMg(doseMg, vialMg, bacMl);
+        const html = formatUnits(units);
         if (units > MAX_SINGLE_DRAW_UNITS + 0.05) {
-            return `<em>Over ${MAX_SINGLE_DRAW_UNITS} units at this mix — use less BAC or a larger vial</em>`;
+            return `${html} ${penMaxNote()}`;
         }
-        return formatUnits(units);
+        return html;
     }
 
     function unitRangeHtml(lowMg, highMg, vialMg, bacMl) {
@@ -124,16 +186,16 @@
         if (lowMg > vialMg + 1e-9) {
             return `<em>Exceeds this vial — choose a larger size</em>`;
         }
+        const cappedHigh = Math.min(highMg, vialMg);
         const lowU = unitsForMg(lowMg, vialMg, bacMl);
-        const highU = unitsForMg(Math.min(highMg, vialMg), vialMg, bacMl);
-        if (lowU > MAX_SINGLE_DRAW_UNITS + 0.05) {
-            return `<em>Over ${MAX_SINGLE_DRAW_UNITS} units at this mix — use less BAC or a larger vial</em>`;
+        const highU = unitsForMg(cappedHigh, vialMg, bacMl);
+        let html = `<strong>${niceNumber(roundUnits(lowU))}–${niceNumber(roundUnits(highU))} units</strong>`;
+        if (highMg > vialMg + 1e-9) {
+            html += ` <em class="unit-note">(upper end exceeds this vial)</em>`;
+        } else if (highU > MAX_SINGLE_DRAW_UNITS + 0.05) {
+            html += ` ${penMaxNote()}`;
         }
-        if (highMg > vialMg + 1e-9 || highU > MAX_SINGLE_DRAW_UNITS + 0.05) {
-            const capped = Math.min(maxDoseForSingleDraw(vialMg, bacMl), vialMg);
-            return `<strong>${niceNumber(roundUnits(lowU))} units</strong> <em>(upper end over 60u / vial; ~${niceNumber(capped)} mg max here)</em>`;
-        }
-        return `<strong>${niceNumber(roundUnits(lowU))}–${niceNumber(roundUnits(highU))} units</strong>`;
+        return html;
     }
 
     function updatePage(root, state) {
@@ -147,6 +209,7 @@
         const labelUnit = root.dataset.sizeUnit || 'mg';
         const maxSingle = maxDoseForSingleDraw(vialMg, bacMl);
         const suggestedBac = recommendedBacMl(root, vialMg);
+        const suggestionFitsPen = suggestedBacKeepsPenMax(root, vialMg, suggestedBac);
 
         document.querySelectorAll('[data-vial-mg]').forEach((el) => {
             el.textContent = `${niceNumber(vialMg)} ${labelUnit}`;
@@ -177,23 +240,18 @@
         });
 
         document.querySelectorAll('[data-units]').forEach((el) => {
-            const doseMg = el.hasAttribute('data-dose-mg')
-                ? parseFloat(el.getAttribute('data-dose-mg'))
-                : (el.hasAttribute('data-dose-mcg')
-                    ? parseFloat(el.getAttribute('data-dose-mcg')) / 1000
-                    : NaN);
-            const doseMgHigh = el.hasAttribute('data-dose-mg-high')
-                ? parseFloat(el.getAttribute('data-dose-mg-high'))
-                : (el.hasAttribute('data-dose-mcg-high')
-                    ? parseFloat(el.getAttribute('data-dose-mcg-high')) / 1000
-                    : NaN);
+            const doseMg = doseMgFromUnitsEl(el);
+            const doseMgHigh = doseMgHighFromUnitsEl(el);
 
             const row = el.closest('tr');
-            const impractical = Number.isFinite(doseMg) && (
-                doseMg > vialMg + 1e-9
-                || (mode !== 'nasal' && unitsForMg(doseMg, vialMg, bacMl) > MAX_SINGLE_DRAW_UNITS + 0.05)
-            );
-            if (row) row.classList.toggle('dose-impractical', impractical);
+            // Only dim rows that can't fit in the vial; over-60 still shows useful numbers.
+            const exceedsVial = Number.isFinite(doseMg) && doseMg > vialMg + 1e-9;
+            if (row) {
+                row.classList.toggle('dose-impractical', exceedsVial);
+                const overPen = !exceedsVial && mode !== 'nasal' && Number.isFinite(doseMg)
+                    && unitsForMg(doseMg, vialMg, bacMl) > MAX_SINGLE_DRAW_UNITS + 0.05;
+                row.classList.toggle('dose-over-pen', overPen);
+            }
 
             if (mode === 'nasal' && sprayMl > 0) {
                 const per = mcgPerSpray(vialMg, sprayMl);
@@ -228,7 +286,9 @@
         const hint = root.querySelector('[data-bac-hint]');
         if (hint) {
             if (Math.abs(bacMl - suggestedBac) < 0.05) {
-                hint.textContent = `Suggested for this vial: ${niceNumber(suggestedBac)} mL (keeps common doses ≤60 units).`;
+                hint.textContent = suggestionFitsPen
+                    ? `Suggested for this vial: ${niceNumber(suggestedBac)} mL (keeps common doses ≤${MAX_SINGLE_DRAW_UNITS} units on a pen).`
+                    : `Suggested for this vial: ${niceNumber(suggestedBac)} mL (densest mix; some listed doses still need >${MAX_SINGLE_DRAW_UNITS} units — fine on a 100u syringe).`;
             } else {
                 hint.textContent = `Showing ${niceNumber(bacMl)} mL mix. Suggested for this vial is ${niceNumber(suggestedBac)} mL.`;
             }
@@ -271,9 +331,7 @@
         if (!BAC_OPTIONS.includes(bacQuery) && !BAC_OPTIONS.includes(bacStore)) {
             selectedBac = recommendedBacMl(root, selectedVial);
             if (!BAC_OPTIONS.includes(selectedBac)) {
-                selectedBac = BAC_OPTIONS.reduce((best, opt) => (
-                    Math.abs(opt - selectedBac) < Math.abs(best - selectedBac) ? opt : best
-                ), BAC_OPTIONS[0]);
+                selectedBac = snapToBacOption(selectedBac);
             }
         }
 
@@ -318,11 +376,7 @@
             if (vial != null) selectedVial = vial;
             if (resetBacToSuggested) {
                 let sug = recommendedBacMl(root, selectedVial);
-                if (!BAC_OPTIONS.includes(sug)) {
-                    sug = BAC_OPTIONS.reduce((best, opt) => (
-                        Math.abs(opt - sug) < Math.abs(best - sug) ? opt : best
-                    ), BAC_OPTIONS[0]);
-                }
+                if (!BAC_OPTIONS.includes(sug)) sug = snapToBacOption(sug);
                 selectedBac = sug;
             } else if (bac != null) {
                 selectedBac = bac;
