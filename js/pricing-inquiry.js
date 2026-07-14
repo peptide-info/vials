@@ -64,7 +64,7 @@
                 costLine = `Est. $/week: ~${money(dollarPerMg * max)} (from ${max} mg/week)`;
             }
         }
-        if (costLine && notes) return `${costLine}\n${notes}`;
+        if (costLine && notes) return `${notes}\n${costLine}`;
         return costLine || notes;
     }
 
