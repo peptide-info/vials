@@ -53,15 +53,19 @@
     function weekTip(product, dollarPerMg) {
         const min = product.minMgWeek;
         const max = product.maxMgWeek;
-        if (!Number.isFinite(dollarPerMg)) return '';
-        if (!Number.isFinite(min) && !Number.isFinite(max)) return '';
-        if (Number.isFinite(min) && Number.isFinite(max)) {
-            return `Est. $/week: ${money(dollarPerMg * min)}–${money(dollarPerMg * max)} (${min}–${max} mg/week)`;
+        const notes = String(product.notes || '').trim();
+        let costLine = '';
+        if (Number.isFinite(dollarPerMg) && (Number.isFinite(min) || Number.isFinite(max))) {
+            if (Number.isFinite(min) && Number.isFinite(max)) {
+                costLine = `Est. $/week: ${money(dollarPerMg * min)}–${money(dollarPerMg * max)} (${min}–${max} mg/week)`;
+            } else if (Number.isFinite(min)) {
+                costLine = `Est. $/week: ~${money(dollarPerMg * min)} (from ${min} mg/week)`;
+            } else {
+                costLine = `Est. $/week: ~${money(dollarPerMg * max)} (from ${max} mg/week)`;
+            }
         }
-        if (Number.isFinite(min)) {
-            return `Est. $/week: ~${money(dollarPerMg * min)} (from ${min} mg/week)`;
-        }
-        return `Est. $/week: ~${money(dollarPerMg * max)} (from ${max} mg/week)`;
+        if (costLine && notes) return `${costLine}\n${notes}`;
+        return costLine || notes;
     }
 
     function isUnlocked() {
