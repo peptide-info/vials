@@ -719,6 +719,18 @@
             .pricing-selected-meta { grid-area: meta; }
             .pricing-selected-row .qty-ctrl { grid-area: qty; justify-self: start; }
             .pricing-selected-row .pricing-remove { grid-area: remove; justify-self: end; }
+            .pricing-group-toggle {
+                flex-wrap: wrap;
+                align-items: flex-start;
+            }
+            .pricing-group-summary {
+                max-width: 100%;
+                width: 100%;
+                align-items: flex-start;
+                text-align: left;
+                padding-left: 22px;
+            }
+            .pricing-group-cost { white-space: normal; }
             .pricing-split-row {
                 grid-template-columns: 1fr;
                 align-items: stretch;
@@ -798,7 +810,8 @@
         .pricing-group-toggle {
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: space-between;
+            gap: 12px;
             width: 100%;
             margin: 0;
             padding: 10px 12px;
@@ -813,6 +826,14 @@
         .pricing-group-toggle:hover,
         .pricing-group-toggle:focus-visible {
             background: rgba(15, 122, 95, 0.06);
+        }
+
+        .pricing-group-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            flex: 1 1 auto;
         }
 
         .pricing-group-chevron {
@@ -839,6 +860,37 @@
             font-size: 0.78rem;
             font-weight: 500;
             white-space: nowrap;
+        }
+
+        .pricing-group-summary {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 2px;
+            text-align: right;
+            max-width: min(52%, 18rem);
+            flex: 0 1 auto;
+            line-height: 1.25;
+        }
+
+        .pricing-group-cost {
+            font-size: 0.78rem;
+            font-weight: 650;
+            color: var(--accent);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .pricing-group-note {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--muted);
+            white-space: normal;
+        }
+
+        .pricing-group-row.is-open .pricing-group-summary {
+            display: none;
         }
 
         .pricing-item-row .pricing-name {
@@ -1450,7 +1502,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=25"></script>
-    <script src="js/pricing-inquiry.js?v=18"></script>
+    <script src="js/pricing-inquiry.js?v=19"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';

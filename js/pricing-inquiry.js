@@ -664,6 +664,42 @@
         return groups;
     }
 
+    function groupCollapsedSummary(items) {
+        const noteSet = new Set();
+        (items || []).forEach((p) => {
+            const n = String(p.notes || '').trim();
+            if (n) noteSet.add(n);
+        });
+        const noteLine = [...noteSet].join(' · ');
+
+        let weekLo = Infinity;
+        let weekHi = -Infinity;
+        (items || []).forEach((p) => {
+            const info = perUnit(p);
+            const min = p.minMgWeek;
+            const max = p.maxMgWeek;
+            if (!info || (!Number.isFinite(min) && !Number.isFinite(max))) return;
+            const a = Number.isFinite(min) ? info.rate * min : null;
+            const b = Number.isFinite(max) ? info.rate * max : null;
+            if (Number.isFinite(a)) {
+                weekLo = Math.min(weekLo, a);
+                weekHi = Math.max(weekHi, a);
+            }
+            if (Number.isFinite(b)) {
+                weekLo = Math.min(weekLo, b);
+                weekHi = Math.max(weekHi, b);
+            }
+        });
+
+        let costLine = '';
+        if (Number.isFinite(weekLo) && Number.isFinite(weekHi)) {
+            costLine = Math.abs(weekLo - weekHi) < 0.005
+                ? `Est. $/week: ${money(weekLo)}`
+                : `Est. $/week: ${money(weekLo)}–${money(weekHi)}`;
+        }
+        return { costLine, noteLine };
+    }
+
     function renderProductRow(p, { hideName } = {}) {
         const q = Number(state.qty[p.catNo]) || 0;
         const dpm = perMg(p);
@@ -713,14 +749,24 @@
                 : (lo === hi ? money(lo) : `${money(lo)}–${money(hi)}`);
             const open = state.expandedGroups.has(g.key) || boxes > 0;
             if (open) state.expandedGroups.add(g.key);
+            const summary = groupCollapsedSummary(g.items);
+            const summaryHtml = (!open && (summary.costLine || summary.noteLine))
+                ? `<span class="pricing-group-summary">
+                        ${summary.costLine ? `<span class="pricing-group-cost">${escapeHtml(summary.costLine)}</span>` : ''}
+                        ${summary.noteLine ? `<span class="pricing-group-note">${escapeHtml(summary.noteLine)}</span>` : ''}
+                   </span>`
+                : '';
 
             const head = `
                 <tr class="pricing-group-row${open ? ' is-open' : ''}" data-group="${escapeAttr(g.key)}">
                     <td colspan="5">
                         <button type="button" class="pricing-group-toggle" data-group-toggle="${escapeAttr(g.key)}" aria-expanded="${open ? 'true' : 'false'}">
-                            <span class="pricing-group-chevron" aria-hidden="true"></span>
-                            <span class="pricing-group-title">${escapeHtml(g.name)}</span>
-                            <span class="pricing-group-meta">${g.items.length} size${g.items.length === 1 ? '' : 's'}${priceHint ? ` · ${priceHint}` : ''}${boxes ? ` · ${boxes} box${boxes === 1 ? '' : 'es'}` : ''}</span>
+                            <span class="pricing-group-left">
+                                <span class="pricing-group-chevron" aria-hidden="true"></span>
+                                <span class="pricing-group-title">${escapeHtml(g.name)}</span>
+                                <span class="pricing-group-meta">${g.items.length} size${g.items.length === 1 ? '' : 's'}${priceHint ? ` · ${priceHint}` : ''}${boxes ? ` · ${boxes} box${boxes === 1 ? '' : 'es'}` : ''}</span>
+                            </span>
+                            ${summaryHtml}
                         </button>
                     </td>
                 </tr>
