@@ -706,6 +706,15 @@
             .pricing-table td { padding: 8px 8px; white-space: nowrap; }
             .pricing-table .pricing-name { white-space: normal; max-width: 10.5rem; }
             .qty-ctrl button { width: 32px; height: 32px; }
+            .pricing-selected-row {
+                grid-template-columns: minmax(0, 1fr) auto;
+                grid-template-areas:
+                    "meta meta"
+                    "qty remove";
+            }
+            .pricing-selected-meta { grid-area: meta; }
+            .pricing-selected-row .qty-ctrl { grid-area: qty; justify-self: start; }
+            .pricing-selected-row .pricing-remove { grid-area: remove; justify-self: end; }
             .pricing-split-row {
                 grid-template-columns: 1fr;
                 align-items: stretch;
@@ -918,16 +927,71 @@
             font-weight: 600;
         }
 
-        .pricing-split-block {
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px dashed var(--line);
+        .pricing-selected-block {
+            margin-bottom: 18px;
         }
 
+        .pricing-selected-block h3,
         .pricing-split-block h3 {
             margin: 0 0 8px;
             font-size: 1rem;
             font-family: "Fraunces", serif;
+        }
+
+        .pricing-selected-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .pricing-selected-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .pricing-selected-meta {
+            min-width: 0;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .pricing-selected-meta span {
+            display: block;
+            font-weight: 500;
+            color: var(--muted);
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        .pricing-selected-row .pricing-remove {
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--muted);
+            font: inherit;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 7px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .pricing-selected-row .pricing-remove:hover,
+        .pricing-selected-row .pricing-remove:focus-visible {
+            color: #a33;
+            border-color: rgba(170, 51, 51, 0.35);
+        }
+
+        .pricing-split-block {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed var(--line);
         }
 
         .pricing-split-grid {
@@ -1218,7 +1282,13 @@
                 </section>
 
                 <section class="planner-card">
-                    <div class="pricing-split-block" style="margin-top:0;padding-top:0;border-top:0">
+                    <div class="pricing-selected-block">
+                        <h3>Selected items</h3>
+                        <p class="hint" id="pricing-selected-empty">No boxes selected yet — add qty in the catalog above.</p>
+                        <div class="pricing-selected-list" id="pricing-selected"></div>
+                    </div>
+
+                    <div class="pricing-split-block">
                         <h3>Vial splits</h3>
                         <p class="hint" id="pricing-split-empty">Add boxes above to split vials.</p>
                         <div class="pricing-split-grid" id="pricing-splits"></div>
@@ -1276,7 +1346,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=25"></script>
-    <script src="js/pricing-inquiry.js?v=12"></script>
+    <script src="js/pricing-inquiry.js?v=13"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';

@@ -698,6 +698,54 @@
         renderTotalsOnly();
     }
 
+    function renderSelected() {
+        const root = $('pricing-selected');
+        const empty = $('pricing-selected-empty');
+        if (!root) return;
+
+        const active = state.products.filter((p) => (Number(state.qty[p.catNo]) || 0) > 0);
+        if (!active.length) {
+            root.innerHTML = '';
+            if (empty) empty.hidden = false;
+            return;
+        }
+        if (empty) empty.hidden = true;
+
+        root.innerHTML = active.map((p) => {
+            const boxes = Number(state.qty[p.catNo]) || 0;
+            const vials = boxes * state.vialsPerBox;
+            return `
+                <div class="pricing-selected-row" data-cat="${escapeAttr(p.catNo)}">
+                    <div class="pricing-selected-meta">
+                        ${escapeHtml(p.name)}
+                        <span>${escapeHtml(p.amt)} · ${money(p.price)} / box · ${vials} vial${vials === 1 ? '' : 's'}</span>
+                    </div>
+                    <div class="qty-ctrl">
+                        <button type="button" data-sel-qty-delta="-1" data-cat="${escapeAttr(p.catNo)}" aria-label="Decrease">−</button>
+                        <span class="qty-val">${boxes}</span>
+                        <button type="button" data-sel-qty-delta="1" data-cat="${escapeAttr(p.catNo)}" aria-label="Increase">+</button>
+                    </div>
+                    <button type="button" class="pricing-remove" data-sel-remove="${escapeAttr(p.catNo)}">Remove</button>
+                </div>
+            `;
+        }).join('');
+
+        root.querySelectorAll('[data-sel-qty-delta]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const cat = btn.dataset.cat;
+                const delta = parseInt(btn.dataset.selQtyDelta, 10);
+                const cur = Number(state.qty[cat]) || 0;
+                setQty(cat, cur + delta);
+            });
+        });
+
+        root.querySelectorAll('[data-sel-remove]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                setQty(btn.dataset.selRemove, 0);
+            });
+        });
+    }
+
     function renderSplits() {
         const root = $('pricing-splits');
         const empty = $('pricing-split-empty');
@@ -858,6 +906,7 @@
         ensureSplitsShape();
         renderPeople();
         renderTable();
+        renderSelected();
         renderSplits();
         renderTotalsOnly();
         persistCart();
