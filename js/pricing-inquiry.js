@@ -611,7 +611,7 @@
                 : '';
             return `
                 <tr data-cat="${escapeAttr(p.catNo)}">
-                    <td class="pricing-name">${wrapDisplayName(p.name, 15)}</td>
+                    <td class="pricing-name">${wrapDisplayName(p.name, 18)}</td>
                     <td class="pricing-amt">${escapeHtml(p.amt)}</td>
                     <td class="pricing-money">${money(p.price)}</td>
                     <td>
