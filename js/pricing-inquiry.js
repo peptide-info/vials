@@ -577,6 +577,28 @@
         if (remBtn) remBtn.disabled = state.people.length <= 1;
     }
 
+    function wrapDisplayName(name, maxLen) {
+        const limit = maxLen || 15;
+        const words = String(name || '').trim().split(/\s+/).filter(Boolean);
+        if (!words.length) return '';
+        const lines = [];
+        let line = '';
+        words.forEach((word) => {
+            if (!line) {
+                line = word;
+                return;
+            }
+            if ((line + ' ' + word).length <= limit) {
+                line += ' ' + word;
+            } else {
+                lines.push(line);
+                line = word;
+            }
+        });
+        if (line) lines.push(line);
+        return lines.map((l) => escapeHtml(l)).join('<br>');
+    }
+
     function renderTable() {
         const tbody = $('pricing-tbody');
         if (!tbody) return;
@@ -589,7 +611,7 @@
                 : '';
             return `
                 <tr data-cat="${escapeAttr(p.catNo)}">
-                    <td class="pricing-name">${escapeHtml(p.name)}</td>
+                    <td class="pricing-name">${wrapDisplayName(p.name, 15)}</td>
                     <td class="pricing-amt">${escapeHtml(p.amt)}</td>
                     <td class="pricing-money">${money(p.price)}</td>
                     <td>

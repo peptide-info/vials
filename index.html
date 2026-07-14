@@ -704,6 +704,7 @@
             .pricing-table { font-size: 0.82rem; }
             .pricing-table th,
             .pricing-table td { padding: 8px 8px; white-space: nowrap; }
+            .pricing-table .pricing-name { white-space: normal; max-width: 10.5rem; }
             .qty-ctrl button { width: 32px; height: 32px; }
             .pricing-split-row {
                 grid-template-columns: 1fr;
@@ -756,6 +757,9 @@
 
         .pricing-table .pricing-name {
             font-weight: 600;
+            white-space: normal;
+            line-height: 1.25;
+            max-width: 11rem;
         }
 
         .pricing-table th {
@@ -1272,7 +1276,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=25"></script>
-    <script src="js/pricing-inquiry.js?v=10"></script>
+    <script src="js/pricing-inquiry.js?v=11"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';
