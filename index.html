@@ -789,6 +789,66 @@
 
         .pricing-table tr:last-child td { border-bottom: 0; }
 
+        .pricing-group-row td {
+            padding: 0;
+            background: #f3f6f2;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .pricing-group-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            margin: 0;
+            padding: 10px 12px;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .pricing-group-toggle:hover,
+        .pricing-group-toggle:focus-visible {
+            background: rgba(15, 122, 95, 0.06);
+        }
+
+        .pricing-group-chevron {
+            flex: 0 0 auto;
+            width: 0;
+            height: 0;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 7px solid var(--muted);
+            transition: transform 0.15s ease;
+        }
+
+        .pricing-group-row.is-open .pricing-group-chevron {
+            transform: rotate(90deg);
+        }
+
+        .pricing-group-title {
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .pricing-group-meta {
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .pricing-item-row .pricing-name {
+            padding-left: 28px;
+        }
+
+        .pricing-item-row[hidden] {
+            display: none !important;
+        }
+
         .pricing-people-card {
             padding: 12px 14px;
         }
@@ -1390,7 +1450,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=25"></script>
-    <script src="js/pricing-inquiry.js?v=16"></script>
+    <script src="js/pricing-inquiry.js?v=17"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';

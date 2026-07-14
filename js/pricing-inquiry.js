@@ -22,7 +22,8 @@
         shippingFlat: SHIPPING_FLAT,
         vialsPerBox: VIALS_PER_BOX,
         loaded: false,
-        loading: false
+        loading: false,
+        expandedGroups: new Set()
     };
 
     function $(id) {
@@ -626,43 +627,130 @@
         return lines.map((l) => escapeHtml(l)).join('<br>');
     }
 
+    function amtSortValue(product) {
+        const parsed = parseAmt(product);
+        if (!parsed) return Number.POSITIVE_INFINITY;
+        if (parsed.unit === 'mcg') return parsed.qty / 1000;
+        return parsed.qty;
+    }
+
+    function sortedProducts(list) {
+        return (list || []).slice().sort((a, b) => {
+            const byName = String(a.name || '').localeCompare(String(b.name || ''), undefined, {
+                sensitivity: 'base',
+                numeric: true
+            });
+            if (byName !== 0) return byName;
+            const byAmt = amtSortValue(a) - amtSortValue(b);
+            if (byAmt !== 0) return byAmt;
+            return String(a.amt || '').localeCompare(String(b.amt || ''), undefined, {
+                sensitivity: 'base',
+                numeric: true
+            });
+        });
+    }
+
+    function groupProductsByName(list) {
+        const groups = [];
+        let current = null;
+        sortedProducts(list).forEach((p) => {
+            const key = String(p.name || '').trim() || String(p.catNo || '');
+            if (!current || current.key !== key) {
+                current = { key, name: p.name || key, items: [] };
+                groups.push(current);
+            }
+            current.items.push(p);
+        });
+        return groups;
+    }
+
+    function renderProductRow(p, { hideName } = {}) {
+        const q = Number(state.qty[p.catNo]) || 0;
+        const dpm = perMg(p);
+        const tip = weekTip(p, perUnit(p));
+        const tipHtml = tip
+            ? `<button type="button" class="pricing-tip" data-tip="${escapeAttr(tip)}" aria-label="${escapeAttr(tip)}">i</button>`
+            : '';
+        return `
+            <tr class="pricing-item-row" data-cat="${escapeAttr(p.catNo)}" data-group="${escapeAttr(String(p.name || '').trim() || p.catNo)}">
+                <td class="pricing-name">${hideName ? '' : wrapDisplayName(p.name, 18)}</td>
+                <td class="pricing-amt">${escapeHtml(p.amt)}</td>
+                <td class="pricing-money">${money(p.price)}</td>
+                <td>
+                    <span class="pricing-per-mg">
+                        <span class="pricing-money">${dpm != null ? money(dpm) : '—'}</span>
+                        ${tipHtml}
+                    </span>
+                </td>
+                <td>
+                    <div class="qty-ctrl">
+                        <button type="button" data-qty-delta="-1" data-cat="${escapeAttr(p.catNo)}" aria-label="Decrease">−</button>
+                        <span class="qty-val">${q}</span>
+                        <button type="button" data-qty-delta="1" data-cat="${escapeAttr(p.catNo)}" aria-label="Increase">+</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
     function renderTable() {
         const tbody = $('pricing-tbody');
         if (!tbody) return;
-        tbody.innerHTML = state.products.map((p) => {
-            const q = Number(state.qty[p.catNo]) || 0;
-            const dpm = perMg(p);
-            const tip = weekTip(p, perUnit(p));
-            const tipHtml = tip
-                ? `<button type="button" class="pricing-tip" data-tip="${escapeAttr(tip)}" aria-label="${escapeAttr(tip)}">i</button>`
-                : '';
-            return `
-                <tr data-cat="${escapeAttr(p.catNo)}">
-                    <td class="pricing-name">${wrapDisplayName(p.name, 18)}</td>
-                    <td class="pricing-amt">${escapeHtml(p.amt)}</td>
-                    <td class="pricing-money">${money(p.price)}</td>
-                    <td>
-                        <span class="pricing-per-mg">
-                            <span class="pricing-money">${dpm != null ? money(dpm) : '—'}</span>
-                            ${tipHtml}
-                        </span>
-                    </td>
-                    <td>
-                        <div class="qty-ctrl">
-                            <button type="button" data-qty-delta="-1" data-cat="${escapeAttr(p.catNo)}" aria-label="Decrease">−</button>
-                            <span class="qty-val">${q}</span>
-                            <button type="button" data-qty-delta="1" data-cat="${escapeAttr(p.catNo)}" aria-label="Increase">+</button>
-                        </div>
+
+        const groups = groupProductsByName(state.products);
+        if (!groups.length) {
+            tbody.innerHTML = '<tr><td colspan="5">No products in sheet.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = groups.map((g) => {
+            const boxes = g.items.reduce((sum, p) => sum + (Number(state.qty[p.catNo]) || 0), 0);
+            const prices = g.items.map((p) => p.price).filter((n) => Number.isFinite(n));
+            const lo = prices.length ? Math.min(...prices) : null;
+            const hi = prices.length ? Math.max(...prices) : null;
+            const priceHint = lo == null
+                ? ''
+                : (lo === hi ? money(lo) : `${money(lo)}–${money(hi)}`);
+            const open = state.expandedGroups.has(g.key) || boxes > 0;
+            if (open) state.expandedGroups.add(g.key);
+
+            const head = `
+                <tr class="pricing-group-row${open ? ' is-open' : ''}" data-group="${escapeAttr(g.key)}">
+                    <td colspan="5">
+                        <button type="button" class="pricing-group-toggle" data-group-toggle="${escapeAttr(g.key)}" aria-expanded="${open ? 'true' : 'false'}">
+                            <span class="pricing-group-chevron" aria-hidden="true"></span>
+                            <span class="pricing-group-title">${escapeHtml(g.name)}</span>
+                            <span class="pricing-group-meta">${g.items.length} size${g.items.length === 1 ? '' : 's'}${priceHint ? ` · ${priceHint}` : ''}${boxes ? ` · ${boxes} box${boxes === 1 ? '' : 'es'}` : ''}</span>
+                        </button>
                     </td>
                 </tr>
             `;
-        }).join('') || '<tr><td colspan="5">No products in sheet.</td></tr>';
+
+            const kids = g.items.map((p) => {
+                const row = renderProductRow(p, { hideName: true });
+                return open ? row : row.replace('<tr ', '<tr hidden ');
+            }).join('');
+
+            return head + kids;
+        }).join('');
+
+        tbody.querySelectorAll('[data-group-toggle]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const key = btn.dataset.groupToggle;
+                if (state.expandedGroups.has(key)) state.expandedGroups.delete(key);
+                else state.expandedGroups.add(key);
+                renderTable();
+            });
+        });
 
         tbody.querySelectorAll('[data-qty-delta]').forEach((btn) => {
             btn.addEventListener('click', () => {
                 const cat = btn.dataset.cat;
                 const delta = parseInt(btn.dataset.qtyDelta, 10);
                 const cur = Number(state.qty[cat]) || 0;
+                const product = state.products.find((p) => p.catNo === cat);
+                const groupKey = String(product?.name || '').trim() || cat;
+                if (cur + delta > 0) state.expandedGroups.add(groupKey);
                 setQty(cat, cur + delta);
             });
         });
