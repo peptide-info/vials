@@ -4,13 +4,13 @@
  * Rules:
  * - BAC water can vary by vial size (data-bac-by-vial="10:1,30:1.5") as an author preference.
  * - Suggestion prefers the largest chip that keeps table doses ≤ 60 units (insulin/peptide pen max).
- * - User can override BAC with chips: 1 / 1.5 / 2 / 2.5 / 3 mL.
+ * - User can override BAC with chips: 0.5 / 1 / 1.5 / 2 / 2.5 / 3 mL.
  * - Table always shows unit draws; notes when a draw exceeds the 60u pen max (100u syringes still OK).
  * - Doses larger than the selected vial still flag “choose a larger size”.
  */
 (function () {
     const MAX_SINGLE_DRAW_UNITS = 60;
-    const BAC_OPTIONS = [1, 1.5, 2, 2.5, 3];
+    const BAC_OPTIONS = [0.5, 1, 1.5, 2, 2.5, 3];
 
     function parseList(raw) {
         return String(raw || '')

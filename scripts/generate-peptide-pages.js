@@ -75,7 +75,7 @@ ${warnings.map((w) => `            <li>${w}</li>`).join('\n')}
         </ul>
     </blockquote>
 ${extraHtml || ''}
-    <script src="../js/vial-size.js?v=5"></script>
+    <script src="../js/vial-size.js?v=6"></script>
 </body>
 </html>
 `;
