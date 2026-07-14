@@ -250,6 +250,22 @@
             box-shadow: 0 1px 0 rgba(28,42,36,0.06);
         }
 
+        .mode-tab.is-locked {
+            color: #9aa7a0;
+            opacity: 0.72;
+        }
+
+        .mode-tab.is-locked .lock-icon {
+            margin-right: 4px;
+            font-size: 0.92em;
+            opacity: 0.85;
+        }
+
+        .mode-tab.is-locked.active {
+            opacity: 1;
+            color: var(--accent);
+        }
+
         .view[hidden] { display: none !important; }
 
         .planner-panel {
@@ -683,6 +699,323 @@
             .planner-grid { grid-template-columns: 1fr; }
             .planner-times { grid-template-columns: 1fr; }
             .planner-spacer { display: none; }
+            .pricing-table-wrap { overflow-x: auto; }
+            .pricing-people-row { grid-template-columns: 1fr; }
+        }
+
+        /* Pricing inquiry */
+        .pricing-panel {
+            display: grid;
+            gap: 16px;
+            animation: rise 0.45s ease both;
+        }
+
+        .pricing-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .pricing-table-wrap {
+            overflow-x: auto;
+            margin-top: 12px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+        }
+
+        .pricing-table th,
+        .pricing-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+            vertical-align: middle;
+        }
+
+        .pricing-table th {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--muted);
+            background: rgba(255,255,255,0.7);
+            position: sticky;
+            top: 0;
+        }
+
+        .pricing-table tr:last-child td { border-bottom: 0; }
+
+        .pricing-cat {
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .pricing-amt { color: var(--muted); white-space: nowrap; }
+
+        .pricing-money { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+        .pricing-per-mg {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .pricing-tip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid var(--line);
+            background: #f3f6f2;
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: help;
+        }
+
+        .pricing-tip[data-tip]:hover::after,
+        .pricing-tip[data-tip]:focus-visible::after {
+            content: attr(data-tip);
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 8px);
+            transform: translateX(-50%);
+            min-width: 160px;
+            max-width: 240px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: #1c2a24;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1.35;
+            z-index: 5;
+            pointer-events: none;
+            box-shadow: 0 8px 20px rgba(28,42,36,0.2);
+        }
+
+        .qty-ctrl {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .qty-ctrl button {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .qty-ctrl button:hover { border-color: rgba(15,122,95,0.35); color: var(--accent); }
+
+        .qty-ctrl .qty-val {
+            min-width: 1.5rem;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+        }
+
+        .pricing-people-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .pricing-person-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.88rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .pricing-person-field input {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font: inherit;
+            color: var(--ink);
+            background: #fff;
+        }
+
+        .pricing-split-block {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed var(--line);
+        }
+
+        .pricing-split-block h3 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+            font-family: "Fraunces", serif;
+        }
+
+        .pricing-split-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .pricing-split-row {
+            display: grid;
+            grid-template-columns: minmax(120px, 1.4fr) repeat(auto-fit, minmax(88px, 1fr));
+            gap: 8px;
+            align-items: end;
+            padding: 10px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .pricing-split-prod {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .pricing-split-prod span {
+            display: block;
+            font-weight: 500;
+            color: var(--muted);
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        .pricing-split-row label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .pricing-split-row input[type="number"] {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font: inherit;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .pricing-error {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #e7c5c0;
+            background: #fff5f3;
+            color: #8a3b32;
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
+        .pricing-error[hidden] { display: none !important; }
+
+        .pricing-totals {
+            margin-top: 12px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .pricing-totals[hidden] { display: none !important; }
+
+        .pricing-total-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .pricing-total-row.grand {
+            background: var(--accent-soft);
+            border-color: rgba(15,122,95,0.28);
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .pricing-modal[hidden] { display: none !important; }
+
+        .pricing-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 10050;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            background: rgba(28, 42, 36, 0.45);
+            backdrop-filter: blur(4px);
+        }
+
+        .pricing-modal-card {
+            width: min(420px, 100%);
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 18px 40px rgba(28,42,36,0.18);
+        }
+
+        .pricing-modal-card h2 {
+            margin: 0 0 6px;
+            font-family: "Fraunces", serif;
+            font-size: 1.35rem;
+        }
+
+        .pricing-modal-card .hint { margin-bottom: 14px; }
+
+        .pricing-modal-card input[type="password"] {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font: inherit;
+            margin-bottom: 10px;
+        }
+
+        .pricing-modal-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 4px;
+        }
+
+        .pricing-modal-error {
+            color: #8a3b32;
+            font-size: 0.88rem;
+            margin: 0 0 8px;
+        }
+
+        .pricing-modal-error[hidden] { display: none !important; }
+
+        .pricing-status {
+            color: var(--muted);
+            font-size: 0.9rem;
         }
     </style>
 </head>
@@ -694,6 +1027,9 @@
             <div class="mode-tabs" role="tablist" aria-label="Main views">
                 <button type="button" class="mode-tab active" data-view="protocols" role="tab" aria-selected="true">Protocols</button>
                 <button type="button" class="mode-tab" data-view="planner" role="tab" aria-selected="false">Schedule planner</button>
+                <button type="button" class="mode-tab is-locked" data-view="pricing" role="tab" aria-selected="false" id="pricing-tab" aria-label="Pricing inquiry (locked)">
+                    <span class="lock-icon" aria-hidden="true">🔒</span>Pricing inquiry
+                </button>
             </div>
             <div class="toolbar" id="protocols-toolbar">
                 <input class="search" id="protocol-search" type="search" placeholder="Search protocols…" aria-label="Search protocols">
@@ -747,9 +1083,79 @@
                 </section>
             </div>
         </div>
+
+        <div class="view" id="view-pricing" hidden>
+            <div class="pricing-panel">
+                <section class="planner-card">
+                    <div class="pricing-toolbar">
+                        <div>
+                            <h2>Pricing inquiry</h2>
+                            <p class="hint" style="margin:0">Hong Kong warehouse box pricing (10 vials per box). Assign every vial before totals unlock. Shipping is a flat $50 shared evenly.</p>
+                        </div>
+                        <button type="button" class="btn" id="pricing-lock-btn">Lock again</button>
+                    </div>
+                    <p class="pricing-status" id="pricing-load-status">Loading catalog…</p>
+                    <div class="pricing-table-wrap" id="pricing-table-wrap" hidden>
+                        <table class="pricing-table">
+                            <thead>
+                                <tr>
+                                    <th>Cat.No</th>
+                                    <th>Name</th>
+                                    <th>Amt</th>
+                                    <th>Box price</th>
+                                    <th>$ / mg</th>
+                                    <th>Boxes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pricing-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="planner-card">
+                    <div class="section-head">
+                        <h2>People on this order</h2>
+                        <div class="planner-actions" style="margin-top:0">
+                            <button type="button" class="btn" id="pricing-add-person">Add person</button>
+                            <button type="button" class="btn" id="pricing-remove-person">Remove person</button>
+                        </div>
+                    </div>
+                    <p class="hint">Up to 5 people. Type names, then split vials for each product with quantity &gt; 0.</p>
+                    <div class="pricing-people-row" id="pricing-people"></div>
+
+                    <div class="pricing-split-block">
+                        <h3>Vial splits</h3>
+                        <p class="hint" id="pricing-split-empty">Add boxes above to split vials.</p>
+                        <div class="pricing-split-grid" id="pricing-splits"></div>
+                        <div class="pricing-error" id="pricing-split-error" hidden></div>
+                    </div>
+
+                    <div class="pricing-totals" id="pricing-totals" hidden></div>
+                </section>
+            </div>
+        </div>
     </main>
 
+    <div class="pricing-modal" id="pricing-modal" hidden>
+        <div class="pricing-modal-card" role="dialog" aria-modal="true" aria-labelledby="pricing-modal-title">
+            <h2 id="pricing-modal-title">Unlock pricing</h2>
+            <p class="hint">Enter the access password to view warehouse pricing and build a shared order.</p>
+            <form id="pricing-unlock-form">
+                <label class="field" for="pricing-password">
+                    <span>Password</span>
+                </label>
+                <input type="password" id="pricing-password" name="password" autocomplete="current-password" required>
+                <p class="pricing-modal-error" id="pricing-modal-error" hidden></p>
+                <div class="pricing-modal-actions">
+                    <button type="button" class="btn" id="pricing-modal-cancel">Cancel</button>
+                    <button type="submit" class="btn primary" id="pricing-modal-submit">Unlock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="js/schedule-planner.js?v=25"></script>
+    <script src="js/pricing-inquiry.js?v=1"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';
@@ -758,25 +1164,44 @@
         // View switcher
         const lede = document.getElementById('hero-lede');
         const protocolsToolbar = document.getElementById('protocols-toolbar');
+        const LEDES = {
+            protocols: 'Protocol sheets with reconstitution math, dosing tables, and calculator defaults for each vial.',
+            planner: 'Create your dosing schedule, preview the half-life curve, then download or email an .ics calendar file so your phone or desktop can alert you when to dose.',
+            pricing: 'Private warehouse pricing inquiry — unlock to build a multi-person box order with vial splits and shipping.'
+        };
+
+        function showMainView(view) {
+            document.querySelectorAll('.mode-tab').forEach((t) => {
+                const on = t.dataset.view === view;
+                t.classList.toggle('active', on);
+                t.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            document.getElementById('view-protocols').hidden = view !== 'protocols';
+            document.getElementById('view-planner').hidden = view !== 'planner';
+            document.getElementById('view-pricing').hidden = view !== 'pricing';
+            protocolsToolbar.hidden = view !== 'protocols';
+            lede.textContent = LEDES[view] || LEDES.protocols;
+            if (view === 'planner') {
+                window.PeptideSchedulePlanner?.init();
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+            }
+            if (view === 'pricing') {
+                window.PricingInquiry?.onShow?.();
+            }
+        }
+
+        window.showMainView = showMainView;
+
         document.querySelectorAll('.mode-tab').forEach((tab) => {
             tab.addEventListener('click', () => {
                 const view = tab.dataset.view;
-                document.querySelectorAll('.mode-tab').forEach((t) => {
-                    const on = t === tab;
-                    t.classList.toggle('active', on);
-                    t.setAttribute('aria-selected', on ? 'true' : 'false');
-                });
-                document.getElementById('view-protocols').hidden = view !== 'protocols';
-                document.getElementById('view-planner').hidden = view !== 'planner';
-                protocolsToolbar.hidden = view !== 'protocols';
-                lede.textContent = view === 'planner'
-                    ? 'Create your dosing schedule, preview the half-life curve, then download or email an .ics calendar file so your phone or desktop can alert you when to dose.'
-                    : 'Protocol sheets with reconstitution math, dosing tables, and calculator defaults for each vial.';
-                if (view === 'planner') {
-                    window.PeptideSchedulePlanner?.init();
-                    // redraw after layout becomes visible
-                    setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+                if (view === 'pricing') {
+                    if (!window.PricingInquiry?.isUnlocked()) {
+                        window.PricingInquiry?.promptUnlock();
+                        return;
+                    }
                 }
+                showMainView(view);
             });
         });
 
