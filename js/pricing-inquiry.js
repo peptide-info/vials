@@ -163,11 +163,18 @@
         const submit = $('pricing-modal-submit');
         if (submit) submit.disabled = true;
         try {
-            const data = await gasRequest({ action: 'pricingUnlock', password });
+            const data = await gasRequest({
+                action: 'pricingUnlock',
+                password: String(password || '').trim()
+            });
             if (!data || !data.ok || !data.token) {
                 if (err) {
                     err.hidden = false;
-                    err.textContent = (data && data.error) || 'Incorrect password.';
+                    if (data && data.version && data.ok == null) {
+                        err.textContent = `Apps Script is not updated yet (live is ${data.version}). Paste PricingInquiry.gs + EmailSchedule.gs, set PRICING_PASSWORD, then Deploy → New version.`;
+                    } else {
+                        err.textContent = (data && data.error) || 'Incorrect password.';
+                    }
                 }
                 return false;
             }
