@@ -26,7 +26,7 @@ function page(opts) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="../global-nav.js?v=15"></script>
+    <script src="../global-nav.js?v=16"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title} Protocol</title>
@@ -75,7 +75,7 @@ ${warnings.map((w) => `            <li>${w}</li>`).join('\n')}
         </ul>
     </blockquote>
 ${extraHtml || ''}
-    <script src="../js/vial-size.js?v=4"></script>
+    <script src="../js/vial-size.js?v=5"></script>
 </body>
 </html>
 `;

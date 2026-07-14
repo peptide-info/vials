@@ -322,17 +322,30 @@
         let selectedVial = sizes.includes(fromQuery) ? fromQuery
             : (sizes.includes(fromStore) ? fromStore : fallback);
 
+        // Always start from the dose-table suggestion. Stale ?bac= / localStorage
+        // values (e.g. old 2 mL defaults) must not beat a denser suggested mix.
         let selectedBac = recommendedBacMl(root, selectedVial);
+        if (!BAC_OPTIONS.includes(selectedBac)) selectedBac = snapToBacOption(selectedBac);
+
         const bacQuery = parseFloat(params.get('bac'));
         const bacStore = parseFloat(localStorage.getItem(bacStorageKey));
-        if (BAC_OPTIONS.includes(bacQuery)) selectedBac = bacQuery;
-        else if (BAC_OPTIONS.includes(bacStore)) selectedBac = bacStore;
-        // If store/query missing, use recommended for current vial
-        if (!BAC_OPTIONS.includes(bacQuery) && !BAC_OPTIONS.includes(bacStore)) {
-            selectedBac = recommendedBacMl(root, selectedVial);
-            if (!BAC_OPTIONS.includes(selectedBac)) {
-                selectedBac = snapToBacOption(selectedBac);
-            }
+        const tableDoses = collectInVialDoses(selectedVial);
+
+        const acceptStoredBac = (candidate, suggested) => {
+            if (!BAC_OPTIONS.includes(candidate)) return suggested;
+            const candOk = bacKeepsDosesUnderPenMax(selectedVial, candidate, tableDoses);
+            const sugOk = bacKeepsDosesUnderPenMax(selectedVial, suggested, tableDoses);
+            // Keep an explicit pick when it still meets the pen-max rule
+            if (candOk) return candidate;
+            // If suggestion is denser / better for pen max, prefer it over a dilute stale value
+            if (sugOk || candidate > suggested) return suggested;
+            return candidate;
+        };
+
+        if (BAC_OPTIONS.includes(bacQuery)) {
+            selectedBac = acceptStoredBac(bacQuery, selectedBac);
+        } else if (BAC_OPTIONS.includes(bacStore)) {
+            selectedBac = acceptStoredBac(bacStore, selectedBac);
         }
 
         const bacRow = showBac ? `

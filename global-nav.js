@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { filename: 'selank',                              mg: 5,   ml: 4,   dose: 250,   unit: 'mcg', route: 'nasal' },
         { filename: 'semax',                               mg: 5,   ml: 4,   dose: 300,   unit: 'mcg', route: 'nasal' },
         { filename: 'epitalon',                            mg: 10,  ml: 2,   dose: 5,     unit: 'mg',  route: 'subq' },
-        { filename: 'mots-c',                              mg: 10,  ml: 2,   dose: 5,     unit: 'mg',  route: 'subq' },
+        { filename: 'mots-c',                              mg: 10,  ml: 1,   dose: 5,     unit: 'mg',  route: 'subq' },
         { filename: 'nad',                                 mg: 500, ml: 5,   dose: 50,    unit: 'mg',  route: 'subq' },
         { filename: 'dsip',                                mg: 5,   ml: 2,   dose: 100,   unit: 'mcg', route: 'subq' }
     ];
