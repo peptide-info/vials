@@ -700,7 +700,21 @@
             .planner-times { grid-template-columns: 1fr; }
             .planner-spacer { display: none; }
             .pricing-table-wrap { overflow: auto; max-height: min(55vh, 480px); }
-            .pricing-people-row { grid-template-columns: 1fr 1fr; }
+            .pricing-people-row { grid-template-columns: 1fr; }
+            .pricing-table { font-size: 0.82rem; }
+            .pricing-table th,
+            .pricing-table td { padding: 8px 6px; }
+            .pricing-table th:nth-child(4),
+            .pricing-table td:nth-child(4) { /* $/mg */
+                font-size: 0.78rem;
+            }
+            .qty-ctrl button { width: 32px; height: 32px; }
+            .pricing-split-row {
+                grid-template-columns: 1fr;
+                align-items: stretch;
+            }
+            .pricing-split-row .split-input-row input { max-width: none; }
+            .pricing-people-card .pricing-people-head { align-items: flex-start; }
         }
 
         /* Pricing inquiry */
@@ -741,6 +755,11 @@
             text-align: left;
             border-bottom: 1px solid var(--line);
             vertical-align: middle;
+        }
+
+        .pricing-table td:first-child {
+            font-weight: 600;
+            word-break: break-word;
         }
 
         .pricing-table th {
@@ -1186,12 +1205,11 @@
                         <table class="pricing-table">
                             <thead>
                                 <tr>
-                                    <th>Cat.No</th>
                                     <th>Name</th>
                                     <th>Amt</th>
-                                    <th>Box price</th>
-                                    <th>$ / mg</th>
-                                    <th>Boxes</th>
+                                    <th>Box</th>
+                                    <th>$/mg</th>
+                                    <th>Qty</th>
                                 </tr>
                             </thead>
                             <tbody id="pricing-tbody"></tbody>
@@ -1258,7 +1276,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=25"></script>
-    <script src="js/pricing-inquiry.js?v=7"></script>
+    <script src="js/pricing-inquiry.js?v=8"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';

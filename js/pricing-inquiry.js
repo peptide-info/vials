@@ -428,6 +428,7 @@
     function buildOrderHtml() {
         const totals = computeTotals();
         const lines = state.products.filter((p) => (Number(state.qty[p.catNo]) || 0) > 0);
+        let productSub = 0;
         let html = '<div style="font-family:Segoe UI,Arial,sans-serif;color:#1c2a24">';
         html += '<h2>Pricing inquiry order</h2>';
         html += `<p>Each box = ${state.vialsPerBox} vials. Overseas shipping flat ${money(state.shippingFlat)}. Delivery typically 3–4 weeks.</p>`;
@@ -435,8 +436,13 @@
         html += '<tr><th align="left">Cat.No</th><th align="left">Name</th><th>Amt</th><th>Boxes</th><th>Price/box</th><th>Line</th></tr>';
         lines.forEach((p) => {
             const boxes = Number(state.qty[p.catNo]) || 0;
-            html += `<tr><td>${escapeHtml(p.catNo)}</td><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.amt)}</td><td align="center">${boxes}</td><td align="right">${money(p.price)}</td><td align="right">${money(boxes * p.price)}</td></tr>`;
+            const line = boxes * p.price;
+            productSub += line;
+            html += `<tr><td>${escapeHtml(p.catNo)}</td><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.amt)}</td><td align="center">${boxes}</td><td align="right">${money(p.price)}</td><td align="right">${money(line)}</td></tr>`;
         });
+        html += `<tr><td colspan="5" align="right">Shipping (overseas)</td><td align="right">${money(state.shippingFlat)}</td></tr>`;
+        const grand = productSub + state.shippingFlat;
+        html += `<tr><td colspan="5" align="right"><strong>Grand total</strong></td><td align="right"><strong>${money(grand)}</strong></td></tr>`;
         html += '</table>';
 
         html += '<h3>People &amp; vial splits</h3>';
@@ -451,14 +457,14 @@
         });
 
         if (totals.rows) {
-            html += '<h3>Totals</h3><ul>';
+            html += '<h3>Totals by person</h3><ul>';
             totals.rows.forEach((row, i) => {
                 const label = String(state.people[i].name || '').trim() || `Person ${i + 1}`;
                 html += `<li>${escapeHtml(label)}: ${money(row.total)} (products ${money(row.products)} + ship ${money(row.shipping)})</li>`;
             });
-            html += `<li><strong>Order total: ${money(totals.grand)}</strong></li></ul>`;
+            html += '</ul>';
         } else {
-            html += '<p><em>Vial assignments incomplete — totals omitted.</em></p>';
+            html += '<p><em>Vial assignments incomplete — per-person totals omitted.</em></p>';
         }
         html += '</div>';
         return html;
@@ -583,7 +589,6 @@
                 : '';
             return `
                 <tr data-cat="${escapeAttr(p.catNo)}">
-                    <td class="pricing-cat">${escapeHtml(p.catNo)}</td>
                     <td>${escapeHtml(p.name)}</td>
                     <td class="pricing-amt">${escapeHtml(p.amt)}</td>
                     <td class="pricing-money">${money(p.price)}</td>
@@ -602,7 +607,7 @@
                     </td>
                 </tr>
             `;
-        }).join('') || '<tr><td colspan="6">No products in sheet.</td></tr>';
+        }).join('') || '<tr><td colspan="5">No products in sheet.</td></tr>';
 
         tbody.querySelectorAll('[data-qty-delta]').forEach((btn) => {
             btn.addEventListener('click', () => {
