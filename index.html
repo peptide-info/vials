@@ -1038,10 +1038,27 @@
         .qty-ctrl button:hover { border-color: rgba(15,122,95,0.35); color: var(--accent); }
 
         .qty-ctrl .qty-val {
-            min-width: 1.5rem;
+            min-width: 2.25rem;
+            max-width: 3.25rem;
+            width: 2.5rem;
+            padding: 4px 2px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            background: transparent;
             text-align: center;
+            font: inherit;
             font-variant-numeric: tabular-nums;
             font-weight: 600;
+            color: var(--ink);
+            box-sizing: border-box;
+            -moz-appearance: textfield;
+        }
+
+        .qty-ctrl .qty-val:hover,
+        .qty-ctrl .qty-val:focus {
+            border-color: rgba(15, 122, 95, 0.35);
+            background: #fff;
+            outline: none;
         }
 
         .pricing-selected-block {
@@ -1516,7 +1533,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=25"></script>
-    <script src="js/pricing-inquiry.js?v=22"></script>
+    <script src="js/pricing-inquiry.js?v=23"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';

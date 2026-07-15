@@ -34,7 +34,10 @@
 
     function money(n) {
         if (!Number.isFinite(n)) return '—';
-        return '$' + n.toFixed(2);
+        return '$' + n.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
     }
 
     /** Parse vial amount → { qty, unit } from strings like 10mg, 100mcg, 10ml, 5000iu. */
@@ -841,7 +844,8 @@
                 <td>
                     <div class="qty-ctrl">
                         <button type="button" data-qty-delta="-1" data-cat="${escapeAttr(p.catNo)}" aria-label="Decrease">−</button>
-                        <span class="qty-val">${q}</span>
+                        <input class="qty-val" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done"
+                            data-qty-input data-cat="${escapeAttr(p.catNo)}" value="${q}" aria-label="Quantity">
                         <button type="button" data-qty-delta="1" data-cat="${escapeAttr(p.catNo)}" aria-label="Increase">+</button>
                     </div>
                 </td>
@@ -920,6 +924,42 @@
                 if (cur + delta > 0) state.expandedGroups.add(groupKey);
                 setQty(cat, cur + delta);
             });
+        });
+        bindQtyInputs(tbody);
+    }
+
+    function bindQtyInputs(root) {
+        if (!root) return;
+        root.querySelectorAll('input[data-qty-input]').forEach((input) => {
+            const commit = () => {
+                const cat = input.dataset.cat;
+                const digits = String(input.value || '').replace(/\D/g, '');
+                const next = digits === '' ? 0 : parseInt(digits, 10);
+                const cur = Number(state.qty[cat]) || 0;
+                if (!Number.isFinite(next) || next === cur) {
+                    input.value = String(cur);
+                    return;
+                }
+                const product = state.products.find((p) => p.catNo === cat);
+                const groupKey = String(product?.name || '').trim() || cat;
+                if (next > 0) state.expandedGroups.add(groupKey);
+                setQty(cat, next);
+            };
+            input.addEventListener('focus', () => {
+                input.select();
+            });
+            input.addEventListener('input', () => {
+                const cleaned = String(input.value || '').replace(/\D/g, '');
+                if (input.value !== cleaned) input.value = cleaned;
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    input.blur();
+                }
+            });
+            input.addEventListener('change', commit);
+            input.addEventListener('blur', commit);
         });
     }
 
@@ -1004,7 +1044,8 @@
                     </div>
                     <div class="qty-ctrl">
                         <button type="button" data-sel-qty-delta="-1" data-cat="${escapeAttr(p.catNo)}" aria-label="Decrease">−</button>
-                        <span class="qty-val">${boxes}</span>
+                        <input class="qty-val" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done"
+                            data-qty-input data-cat="${escapeAttr(p.catNo)}" value="${boxes}" aria-label="Quantity">
                         <button type="button" data-sel-qty-delta="1" data-cat="${escapeAttr(p.catNo)}" aria-label="Increase">+</button>
                     </div>
                     <button type="button" class="pricing-remove" data-sel-remove="${escapeAttr(p.catNo)}">Remove</button>
@@ -1026,6 +1067,7 @@
                 setQty(btn.dataset.selRemove, 0);
             });
         });
+        bindQtyInputs(root);
     }
 
     function renderSplits() {
