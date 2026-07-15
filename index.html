@@ -1268,6 +1268,17 @@
             opacity: 1;
         }
 
+        .pricing-clear-confirm {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px 8px;
+            color: var(--muted);
+        }
+
+        .pricing-clear-confirm[hidden] {
+            display: none !important;
+        }
+
         .pricing-save-footer .pricing-status {
             flex-basis: 100%;
             text-align: center;
@@ -1472,6 +1483,14 @@
 
                 <div class="pricing-save-footer">
                     <button type="button" class="pricing-save-link" id="pricing-share">Share this inquiry</button>
+                    <span aria-hidden="true">·</span>
+                    <button type="button" class="pricing-save-link" id="pricing-clear" data-mode="idle">Clear cart</button>
+                    <span class="pricing-clear-confirm" id="pricing-clear-confirm" hidden>
+                        Clear cart?
+                        <button type="button" class="pricing-save-link" id="pricing-clear-yes">Yes</button>
+                        <span aria-hidden="true">·</span>
+                        <button type="button" class="pricing-save-link" id="pricing-clear-no">No</button>
+                    </span>
                     <p class="pricing-status" id="pricing-import-status" hidden></p>
                 </div>
             </div>
@@ -1497,7 +1516,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=25"></script>
-    <script src="js/pricing-inquiry.js?v=21"></script>
+    <script src="js/pricing-inquiry.js?v=22"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';

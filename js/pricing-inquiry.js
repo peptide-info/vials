@@ -1227,6 +1227,26 @@
         renderAll();
     }
 
+    function setClearConfirm(open) {
+        const clearBtn = $('pricing-clear');
+        const confirm = $('pricing-clear-confirm');
+        if (clearBtn) clearBtn.hidden = open;
+        // Hide the middot before clear when confirming? Keep share · idle button swap
+        if (confirm) confirm.hidden = !open;
+        if (clearBtn) clearBtn.dataset.mode = open ? 'confirm' : 'idle';
+    }
+
+    function clearCart() {
+        state.qty = {};
+        state.splits = {};
+        state.people = [{ name: 'Person 1' }];
+        state.expandedGroups = new Set();
+        persistCart();
+        renderAll();
+        setClearConfirm(false);
+        shareStatus('Cart cleared.');
+    }
+
     function bindUi() {
         $('pricing-unlock-form')?.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -1240,6 +1260,15 @@
         $('pricing-add-person')?.addEventListener('click', addPerson);
         $('pricing-remove-person')?.addEventListener('click', removePerson);
         $('pricing-share')?.addEventListener('click', () => { copyShareLink(); });
+        $('pricing-clear')?.addEventListener('click', () => {
+            if (!cartHasItems()) {
+                shareStatus('Cart is already empty.');
+                return;
+            }
+            setClearConfirm(true);
+        });
+        $('pricing-clear-yes')?.addEventListener('click', clearCart);
+        $('pricing-clear-no')?.addEventListener('click', () => setClearConfirm(false));
         $('pricing-email-send')?.addEventListener('click', emailOrder);
         window.addEventListener('hashchange', () => {
             captureSharedCartFromUrl();
