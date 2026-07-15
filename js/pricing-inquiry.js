@@ -240,30 +240,45 @@
         return true;
     }
 
+    function hasPendingShare() {
+        try {
+            return Boolean(sessionStorage.getItem(STORAGE_PENDING_CART));
+        } catch (ignore) {
+            return false;
+        }
+    }
+
+    function buildShareUrl() {
+        const payload = buildOrderPayload();
+        const token = encodeCartShare(payload);
+        const url = new URL(location.href);
+        url.searchParams.set('view', 'pricing');
+        url.hash = 'cart=' + token;
+        return url.toString();
+    }
+
     async function copyShareLink() {
         if (!cartHasItems()) {
-            shareStatus('Add boxes first, then copy a share link.');
+            shareStatus('Add boxes first, then save a link.');
             return;
         }
-        const payload = buildOrderPayload();
-        let token;
+        let url;
         try {
-            token = encodeCartShare(payload);
+            url = buildShareUrl();
         } catch (e) {
             shareStatus('Could not build share link.');
             return;
         }
-        const url = `${location.origin}${location.pathname}${location.search}#cart=${token}`;
         if (url.length > SHARE_URL_MAX) {
-            shareStatus('Order too large to share — use Export .json instead.');
+            shareStatus('Order too large for a link — remove some lines and try again.');
             return;
         }
         try {
             await navigator.clipboard.writeText(url);
-            shareStatus('Share link copied. Recipient unlocks pricing, then the cart loads.');
+            shareStatus('Link copied. Open it anytime to restore this inquiry (password required).');
         } catch (e) {
-            window.prompt('Copy this share link:', url);
-            shareStatus('Share link ready — copy it from the dialog if needed.');
+            window.prompt('Copy this link:', url);
+            shareStatus('Copy the link from the dialog if needed.');
         }
     }
 
@@ -589,9 +604,18 @@
         const totals = computeTotals();
         const lines = state.products.filter((p) => (Number(state.qty[p.catNo]) || 0) > 0);
         let productSub = 0;
+        let shareUrl = '';
+        try {
+            if (cartHasItems()) shareUrl = buildShareUrl();
+        } catch (ignore) {}
+
         let html = '<div style="font-family:Segoe UI,Arial,sans-serif;color:#1c2a24">';
         html += '<h2>Pricing inquiry order</h2>';
         html += `<p>Each box = ${state.vialsPerBox} vials. Overseas shipping flat ${money(state.shippingFlat)}. Delivery typically 3–4 weeks.</p>`;
+        if (shareUrl) {
+            html += `<p><strong>Restore this inquiry:</strong><br><a href="${escapeAttr(shareUrl)}">${escapeHtml(shareUrl)}</a></p>`;
+            html += '<p style="color:#5a6b63;font-size:0.9em">Open the link, unlock pricing with the password, and the cart will load.</p>';
+        }
         html += '<table cellpadding="8" cellspacing="0" border="1" style="border-collapse:collapse;width:100%">';
         html += '<tr><th align="left">Cat.No</th><th align="left">Name</th><th>Amt</th><th>Boxes</th><th>Price/box</th><th>Line</th></tr>';
         lines.forEach((p) => {
@@ -623,47 +647,11 @@
                 html += `<li>${escapeHtml(label)}: ${money(row.total)} (products ${money(row.products)} + ship ${money(row.shipping)})</li>`;
             });
             html += '</ul>';
-        } else {
+        } else if (totals.incomplete.length) {
             html += '<p><em>Vial assignments incomplete — per-person totals omitted.</em></p>';
         }
         html += '</div>';
         return html;
-    }
-
-    function exportOrder() {
-        const payload = buildOrderPayload();
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `pricing-order-${new Date().toISOString().slice(0, 10)}.json`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-    }
-
-    function importOrder(file) {
-        const status = $('pricing-import-status');
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-            try {
-                const data = JSON.parse(String(reader.result || ''));
-                if (!data || typeof data !== 'object') throw new Error('Invalid file');
-                applyCartPayload(data);
-                ensureSplitsShape();
-                persistCart();
-                renderAll();
-                if (status) {
-                    status.hidden = false;
-                    status.textContent = 'Order imported. Review quantities and vial splits.';
-                }
-            } catch (e) {
-                if (status) {
-                    status.hidden = false;
-                    status.textContent = 'Could not import that file. Use a Pricing inquiry .json export.';
-                }
-            }
-        };
-        reader.readAsText(file);
     }
 
     async function emailOrder() {
@@ -1251,16 +1239,11 @@
         });
         $('pricing-add-person')?.addEventListener('click', addPerson);
         $('pricing-remove-person')?.addEventListener('click', removePerson);
-        $('pricing-export')?.addEventListener('click', exportOrder);
         $('pricing-share')?.addEventListener('click', () => { copyShareLink(); });
-        $('pricing-import')?.addEventListener('change', (e) => {
-            const file = e.target.files && e.target.files[0];
-            importOrder(file);
-            e.target.value = '';
-        });
         $('pricing-email-send')?.addEventListener('click', emailOrder);
         window.addEventListener('hashchange', () => {
             captureSharedCartFromUrl();
+            window.showMainView?.('pricing');
             if (isUnlocked() && state.loaded) consumePendingSharedCart();
         });
     }
@@ -1278,6 +1261,16 @@
         }
     }
 
+    function shouldOpenPricingFromUrl() {
+        try {
+            if (hasPendingShare()) return true;
+            if (readCartTokenFromHash()) return true;
+            return new URLSearchParams(location.search).get('view') === 'pricing';
+        } catch (ignore) {
+            return false;
+        }
+    }
+
     function boot() {
         clearUnlockOnReload();
         restoreCart();
@@ -1285,6 +1278,9 @@
         bindUi();
         setTabLocked(!isUnlocked());
         if (isUnlocked()) setTabLocked(false);
+        if (shouldOpenPricingFromUrl()) {
+            setTimeout(() => window.showMainView?.('pricing'), 0);
+        }
     }
 
     window.PricingInquiry = {

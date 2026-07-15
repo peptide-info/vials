@@ -1459,7 +1459,7 @@
 
                 <section class="planner-card">
                     <h2>Email this request</h2>
-                    <p class="hint">Sends the order summary (and a JSON copy) to your inbox and CC’s the site admin. Vial splits must be complete first.</p>
+                    <p class="hint">Sends the order summary (with a restore link) to your inbox and CC’s the site admin. Vial splits must be complete first.</p>
                     <label class="field" for="pricing-email" style="margin-top:12px">
                         <span>Your email</span>
                         <input type="email" id="pricing-email" placeholder="you@example.com" autocomplete="email">
@@ -1471,14 +1471,7 @@
                 </section>
 
                 <div class="pricing-save-footer">
-                    <button type="button" class="pricing-save-link" id="pricing-share">Copy share link</button>
-                    <span aria-hidden="true">·</span>
-                    <button type="button" class="pricing-save-link" id="pricing-export">Export .json</button>
-                    <span aria-hidden="true">·</span>
-                    <label class="pricing-save-link" style="cursor:pointer">
-                        Import .json
-                        <input type="file" id="pricing-import" accept=".json,application/json" hidden>
-                    </label>
+                    <button type="button" class="pricing-save-link" id="pricing-share">Share this inquiry</button>
                     <p class="pricing-status" id="pricing-import-status" hidden></p>
                 </div>
             </div>
@@ -1504,7 +1497,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=25"></script>
-    <script src="js/pricing-inquiry.js?v=20"></script>
+    <script src="js/pricing-inquiry.js?v=21"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';
