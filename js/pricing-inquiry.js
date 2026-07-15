@@ -874,10 +874,12 @@
             const open = state.expandedGroups.has(g.key) || boxes > 0;
             if (open) state.expandedGroups.add(g.key);
             const summary = groupCollapsedSummary(g.items);
-            const summaryHtml = (!open && (summary.costLine || summary.noteLine))
+            const showCost = !open && summary.costLine;
+            const showNote = Boolean(summary.noteLine);
+            const summaryHtml = (showCost || showNote)
                 ? `<span class="pricing-group-summary">
-                        ${summary.costLine ? `<span class="pricing-group-cost">${escapeHtml(summary.costLine)}</span>` : ''}
-                        ${summary.noteLine ? `<span class="pricing-group-note">${escapeHtml(summary.noteLine)}</span>` : ''}
+                        ${showCost ? `<span class="pricing-group-cost">${escapeHtml(summary.costLine)}</span>` : ''}
+                        ${showNote ? `<span class="pricing-group-note">${escapeHtml(summary.noteLine)}</span>` : ''}
                    </span>`
                 : '';
 
