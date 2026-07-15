@@ -7,10 +7,12 @@
 
     const STORAGE_TOKEN = 'pricing.inquiry.token';
     const STORAGE_CART = 'pricing.inquiry.cart';
+    const STORAGE_PENDING_CART = 'pricing.inquiry.pendingShare';
     const VIALS_PER_BOX = 10;
     const SHIPPING_FLAT = 50;
     const MAX_PEOPLE = 5;
     const ORDER_FILE_VERSION = 1;
+    const SHARE_URL_MAX = 6000;
 
     const state = {
         token: sessionStorage.getItem(STORAGE_TOKEN) || '',
@@ -134,6 +136,135 @@
             }));
         }
         if (data.splits && typeof data.splits === 'object') state.splits = data.splits;
+    }
+
+    function cartHasItems() {
+        return Object.keys(state.qty || {}).some((k) => (Number(state.qty[k]) || 0) > 0);
+    }
+
+    function utf8ToBase64Url(str) {
+        const bytes = new TextEncoder().encode(String(str));
+        let bin = '';
+        bytes.forEach((b) => { bin += String.fromCharCode(b); });
+        return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
+
+    function base64UrlToUtf8(s) {
+        const raw = String(s || '').replace(/-/g, '+').replace(/_/g, '/');
+        const pad = raw.length % 4 === 0 ? '' : '='.repeat(4 - (raw.length % 4));
+        const bin = atob(raw + pad);
+        const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+    }
+
+    function encodeCartShare(payload) {
+        return utf8ToBase64Url(JSON.stringify(payload));
+    }
+
+    function decodeCartShare(token) {
+        const json = base64UrlToUtf8(token);
+        const data = JSON.parse(json);
+        if (!data || typeof data !== 'object') throw new Error('Invalid share payload');
+        return data;
+    }
+
+    function readCartTokenFromHash() {
+        const hash = String(location.hash || '').replace(/^#/, '');
+        if (!hash) return '';
+        const params = new URLSearchParams(hash.includes('=') ? hash : `cart=${hash}`);
+        return String(params.get('cart') || '').trim();
+    }
+
+    function clearCartHash() {
+        try {
+            if (!String(location.hash || '').includes('cart=')) return;
+            history.replaceState(null, '', location.pathname + location.search);
+        } catch (ignore) {}
+    }
+
+    function stashPendingShare(data) {
+        try {
+            sessionStorage.setItem(STORAGE_PENDING_CART, JSON.stringify(data));
+        } catch (ignore) {}
+    }
+
+    function takePendingShare() {
+        try {
+            const raw = sessionStorage.getItem(STORAGE_PENDING_CART);
+            if (!raw) return null;
+            sessionStorage.removeItem(STORAGE_PENDING_CART);
+            return JSON.parse(raw);
+        } catch (ignore) {
+            return null;
+        }
+    }
+
+    function shareStatus(msg) {
+        const status = $('pricing-import-status');
+        if (!status) return;
+        status.hidden = false;
+        status.textContent = msg;
+    }
+
+    /** Capture #cart= into pending storage (apply later after unlock/catalog). */
+    function captureSharedCartFromUrl() {
+        try {
+            const token = readCartTokenFromHash();
+            if (!token) return;
+            const data = decodeCartShare(token);
+            stashPendingShare(data);
+            clearCartHash();
+        } catch (e) {
+            clearCartHash();
+            shareStatus('Could not read shared cart link.');
+        }
+    }
+
+    function consumePendingSharedCart() {
+        const pending = takePendingShare();
+        if (!pending) return false;
+
+        if (cartHasItems()) {
+            const ok = window.confirm('Replace your current order with the shared cart?');
+            if (!ok) {
+                shareStatus('Kept your current order. Shared cart discarded.');
+                return false;
+            }
+        }
+
+        applyCartPayload(pending);
+        ensureSplitsShape();
+        persistCart();
+        renderAll();
+        shareStatus('Order loaded from link. Review quantities and vial splits.');
+        return true;
+    }
+
+    async function copyShareLink() {
+        if (!cartHasItems()) {
+            shareStatus('Add boxes first, then copy a share link.');
+            return;
+        }
+        const payload = buildOrderPayload();
+        let token;
+        try {
+            token = encodeCartShare(payload);
+        } catch (e) {
+            shareStatus('Could not build share link.');
+            return;
+        }
+        const url = `${location.origin}${location.pathname}${location.search}#cart=${token}`;
+        if (url.length > SHARE_URL_MAX) {
+            shareStatus('Order too large to share — use Export .json instead.');
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(url);
+            shareStatus('Share link copied. Recipient unlocks pricing, then the cart loads.');
+        } catch (e) {
+            window.prompt('Copy this share link:', url);
+            shareStatus('Share link ready — copy it from the dialog if needed.');
+        }
     }
 
     function gasRequest(params) {
@@ -326,6 +457,7 @@
             state.loaded = true;
             ensureSplitsShape();
             renderAll();
+            consumePendingSharedCart();
             if (status) status.hidden = true;
             if (wrap) wrap.hidden = false;
         } catch (e) {
@@ -1120,26 +1252,36 @@
         $('pricing-add-person')?.addEventListener('click', addPerson);
         $('pricing-remove-person')?.addEventListener('click', removePerson);
         $('pricing-export')?.addEventListener('click', exportOrder);
+        $('pricing-share')?.addEventListener('click', () => { copyShareLink(); });
         $('pricing-import')?.addEventListener('change', (e) => {
             const file = e.target.files && e.target.files[0];
             importOrder(file);
             e.target.value = '';
         });
         $('pricing-email-send')?.addEventListener('click', emailOrder);
+        window.addEventListener('hashchange', () => {
+            captureSharedCartFromUrl();
+            if (isUnlocked() && state.loaded) consumePendingSharedCart();
+        });
     }
 
     async function onShow() {
+        captureSharedCartFromUrl();
         if (!isUnlocked()) {
             promptUnlock();
             return;
         }
         if (!state.loaded) await loadCatalog();
-        else renderAll();
+        else {
+            renderAll();
+            consumePendingSharedCart();
+        }
     }
 
     function boot() {
         clearUnlockOnReload();
         restoreCart();
+        captureSharedCartFromUrl();
         bindUi();
         setTabLocked(!isUnlocked());
         if (isUnlocked()) setTabLocked(false);
