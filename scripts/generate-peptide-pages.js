@@ -189,7 +189,7 @@ files['bpc-157-5mg.html'] = redirect('bpc-157.html', 5);
 files['tesamorelin.html'] = page({
   title: 'Tesamorelin',
   format: 'Lyophilized Powder (GHRH analogue)',
-  sizes: [5, 10], defaultSize: 10, bacMl: 1, calcDose: 2, calcUnit: 'mg', route: 'subq',
+  sizes: [5, 10], defaultSize: 10, bacMl: 2, calcDose: 2, calcUnit: 'mg', route: 'subq',
   storageKey: 'vial.tesamorelin',
   mechanism: 'A stabilized analogue of growth hormone–releasing hormone (GHRH 1–44). It binds pituitary GHRH receptors to stimulate endogenous GH release in a pulsatile pattern.',
   bullets: [
@@ -199,7 +199,7 @@ files['tesamorelin.html'] = page({
   ],
   dosingIntro: '<p><strong>Frequency:</strong> Once daily Sub-Q at bedtime on an empty stomach (or at least 90 minutes after the last meal). Common schedule: <strong>5 days on, 2 days off</strong>.</p><p><strong>Cycle length:</strong> Often planned around a ~10–20 week run, then reassess.</p>',
   tables: {
-    recon: subqRecon('Single-vial reconstitution', '<p class="hint">Optional pen cart: reconstitute three 10 mg vials with 1.0 mL each and combine into a 3 mL cartridge (same 10 mg/mL concentration).</p>'),
+    recon: subqRecon('Subcutaneous reconstitution', '<p class="hint">Use <strong>2.0 mL</strong> BAC water per <strong>10 mg</strong> vial — under 2 mL the solution can gel up.</p>'),
     dose: doseTable([
       { tier: 'Conservative / Start', doseLabel: '1.0 mg', mg: 1 },
       { tier: 'Standard', doseLabel: '1.5 mg', mg: 1.5 },

@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { filename: 'semaglutide',                         mg: 10,  ml: 2,   dose: 0.25,  unit: 'mg',  route: 'subq' },
         { filename: 'cagrilintide',                        mg: 5,   ml: 2,   dose: 0.6,   unit: 'mg',  route: 'subq' },
         { filename: 'retatrutide',                         mg: 30,  ml: 3,   dose: 2,     unit: 'mg',  route: 'subq' },
-        { filename: 'tesamorelin',                         mg: 10,  ml: 1,   dose: 2,     unit: 'mg',  route: 'subq' },
+        { filename: 'tesamorelin',                         mg: 10,  ml: 2,   dose: 2,     unit: 'mg',  route: 'subq' },
         { filename: 'ipamorelin',                          mg: 5,   ml: 2,   dose: 200,   unit: 'mcg', route: 'subq' },
         { filename: 'bpc-157',                             mg: 5,   ml: 2,   dose: 375,   unit: 'mcg', route: 'subq' },
         { filename: 'tb-500',                              mg: 5,   ml: 2,   dose: 2,     unit: 'mg',  route: 'subq' },
