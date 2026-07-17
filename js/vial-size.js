@@ -3,7 +3,10 @@
  *
  * Rules:
  * - BAC water can vary by vial size (data-bac-by-vial="10:1,30:1.5") as an author preference.
- * - Suggestion prefers the largest chip that keeps table doses ≤ 60 units (insulin/peptide pen max).
+ * - Suggestion prefers author data-bac-ml / data-bac-by-vial when it keeps table doses ≤ 60u;
+ *   otherwise the largest chip that still fits the pen max.
+ * - Stale stored/URL BAC denser than the author default is ignored (authors raise volume for
+ *   reasons beyond pen math, e.g. gel risk). Dilute stale values still lose to a denser suggestion.
  * - User can override BAC with chips: 0.5 / 1 / 1.5 / 2 / 2.5 / 3 mL.
  * - Table always shows unit draws; notes when a draw exceeds the 60u pen max (100u syringes still OK).
  * - Doses larger than the selected vial still flag “choose a larger size”.
@@ -322,19 +325,32 @@
         let selectedVial = sizes.includes(fromQuery) ? fromQuery
             : (sizes.includes(fromStore) ? fromStore : fallback);
 
-        // Always start from the dose-table suggestion. Stale ?bac= / localStorage
-        // values (e.g. old 2 mL defaults) must not beat a denser suggested mix.
+        // Always start from the dose-table / author suggestion. Stale ?bac= /
+        // localStorage must not beat a denser suggested mix (pen max), and must
+        // not keep a denser-than-author mix when the author raised data-bac-ml
+        // (e.g. gel risk below 2 mL).
         let selectedBac = recommendedBacMl(root, selectedVial);
         if (!BAC_OPTIONS.includes(selectedBac)) selectedBac = snapToBacOption(selectedBac);
 
         const bacQuery = parseFloat(params.get('bac'));
         const bacStore = parseFloat(localStorage.getItem(bacStorageKey));
         const tableDoses = collectInVialDoses(selectedVial);
+        const authorBacMap = parseBacMap(root.dataset.bacByVial);
+        const authorBacRaw = Number.isFinite(authorBacMap[selectedVial])
+            ? authorBacMap[selectedVial]
+            : parseFloat(root.dataset.bacMl);
+        const authorBac = Number.isFinite(authorBacRaw) && authorBacRaw > 0
+            ? snapToBacOption(authorBacRaw)
+            : null;
 
         const acceptStoredBac = (candidate, suggested) => {
             if (!BAC_OPTIONS.includes(candidate)) return suggested;
             const candOk = bacKeepsDosesUnderPenMax(selectedVial, candidate, tableDoses);
             const sugOk = bacKeepsDosesUnderPenMax(selectedVial, suggested, tableDoses);
+            // Author raised the default volume — don't keep an older denser pick
+            if (authorBac != null && candidate < authorBac - 0.05 && sugOk) {
+                return suggested;
+            }
             // Keep an explicit pick when it still meets the pen-max rule
             if (candOk) return candidate;
             // If suggestion is denser / better for pen max, prefer it over a dilute stale value
