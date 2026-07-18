@@ -415,6 +415,66 @@
         return new TextDecoder().decode(bytes);
     }
 
+    function base64UrlToBytes(s) {
+        const raw = String(s || '').replace(/-/g, '+').replace(/_/g, '/');
+        const pad = raw.length % 4 === 0 ? '' : '='.repeat(4 - (raw.length % 4));
+        const bin = atob(raw + pad);
+        return Uint8Array.from(bin, (c) => c.charCodeAt(0));
+    }
+
+    function bytesToBase64Url(bytes) {
+        let bin = '';
+        bytes.forEach((b) => { bin += String.fromCharCode(b); });
+        return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
+
+    async function deflateText(str) {
+        const stream = new Blob([str]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+        const buf = await new Response(stream).arrayBuffer();
+        return new Uint8Array(buf);
+    }
+
+    async function inflateBytes(bytes) {
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        return await new Response(stream).text();
+    }
+
+    /** Strip fields the importer can rebuild, to keep share links short. */
+    function packSchedules(list) {
+        return list.map((s) => {
+            const { id, pageUrl, ...rest } = s;
+            return rest;
+        });
+    }
+
+    function unpackSchedules(list) {
+        const now = Date.now();
+        return list.map((s, i) => ({
+            ...s,
+            id: s.id || `${s.peptideId || 'shared'}-${now}-${i}`,
+            pageUrl: s.pageUrl || (s.custom
+                ? PLANNER_URL
+                : (s.page ? `${PEPTIDE_BASE_URL}${s.page}` : PLANNER_URL))
+        }));
+    }
+
+    async function encodeScheduleToken(list) {
+        const json = JSON.stringify(packSchedules(list));
+        if (typeof CompressionStream === 'undefined') {
+            return utf8ToBase64Url(json);
+        }
+        return 'z.' + bytesToBase64Url(await deflateText(json));
+    }
+
+    async function decodeScheduleToken(token) {
+        const json = token.startsWith('z.')
+            ? await inflateBytes(base64UrlToBytes(token.slice(2)))
+            : base64UrlToUtf8(token);
+        const list = JSON.parse(json);
+        if (!Array.isArray(list)) throw new Error('Invalid share payload');
+        return unpackSchedules(list);
+    }
+
     function readScheduleTokenFromHash() {
         const hash = String(location.hash || '').replace(/^#/, '');
         if (!hash || !hash.includes('sched=')) return '';
@@ -435,8 +495,8 @@
         el.textContent = msg;
     }
 
-    function buildScheduleShareUrl() {
-        const token = utf8ToBase64Url(JSON.stringify(loadSchedules()));
+    async function buildScheduleShareUrl() {
+        const token = await encodeScheduleToken(loadSchedules());
         const url = new URL(location.href);
         url.searchParams.set('view', 'planner');
         url.hash = 'sched=' + token;
@@ -450,7 +510,7 @@
         }
         let url;
         try {
-            url = buildScheduleShareUrl();
+            url = await buildScheduleShareUrl();
         } catch (e) {
             shareStatus('Could not build share link.');
             return;
@@ -469,13 +529,12 @@
     }
 
     /** Apply a #sched= link: confirm before replacing an existing schedule. */
-    function consumeSharedScheduleFromUrl() {
+    async function consumeSharedScheduleFromUrl() {
         const token = readScheduleTokenFromHash();
         if (!token) return false;
         let incoming;
         try {
-            incoming = JSON.parse(base64UrlToUtf8(token));
-            if (!Array.isArray(incoming)) throw new Error('Invalid share payload');
+            incoming = await decodeScheduleToken(token);
         } catch (e) {
             clearScheduleHash();
             shareStatus('Could not read shared schedule link.');
@@ -1774,11 +1833,11 @@
         }
         initialized = true;
 
-        consumeSharedScheduleFromUrl();
+        consumeSharedScheduleFromUrl().then((ok) => { if (ok) refresh(); });
 
         window.addEventListener('hashchange', () => {
             if (!readScheduleTokenFromHash()) return;
-            if (consumeSharedScheduleFromUrl()) refresh();
+            consumeSharedScheduleFromUrl().then((ok) => { if (ok) refresh(); });
             window.showMainView?.('planner');
         });
 
