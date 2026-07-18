@@ -1315,6 +1315,8 @@
         $('pricing-clear-no')?.addEventListener('click', () => setClearConfirm(false));
         $('pricing-email-send')?.addEventListener('click', emailOrder);
         window.addEventListener('hashchange', () => {
+            // Only react to pricing share links; other hashes (e.g. #sched=) belong to other views
+            if (!readCartTokenFromHash()) return;
             captureSharedCartFromUrl();
             window.showMainView?.('pricing');
             if (isUnlocked() && state.loaded) consumePendingSharedCart();
@@ -1336,9 +1338,13 @@
 
     function shouldOpenPricingFromUrl() {
         try {
-            if (hasPendingShare()) return true;
             if (readCartTokenFromHash()) return true;
-            return new URLSearchParams(location.search).get('view') === 'pricing';
+            const view = new URLSearchParams(location.search).get('view');
+            if (view === 'pricing') return true;
+            // URL explicitly asks for a different view (or a schedule link) — don't hijack it
+            if (view) return false;
+            if (String(location.hash || '').includes('sched=')) return false;
+            return hasPendingShare();
         } catch (ignore) {
             return false;
         }
