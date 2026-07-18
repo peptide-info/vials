@@ -128,74 +128,240 @@ document.addEventListener("DOMContentLoaded", () => {
             overflow: hidden;
         }
 
-        /* CHEERLEADER SQUAD SPELLING OUT THE PAGE NAME */
-        .cheer-squad {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            justify-content: center;
-            gap: 0.35em 0.9em;
-            max-width: 94vw;
-            pointer-events: none;
-        }
-
-        .cheer-word {
-            display: flex;
-            align-items: flex-end;
-            gap: 0.18em;
-        }
-
-        .cheer-unit {
+        /* VIAL + SYRINGE LOADING SCENE (Nyan-rainbow liquid) */
+        .vial-scene {
+            position: relative;
+            font-size: min(4.5vw, 17px);
             display: flex;
             flex-direction: column;
             align-items: center;
-            transform: translateY(120vh);
+            pointer-events: none;
+        }
+
+        /* --- Syringe (descends from top, needle pierces the cap) --- */
+        .splash-syringe {
+            position: relative;
+            width: 3em;
+            height: 12.5em;
+            margin-bottom: -1.5em;
+            z-index: 2;
+            transform: translateY(-95vh);
+            animation: syringeIn 0.7s cubic-bezier(0.4, 1.25, 0.55, 1) 0.45s forwards;
+        }
+
+        .syringe-plunger {
+            position: absolute;
+            bottom: 3.15em;
+            left: 50%;
+            width: 0.55em;
+            height: 6.2em;
+            margin-left: -0.275em;
+            background: linear-gradient(90deg, #6c7a88, #aeb9c4, #6c7a88);
+            border-radius: 0.1em;
+            animation: plungerPull 1.5s cubic-bezier(0.45, 0, 0.3, 1) 1.35s forwards;
+        }
+
+        .syringe-plunger::before {
+            content: "";
+            position: absolute;
+            top: -0.4em;
+            left: 50%;
+            width: 2.2em;
+            height: 0.45em;
+            margin-left: -1.1em;
+            background: linear-gradient(180deg, #cfd6dd, #8a949e);
+            border-radius: 0.2em;
+        }
+
+        .syringe-barrel {
+            position: absolute;
+            bottom: 2.3em;
+            left: 50%;
+            width: 2.4em;
+            height: 5.6em;
+            margin-left: -1.2em;
+            border: 2px solid rgba(255, 255, 255, 0.75);
+            border-radius: 0.35em 0.35em 0.15em 0.15em;
+            background: rgba(255, 255, 255, 0.10);
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .syringe-flange {
+            position: absolute;
+            bottom: 7.75em;
+            left: 50%;
+            width: 3.7em;
+            height: 0.3em;
+            margin-left: -1.85em;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 0.15em;
+        }
+
+        .syringe-liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0.25em;
             animation:
-                cheerRunIn 0.55s cubic-bezier(0.22, 1.35, 0.4, 1) forwards,
-                cheerFlip 0.75s cubic-bezier(0.45, 0, 0.3, 1) forwards;
+                syringeFill 1.5s cubic-bezier(0.45, 0, 0.3, 1) 1.35s forwards,
+                nyanScroll 0.9s linear infinite;
         }
 
-        .cheer-letter {
-            font-family: "Fraunces", Georgia, serif;
-            font-weight: 700;
-            line-height: 1;
-            color: #14261d;
-            background: linear-gradient(160deg, #ffffff 0%, #d8efe6 100%);
-            border: 2px solid rgba(15, 122, 95, 0.55);
-            border-radius: 0.22em;
-            padding: 0.28em 0.3em;
-            min-width: 0.7em;
+        .syringe-stopper {
+            position: absolute;
+            bottom: 0.25em;
+            left: 0;
+            width: 100%;
+            height: 0.6em;
+            background: #2e3942;
+            border-radius: 0.12em;
+            animation: plungerPull 1.5s cubic-bezier(0.45, 0, 0.3, 1) 1.35s forwards;
+        }
+
+        .syringe-needle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0.16em;
+            height: 2.3em;
+            margin-left: -0.08em;
+            background: linear-gradient(90deg, #9aa5b1, #eef2f6, #9aa5b1);
+        }
+
+        /* --- Vial --- */
+        .splash-vial {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: scale(0);
+            animation: vialPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .vial-cap {
+            width: 3.4em;
+            height: 1.1em;
+            background: linear-gradient(180deg, #cfd6dd, #8a949e);
+            border-radius: 0.3em 0.3em 0.12em 0.12em;
+        }
+
+        .vial-neck {
+            width: 2.4em;
+            height: 0.7em;
+            background: rgba(255, 255, 255, 0.18);
+            border-left: 2px solid rgba(255, 255, 255, 0.55);
+            border-right: 2px solid rgba(255, 255, 255, 0.55);
+            box-sizing: border-box;
+        }
+
+        .vial-body {
+            position: relative;
+            width: 8em;
+            height: 9.5em;
+            border: 2px solid rgba(255, 255, 255, 0.65);
+            border-radius: 0.8em 0.8em 1.6em 1.6em;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .vial-liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 84%;
+            animation:
+                vialDrain 1.5s cubic-bezier(0.45, 0, 0.3, 1) 1.35s forwards,
+                nyanScroll 0.9s linear infinite;
+        }
+
+        /* Nyan Cat rainbow trail */
+        .vial-liquid,
+        .syringe-liquid {
+            background-image: linear-gradient(180deg,
+                #ff2222 0%,     #ff2222 16.66%,
+                #ff9900 16.66%, #ff9900 33.33%,
+                #ffee00 33.33%, #ffee00 50%,
+                #33dd22 50%,    #33dd22 66.66%,
+                #0099ff 66.66%, #0099ff 83.33%,
+                #6633ff 83.33%, #6633ff 100%);
+            background-size: 100% 2.7em;
+            background-repeat: repeat;
+        }
+
+        .vial-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 82%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.94);
+            border-radius: 0.35em;
+            padding: 0.45em 0.3em;
+            font-family: "Outfit", Arial, sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             text-align: center;
-            box-shadow: 0 0.18em 0.5em rgba(0, 0, 0, 0.45);
+            color: #1c2a24;
+            line-height: 1.2;
+            box-shadow: 0 0.1em 0.4em rgba(0, 0, 0, 0.35);
         }
 
-        .cheer-person {
-            font-size: 0.85em;
-            line-height: 1;
-            margin-top: 0.12em;
-            filter: drop-shadow(0 0.15em 0.3em rgba(0, 0, 0, 0.5));
+        .nyan-star {
+            position: absolute;
+            color: #fff;
+            font-size: 1.2em;
+            text-shadow: 0 0 0.45em rgba(255, 255, 255, 0.9);
+            opacity: 0;
+            animation: starTwinkle 1.4s ease-in-out infinite;
         }
 
-        @keyframes cheerRunIn {
-            0%   { transform: translateY(120vh); }
-            70%  { transform: translateY(-0.35em); }
-            85%  { transform: translateY(0.08em); }
+        @keyframes vialPop {
+            0%   { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes syringeIn {
+            0%   { transform: translateY(-95vh); }
             100% { transform: translateY(0); }
         }
 
-        @keyframes cheerFlip {
-            0%   { transform: translateY(0) rotate(0deg); }
-            45%  { transform: translateY(-1.1em) rotate(200deg); }
-            80%  { transform: translateY(0.05em) rotate(360deg); }
-            90%  { transform: translateY(0) rotate(360deg) scale(1.06, 0.92); }
-            100% { transform: translateY(0) rotate(360deg) scale(1, 1); }
+        @keyframes plungerPull {
+            to { transform: translateY(-4.3em); }
+        }
+
+        @keyframes syringeFill {
+            to { height: 4.55em; }
+        }
+
+        @keyframes vialDrain {
+            to { height: 16%; }
+        }
+
+        @keyframes nyanScroll {
+            to { background-position-y: 2.7em; }
+        }
+
+        @keyframes starTwinkle {
+            0%, 100% { opacity: 0; transform: scale(0.55); }
+            50%      { opacity: 1; transform: scale(1.1); }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .cheer-unit {
+            .splash-syringe, .splash-vial {
                 animation: none;
                 transform: none;
             }
+            .syringe-plunger, .syringe-stopper, .syringe-liquid,
+            .vial-liquid, .nyan-star {
+                animation: none;
+            }
+            .nyan-star { opacity: 0.8; }
         }
     `;
 
@@ -232,7 +398,7 @@ document.addEventListener("DOMContentLoaded", () => {
     navContainer.appendChild(emailButton); // Added next to calculator
     document.body.insertBefore(navContainer, document.body.firstChild);
 
-    // 5. Create and inject the Splash Screen (cheerleaders spelling the page name)
+    // 5. Create and inject the Splash Screen (syringe drawing rainbow liquid from a labeled vial)
     const splashContainer = document.createElement("div");
     splashContainer.className = "splash-overlay";
 
@@ -244,67 +410,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const CHEER_RUN = ['🏃‍♀️', '🏃‍♂️'];
-    const CHEER_HOLD = ['🙆‍♀️', '🙆‍♂️'];
-    const CHEER_FLIP = ['🤸‍♀️', '🤸‍♂️'];
+    const scene = document.createElement('div');
+    scene.className = 'vial-scene';
+    scene.setAttribute('role', 'img');
+    scene.setAttribute('aria-label', 'Loading ' + pageName);
+    scene.innerHTML = `
+        <div class="nyan-star" style="top: 4%;  left: -3em;    animation-delay: 0s;">✦</div>
+        <div class="nyan-star" style="top: 30%; right: -3.2em; animation-delay: 0.35s;">✦</div>
+        <div class="nyan-star" style="top: 58%; left: -3.8em;  animation-delay: 0.7s;">✦</div>
+        <div class="nyan-star" style="top: 82%; right: -2.6em; animation-delay: 1.05s;">✦</div>
+        <div class="splash-syringe">
+            <div class="syringe-plunger"></div>
+            <div class="syringe-barrel">
+                <div class="syringe-liquid"></div>
+                <div class="syringe-stopper"></div>
+            </div>
+            <div class="syringe-flange"></div>
+            <div class="syringe-needle"></div>
+        </div>
+        <div class="splash-vial">
+            <div class="vial-cap"></div>
+            <div class="vial-neck"></div>
+            <div class="vial-body">
+                <div class="vial-liquid"></div>
+                <div class="vial-label"></div>
+            </div>
+        </div>
+    `;
 
-    const squad = document.createElement('div');
-    squad.className = 'cheer-squad';
-    squad.setAttribute('aria-label', 'Loading ' + pageName);
+    // Label the vial with the page name, shrinking to fit long names
+    const labelEl = scene.querySelector('.vial-label');
+    labelEl.textContent = pageName;
+    labelEl.style.fontSize = Math.max(0.55, Math.min(1.05, 9 / pageName.length)) + 'em';
 
-    // Scale letters down so long names still fit on one or two rows
-    const charCount = pageName.replace(/\s/g, '').length;
-    const fitSize = Math.floor(Math.min(window.innerWidth * 0.9, 900) / Math.max(charCount, 1) * 1.15);
-    squad.style.fontSize = Math.max(18, Math.min(64, fitSize)) + 'px';
-
-    const STAGGER = 80;   // ms between each cheerleader arriving
-    const RUN_MS = 550;   // matches cheerRunIn duration
-    const FLIP_DELAY = 800;  // pause after landing before the flip
-    const FLIP_MS = 750;  // matches cheerFlip duration
-
-    let unitIndex = 0;
-    const personTimers = [];
-
-    pageName.split(/\s+/).forEach((word) => {
-        const wordEl = document.createElement('div');
-        wordEl.className = 'cheer-word';
-
-        for (const ch of word) {
-            const i = unitIndex++;
-            const delay = i * STAGGER;
-
-            const unit = document.createElement('div');
-            unit.className = 'cheer-unit';
-            unit.style.animationDelay = delay + 'ms, ' + (delay + RUN_MS + FLIP_DELAY) + 'ms';
-
-            const letter = document.createElement('div');
-            letter.className = 'cheer-letter';
-            letter.textContent = ch;
-
-            const person = document.createElement('div');
-            person.className = 'cheer-person';
-            person.textContent = reducedMotion ? CHEER_HOLD[i % 2] : CHEER_RUN[i % 2];
-
-            unit.appendChild(letter);
-            unit.appendChild(person);
-            wordEl.appendChild(unit);
-
-            if (!reducedMotion) {
-                // Swap the emoji in sync with the run-in, flip, and landing
-                personTimers.push(setTimeout(() => { person.textContent = CHEER_HOLD[i % 2]; }, delay + RUN_MS));
-                personTimers.push(setTimeout(() => { person.textContent = CHEER_FLIP[i % 2]; }, delay + RUN_MS + FLIP_DELAY));
-                personTimers.push(setTimeout(() => { person.textContent = CHEER_HOLD[i % 2]; }, delay + RUN_MS + FLIP_DELAY + FLIP_MS));
-            }
-        }
-
-        squad.appendChild(wordEl);
-    });
-
-    splashContainer.appendChild(squad);
+    splashContainer.appendChild(scene);
     document.body.appendChild(splashContainer);
 
     function dismissSplash() {
-        personTimers.forEach(clearTimeout);
         splashContainer.style.opacity = "0";
         setTimeout(() => {
             splashContainer.remove();
@@ -315,11 +457,8 @@ document.addEventListener("DOMContentLoaded", () => {
         dismissSplash();
     });
 
-    // 6. TIMING ENGINE — hold briefly after the last cheerleader lands her flip
-    const lastDelay = Math.max(unitIndex - 1, 0) * STAGGER;
-    const showFor = reducedMotion
-        ? 1200
-        : Math.min(lastDelay + RUN_MS + FLIP_DELAY + FLIP_MS + 500, 4500);
+    // 6. TIMING ENGINE — pop-in (0.5s) + syringe descent (0.45–1.15s) + draw (1.35–2.85s) + brief hold
+    const showFor = reducedMotion ? 1200 : 3500;
     setTimeout(() => {
         if (document.body.contains(splashContainer)) {
             dismissSplash();
