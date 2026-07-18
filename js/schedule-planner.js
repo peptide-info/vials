@@ -397,6 +397,104 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
     }
 
+    // ——— Share schedule via URL (#sched= base64url-encoded JSON) ———
+    const SHARE_URL_MAX = 6000;
+
+    function utf8ToBase64Url(str) {
+        const bytes = new TextEncoder().encode(String(str));
+        let bin = '';
+        bytes.forEach((b) => { bin += String.fromCharCode(b); });
+        return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
+
+    function base64UrlToUtf8(s) {
+        const raw = String(s || '').replace(/-/g, '+').replace(/_/g, '/');
+        const pad = raw.length % 4 === 0 ? '' : '='.repeat(4 - (raw.length % 4));
+        const bin = atob(raw + pad);
+        const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+    }
+
+    function readScheduleTokenFromHash() {
+        const hash = String(location.hash || '').replace(/^#/, '');
+        if (!hash || !hash.includes('sched=')) return '';
+        return String(new URLSearchParams(hash).get('sched') || '').trim();
+    }
+
+    function clearScheduleHash() {
+        try {
+            if (!String(location.hash || '').includes('sched=')) return;
+            history.replaceState(null, '', location.pathname + location.search);
+        } catch (ignore) {}
+    }
+
+    function shareStatus(msg) {
+        const el = document.getElementById('planner-share-status');
+        if (!el) return;
+        el.hidden = false;
+        el.textContent = msg;
+    }
+
+    function buildScheduleShareUrl() {
+        const token = utf8ToBase64Url(JSON.stringify(loadSchedules()));
+        const url = new URL(location.href);
+        url.searchParams.set('view', 'planner');
+        url.hash = 'sched=' + token;
+        return url.toString();
+    }
+
+    async function copyScheduleShareLink() {
+        if (!loadSchedules().length) {
+            shareStatus('Add a schedule first, then share a link.');
+            return;
+        }
+        let url;
+        try {
+            url = buildScheduleShareUrl();
+        } catch (e) {
+            shareStatus('Could not build share link.');
+            return;
+        }
+        if (url.length > SHARE_URL_MAX) {
+            shareStatus('Schedule too large for a link — remove some items or shorten the date range, then try again.');
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(url);
+            shareStatus('Link copied. Opening it loads this schedule into the planner.');
+        } catch (e) {
+            window.prompt('Copy this link:', url);
+            shareStatus('Copy the link from the dialog if needed.');
+        }
+    }
+
+    /** Apply a #sched= link: confirm before replacing an existing schedule. */
+    function consumeSharedScheduleFromUrl() {
+        const token = readScheduleTokenFromHash();
+        if (!token) return false;
+        let incoming;
+        try {
+            incoming = JSON.parse(base64UrlToUtf8(token));
+            if (!Array.isArray(incoming)) throw new Error('Invalid share payload');
+        } catch (e) {
+            clearScheduleHash();
+            shareStatus('Could not read shared schedule link.');
+            return false;
+        }
+        clearScheduleHash();
+        const existing = loadSchedules();
+        if (existing.length) {
+            const ok = window.confirm('Replace your current schedule with the one from this link?');
+            if (!ok) {
+                shareStatus('Kept your current schedule. Shared link discarded.');
+                return false;
+            }
+        }
+        saveSchedules(incoming);
+        shareStatus('Schedule loaded from link.');
+        return true;
+    }
+
     function peptideById(id) {
         return PEPTIDES.find((p) => p.id === id);
     }
@@ -1659,6 +1757,8 @@
         renderScheduleList(schedules);
         drawGraph(schedules);
         $('#planner-export').disabled = schedules.length === 0;
+        const shareBtn = $('#planner-share');
+        if (shareBtn) shareBtn.disabled = schedules.length === 0;
         const emailBtn = $('#planner-email');
         if (emailBtn) emailBtn.disabled = schedules.length === 0;
     }
@@ -1673,6 +1773,14 @@
             return;
         }
         initialized = true;
+
+        consumeSharedScheduleFromUrl();
+
+        window.addEventListener('hashchange', () => {
+            if (!readScheduleTokenFromHash()) return;
+            if (consumeSharedScheduleFromUrl()) refresh();
+            window.showMainView?.('planner');
+        });
 
         bindNumberInputGuards(document.getElementById('view-planner') || document);
 
@@ -1747,6 +1855,10 @@
             if (!schedules.length) return;
             const ics = buildIcs(schedules);
             downloadText('peptide-schedule.ics', ics, 'text/calendar;charset=utf-8');
+        });
+
+        $('#planner-share')?.addEventListener('click', () => {
+            copyScheduleShareLink();
         });
 
         $('#planner-email')?.addEventListener('click', () => {
