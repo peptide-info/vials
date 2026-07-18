@@ -15,34 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     document.body.classList.add('protocol-page');
 
-    // 1. DYNAMIC ASSET DICTIONARY (Absolute web paths with cache-busting)
-    const ASSET_MAP = {
-        'retatrutide': 'https://peptide-info.github.io/vials/assets/retatrutide.jpg?v=1',
-        'tirzepatide': 'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'semaglutide': 'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'cagrilintide': 'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'tesamorelin': 'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'ipamorelin': 'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'ghk':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'selank':      'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'semax':       'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'cjc':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'bpc':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'tb-500':       'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'bac':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'pt':           'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'epitalon':     'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'mots':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'nad':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'kpv':          'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'melanotan':    'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'dsip':         'https://peptide-info.github.io/vials/assets/default.png?v=1',
-        'thymosin':     'https://peptide-info.github.io/vials/assets/default.png?v=1'
-    };
-
-    // Your absolute default fallback image
-    const DEFAULT_LOGO = 'https://peptide-info.github.io/vials/assets/default.png?v=1'; 
-
     // ==========================================
     // 2. PEPTIDE CONFIGURATION ARRAY (Add New Pages Here)
     // ==========================================
@@ -79,8 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     // ABSOLUTE SYSTEM FALLBACKS (If a page isn't in the list above)
-    let calcDefaults = { mg: 5, ml: 2, dose: 2, unit: 'mg', route: 'subq' }; 
-    let logoUrl = DEFAULT_LOGO;
+    let calcDefaults = { mg: 5, ml: 2, dose: 2, unit: 'mg', route: 'subq' };
 
     // AUTOMATIC DETECTION ENGINE
     const urlParts = window.location.pathname.split('/');
@@ -98,13 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    // Find the matching logo asset from your existing ASSET_MAP
-    for (const [keyword, assetPath] of Object.entries(ASSET_MAP)) {
-        if (currentFilename.includes(keyword)) {
-            logoUrl = assetPath;
-            break;
-        }
-    }
     // ==========================================
     
     // 3. Inject CSS for the navigation bar container, buttons, and splash animation
@@ -161,33 +125,77 @@ document.addEventListener("DOMContentLoaded", () => {
             z-index: 10000;
             opacity: 1;
             transition: opacity 0.6s ease-out;
+            overflow: hidden;
         }
 
-       /* DYNAMICALLY SIZED ANIMATED IMAGE */
-        .splash-logo {
-            width: 70vw !important; 
-            max-width: 400px !important; 
-            height: auto !important;
-            object-fit: contain; 
-            
-            display: block !important;
-            transform: scale(0);
-            
-            animation: 
-                introPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-                coolSpin 1.8s cubic-bezier(0.4, 0, 0.2, 1) 1.2s forwards;
-
-            pointer-events: none; 
+        /* CHEERLEADER SQUAD SPELLING OUT THE PAGE NAME */
+        .cheer-squad {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 0.35em 0.9em;
+            max-width: 94vw;
+            pointer-events: none;
         }
 
-        @keyframes introPop {
-            0% { transform: scale(0); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        .cheer-word {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.18em;
         }
 
-        @keyframes coolSpin {
-            0% { transform: scale(1) rotate(0deg); }
-            100% { transform: scale(1) rotate(1080deg); }
+        .cheer-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: translateY(120vh);
+            animation:
+                cheerRunIn 0.55s cubic-bezier(0.22, 1.35, 0.4, 1) forwards,
+                cheerFlip 0.75s cubic-bezier(0.45, 0, 0.3, 1) forwards;
+        }
+
+        .cheer-letter {
+            font-family: "Fraunces", Georgia, serif;
+            font-weight: 700;
+            line-height: 1;
+            color: #14261d;
+            background: linear-gradient(160deg, #ffffff 0%, #d8efe6 100%);
+            border: 2px solid rgba(15, 122, 95, 0.55);
+            border-radius: 0.22em;
+            padding: 0.28em 0.3em;
+            min-width: 0.7em;
+            text-align: center;
+            box-shadow: 0 0.18em 0.5em rgba(0, 0, 0, 0.45);
+        }
+
+        .cheer-person {
+            font-size: 0.85em;
+            line-height: 1;
+            margin-top: 0.12em;
+            filter: drop-shadow(0 0.15em 0.3em rgba(0, 0, 0, 0.5));
+        }
+
+        @keyframes cheerRunIn {
+            0%   { transform: translateY(120vh); }
+            70%  { transform: translateY(-0.35em); }
+            85%  { transform: translateY(0.08em); }
+            100% { transform: translateY(0); }
+        }
+
+        @keyframes cheerFlip {
+            0%   { transform: translateY(0) rotate(0deg); }
+            45%  { transform: translateY(-1.1em) rotate(200deg); }
+            80%  { transform: translateY(0.05em) rotate(360deg); }
+            90%  { transform: translateY(0) rotate(360deg) scale(1.06, 0.92); }
+            100% { transform: translateY(0) rotate(360deg) scale(1, 1); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .cheer-unit {
+                animation: none;
+                transform: none;
+            }
         }
     `;
 
@@ -224,29 +232,79 @@ document.addEventListener("DOMContentLoaded", () => {
     navContainer.appendChild(emailButton); // Added next to calculator
     document.body.insertBefore(navContainer, document.body.firstChild);
 
-    // 5. Create and inject the Splash Screen elements
+    // 5. Create and inject the Splash Screen (cheerleaders spelling the page name)
     const splashContainer = document.createElement("div");
     splashContainer.className = "splash-overlay";
 
-    const imgElement = document.createElement("img");
-    imgElement.src = logoUrl;
-    imgElement.className = "splash-logo";
-    imgElement.alt = "Loading...";
+    // Page name: prefer the page's <h1>, fall back to <title> minus "Protocol"
+    const h1El = document.querySelector('h1');
+    let pageName = (h1El && h1El.textContent.trim())
+        || document.title.replace(/\s*Protocol\s*$/i, '').trim()
+        || 'Peptide Info';
 
-    imgElement.onerror = function() {
-        this.style.display = 'none';
-        const fallbackText = document.createElement('div');
-        fallbackText.style.color = '#c9d1d9';
-        fallbackText.style.fontSize = '1.4rem';
-        fallbackText.style.fontWeight = 'bold';
-        fallbackText.innerText = '✨ Loading Protocol ✨';
-        splashContainer.appendChild(fallbackText);
-    };
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    splashContainer.appendChild(imgElement);
+    const CHEER_RUN = ['🏃‍♀️', '🏃‍♂️'];
+    const CHEER_HOLD = ['🙆‍♀️', '🙆‍♂️'];
+    const CHEER_FLIP = ['🤸‍♀️', '🤸‍♂️'];
+
+    const squad = document.createElement('div');
+    squad.className = 'cheer-squad';
+    squad.setAttribute('aria-label', 'Loading ' + pageName);
+
+    // Scale letters down so long names still fit on one or two rows
+    const charCount = pageName.replace(/\s/g, '').length;
+    const fitSize = Math.floor(Math.min(window.innerWidth * 0.9, 900) / Math.max(charCount, 1) * 1.15);
+    squad.style.fontSize = Math.max(18, Math.min(64, fitSize)) + 'px';
+
+    const STAGGER = 80;   // ms between each cheerleader arriving
+    const RUN_MS = 550;   // matches cheerRunIn duration
+    const FLIP_DELAY = 800;  // pause after landing before the flip
+    const FLIP_MS = 750;  // matches cheerFlip duration
+
+    let unitIndex = 0;
+    const personTimers = [];
+
+    pageName.split(/\s+/).forEach((word) => {
+        const wordEl = document.createElement('div');
+        wordEl.className = 'cheer-word';
+
+        for (const ch of word) {
+            const i = unitIndex++;
+            const delay = i * STAGGER;
+
+            const unit = document.createElement('div');
+            unit.className = 'cheer-unit';
+            unit.style.animationDelay = delay + 'ms, ' + (delay + RUN_MS + FLIP_DELAY) + 'ms';
+
+            const letter = document.createElement('div');
+            letter.className = 'cheer-letter';
+            letter.textContent = ch;
+
+            const person = document.createElement('div');
+            person.className = 'cheer-person';
+            person.textContent = reducedMotion ? CHEER_HOLD[i % 2] : CHEER_RUN[i % 2];
+
+            unit.appendChild(letter);
+            unit.appendChild(person);
+            wordEl.appendChild(unit);
+
+            if (!reducedMotion) {
+                // Swap the emoji in sync with the run-in, flip, and landing
+                personTimers.push(setTimeout(() => { person.textContent = CHEER_HOLD[i % 2]; }, delay + RUN_MS));
+                personTimers.push(setTimeout(() => { person.textContent = CHEER_FLIP[i % 2]; }, delay + RUN_MS + FLIP_DELAY));
+                personTimers.push(setTimeout(() => { person.textContent = CHEER_HOLD[i % 2]; }, delay + RUN_MS + FLIP_DELAY + FLIP_MS));
+            }
+        }
+
+        squad.appendChild(wordEl);
+    });
+
+    splashContainer.appendChild(squad);
     document.body.appendChild(splashContainer);
 
     function dismissSplash() {
+        personTimers.forEach(clearTimeout);
         splashContainer.style.opacity = "0";
         setTimeout(() => {
             splashContainer.remove();
@@ -257,12 +315,16 @@ document.addEventListener("DOMContentLoaded", () => {
         dismissSplash();
     });
 
-    // 6. TIMING ENGINE
+    // 6. TIMING ENGINE — hold briefly after the last cheerleader lands her flip
+    const lastDelay = Math.max(unitIndex - 1, 0) * STAGGER;
+    const showFor = reducedMotion
+        ? 1200
+        : Math.min(lastDelay + RUN_MS + FLIP_DELAY + FLIP_MS + 500, 4500);
     setTimeout(() => {
         if (document.body.contains(splashContainer)) {
             dismissSplash();
         }
-    }, 3300);
+    }, showFor);
 
     // ==========================================
     // 7. POPUP SCRIPT LAUNCHER LOGIC (Calculator)

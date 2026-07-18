@@ -26,7 +26,7 @@ function page(opts) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="../global-nav.js?v=16"></script>
+    <script src="../global-nav.js?v=17"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title} Protocol</title>
