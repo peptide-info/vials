@@ -1,4 +1,8 @@
 (function() {
+    // Prevent duplicate injection (a double-tap on ✉️ can load this script twice,
+    // creating two stacked modals with duplicate IDs and a stale subject line)
+    if (document.querySelector(".email-modal-overlay")) return;
+
     // 1. CONFIGURATION
     const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzVCehcIu4ZBFthpBpp3J4oiCtismzABk-oafrzPtXysaZn_RDjupSf7lbouQvKMEl-/exec";
 

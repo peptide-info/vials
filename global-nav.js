@@ -502,6 +502,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 8. NEW: EMAIL POPUP SCRIPT LAUNCHER LOGIC
     // ==========================================
     let isEmailScriptLoaded = false;
+    let isEmailScriptLoading = false;
 
     emailButton.addEventListener("click", () => {
         // Pass the current page's contextual data over to the email handler
@@ -515,19 +516,25 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // A second tap while the script is still downloading would inject it twice
+        if (isEmailScriptLoading) return;
+        isEmailScriptLoading = true;
+
         console.log("Initializing email setup module injection...");
         const emailScript = document.createElement("script");
         // This is where your external script file will live in your repository
-        emailScript.src = navBase + "js/email-popup.js?v=4";
+        emailScript.src = navBase + "js/email-popup.js?v=5";
 
         emailScript.onload = () => {
             isEmailScriptLoaded = true;
+            isEmailScriptLoading = false;
             if (typeof window.openEmailModal === "function") {
                 window.openEmailModal();
             }
         };
 
         emailScript.onerror = () => {
+            isEmailScriptLoading = false;
             alert("Failed to load email tool. Please check your connection or repository paths.");
         };
 
