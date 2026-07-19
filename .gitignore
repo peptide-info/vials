@@ -1,0 +1,3 @@
+# Server-side Apps Script code — lives in the Apps Script project, not in this
+# public repo (it documents pricing tiers/markup logic and sheet IDs).
+google-apps-script/
