@@ -2,6 +2,22 @@ const fs = require('fs');
 const path = require('path');
 const dir = path.join(__dirname, '..', 'peptides');
 
+// Asset cache-busting versions — keep in sync with the live pages so newly
+// generated files reference the same script versions as everything else.
+const NAV_VER = 21;
+const VIAL_VER = 6;
+
+// Files this generator must never write, even with --force. These are
+// hand-authored and don't come from the page() template.
+const EXCLUSIONS = new Set([
+  'bac-water-3ml.html'
+]);
+
+// By default the generator only CREATES pages that don't exist yet, so running
+// it is always safe (it won't clobber hand-tuned live pages such as their
+// community notes). Pass --force to overwrite everything from the template.
+const FORCE = process.argv.includes('--force');
+
 function page(opts) {
   const {
     title, format, sizes, defaultSize, bacMl, calcDose, calcUnit, route, mode,
@@ -26,7 +42,7 @@ function page(opts) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="../global-nav.js?v=20"></script>
+    <script src="../global-nav.js?v=${NAV_VER}"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title} Protocol</title>
@@ -75,7 +91,70 @@ ${warnings.map((w) => `            <li>${w}</li>`).join('\n')}
         </ul>
     </blockquote>
 ${extraHtml || ''}
-    <script src="../js/vial-size.js?v=7"></script>
+    <script src="../js/vial-size.js?v=${VIAL_VER}"></script>
+</body>
+</html>
+`;
+}
+
+// Lightweight template for ready-to-use / non-mg-dosed products (premixed mL
+// cocktails, IU- or mcg-based vials, topical cosmetics, diluents). These skip
+// the milligram-based vial calculator, which only makes sense for mg peptides.
+function simplePage(opts) {
+  const {
+    title, format, mechanism, bullets,
+    usageHeading = '📅 Usage & Handling', usage,
+    safety, warnings
+  } = opts;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../global-nav.js?v=${NAV_VER}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title} Protocol</title>
+</head>
+<body>
+
+    <h1>${title}</h1>
+    <p><strong>Format:</strong> ${format}</p>
+
+    <hr>
+
+    <h3>🧬 Overview</h3>
+    <p>${mechanism}</p>
+    <ul>
+${bullets.map((b) => `        <li>${b}</li>`).join('\n')}
+    </ul>
+
+    <hr>
+
+    <h3>${usageHeading}</h3>
+    <div class="route-stack">
+        <section class="route-panel route-subq">
+            <p class="route-label">Guide</p>
+            <ul>
+${usage.map((u) => `                <li>${u}</li>`).join('\n')}
+            </ul>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>⚠️ Safety &amp; Side Effects</h3>
+    <ul>
+${safety.map((s) => `        <li>${s}</li>`).join('\n')}
+    </ul>
+
+    <blockquote>
+        <p><strong>CRITICAL WARNINGS:</strong></p>
+        <ul>
+${warnings.map((w) => `            <li>${w}</li>`).join('\n')}
+            <li><strong>For laboratory research use only.</strong></li>
+        </ul>
+    </blockquote>
+
 </body>
 </html>
 `;
@@ -155,8 +234,18 @@ function redirect(to, vial) {
 }
 
 function write(name, html) {
-  fs.writeFileSync(path.join(dir, name), html);
-  console.log('wrote', name);
+  if (EXCLUSIONS.has(name)) {
+    console.log('skip (excluded):', name);
+    return;
+  }
+  const dest = path.join(dir, name);
+  const existed = fs.existsSync(dest);
+  if (existed && !FORCE) {
+    console.log('skip (exists):', name);
+    return;
+  }
+  fs.writeFileSync(dest, html);
+  console.log((existed ? 'overwrote' : 'created') + ':', name);
 }
 
 const files = {};
@@ -748,6 +837,535 @@ files['5-amino-1mq.html'] = page({
 });
 files['5-amino-1mq-5mg.html'] = redirect('5-amino-1mq.html', 5);
 files['5-amino-1mq-50mg.html'] = redirect('5-amino-1mq.html', 50);
+
+// ---------------------------------------------------------------------------
+// Catalogue expansion: one page per pricing-catalogue product.
+// ---------------------------------------------------------------------------
+
+files['ghrp-2.html'] = page({
+  title: 'GHRP-2',
+  format: 'Lyophilized Powder (Growth Hormone Releasing Peptide-2)',
+  sizes: [5, 10], defaultSize: 5, bacMl: 2, calcDose: 100, calcUnit: 'mcg', route: 'subq',
+  storageKey: 'vial.ghrp-2',
+  mechanism: 'A synthetic ghrelin-mimetic that binds the growth-hormone secretagogue receptor (GHS-R) to trigger a pulse of growth hormone from the pituitary. Frequently paired with a GHRH like CJC-1295 for a stronger, more natural pulse.',
+  bullets: [
+    'Stimulates a short GH pulse; usually dosed on an empty stomach.',
+    'Synergizes with GHRH peptides (e.g. CJC-1295) in research stacks.',
+    'Can transiently raise cortisol and prolactin more than Ipamorelin.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Often 1–3× daily (e.g. before bed and/or post-workout), away from food. ~100 mcg per pulse saturates the receptor in most protocols.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Standard pulse', doseLabel: '100 mcg', mcg: 100 },
+      { tier: 'Per-dose range', doseLabel: '100–300 mcg', mcg: 100, mcgHigh: 300 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Head/face flushing, water retention, tingling, and a temporary rise in hunger.', 'May raise cortisol and prolactin at higher doses.'],
+  warnings: ['Avoid with active malignancy — GH secretagogues are not used in that setting.', 'Dosing above ~100 mcg per pulse rarely adds GH release but does raise side effects.']
+});
+
+files['ghrp-6.html'] = page({
+  title: 'GHRP-6',
+  format: 'Lyophilized Powder (Growth Hormone Releasing Peptide-6)',
+  sizes: [5, 10], defaultSize: 5, bacMl: 2, calcDose: 100, calcUnit: 'mcg', route: 'subq',
+  storageKey: 'vial.ghrp-6',
+  mechanism: 'A ghrelin-mimetic GHS-R agonist that triggers a growth-hormone pulse and strongly stimulates appetite — the most hunger-inducing of the common GHRPs.',
+  bullets: [
+    'Produces a GH pulse similar to GHRP-2 but with more pronounced appetite stimulation.',
+    'Frequently stacked with a GHRH (CJC-1295) for a fuller pulse.',
+    'Appetite spike can help bulking research or hinder a cut.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Often 1–3× daily on an empty stomach. ~100 mcg per pulse saturates the receptor in most protocols.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Standard pulse', doseLabel: '100 mcg', mcg: 100 },
+      { tier: 'Per-dose range', doseLabel: '100–300 mcg', mcg: 100, mcgHigh: 300 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Strong hunger within ~30 min, flushing, water retention, tingling.', 'Can raise cortisol and prolactin at higher doses.'],
+  warnings: ['Avoid with active malignancy.', 'Marked appetite increase may be undesirable during fat-loss phases.']
+});
+
+files['pe-22-28.html'] = page({
+  title: 'PE-22-28',
+  format: 'Lyophilized Powder (spadin-derived TREK-1 inhibitor)',
+  sizes: [10], defaultSize: 10, bacMl: 2, calcDose: 250, calcUnit: 'mcg', route: 'subq',
+  storageKey: 'vial.pe-22-28',
+  mechanism: 'A seven–amino-acid peptide derived from spadin that selectively blocks the TREK-1 potassium channel. In rodent models this releases the brake on serotonergic firing and rapidly promotes neurogenesis, giving fast-acting antidepressant-like effects.',
+  bullets: [
+    'Selective TREK-1 (KCNK2) antagonist studied for rapid antidepressant activity.',
+    'Preclinical only — all published dosing comes from mouse studies; no human dose exists.',
+    'Research shows a biphasic response: very low doses can be neuroprotective, higher doses antidepressant.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> No validated human protocol exists. Research-sheet patterns use small daily microgram amounts; treat any dose as experimental.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Low (experimental)', doseLabel: '100 mcg', mcg: 100 },
+      { tier: 'Research-sheet range', doseLabel: '100–500 mcg', mcg: 100, mcgHigh: 500 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Human side-effect data does not exist; safety is unknown.'],
+  warnings: ['No human safety, PK, or efficacy data — rodent research only.', 'Not FDA-approved and prohibited from compounding in the US.']
+});
+
+files['pinealon.html'] = page({
+  title: 'Pinealon',
+  format: 'Lyophilized Powder (EDR tripeptide bioregulator)',
+  sizes: [5, 10, 20], defaultSize: 10, bacMl: 2, calcDose: 100, calcUnit: 'mcg', route: 'subq',
+  storageKey: 'vial.pinealon',
+  mechanism: 'A short Glu-Asp-Arg (EDR) peptide from the Khavinson bioregulator family. It is proposed to cross into the cell nucleus and interact directly with gene promoter regions, modulating antioxidant and neuroprotective genes rather than acting on a surface receptor.',
+  bullets: [
+    'Studied for neuroprotection, cognition, and antioxidant defense in aging models.',
+    'Typically run as short 10–20 day courses, repeated a few times a year.',
+    'Part of the peptide-bioregulator class alongside Epitalon.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Commonly once daily for a 10–20 day course. Research doses cluster in the low-microgram-per-day range.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Conservative', doseLabel: '100 mcg', mcg: 100 },
+      { tier: 'Research range', doseLabel: '100–300 mcg', mcg: 100, mcgHigh: 300 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Reported as well tolerated; occasional injection-site irritation.'],
+  warnings: ['No standardized human dosing has been established.', 'Bioregulator research is early-stage; treat as experimental.']
+});
+
+files['pnc-27.html'] = page({
+  title: 'PNC-27',
+  format: 'Lyophilized Powder (p53-derived anticancer research peptide)',
+  sizes: [5, 10], defaultSize: 5, bacMl: 2, calcDose: 250, calcUnit: 'mcg', route: 'subq',
+  storageKey: 'vial.pnc-27',
+  mechanism: 'A chimeric peptide combining a p53 fragment (residues 12–26) with a membrane-penetrating leader. It binds HDM-2 that is uniquely expressed on cancer-cell membranes and forms transmembrane pores, causing selective necrosis of tumor cells while sparing normal cells that lack membrane HDM-2.',
+  bullets: [
+    'Targets membrane-bound HDM-2 to induce pore formation and cancer-cell necrosis in vitro.',
+    'Strictly preclinical — no human clinical trials have been conducted.',
+    'Reported to spare normal cells in laboratory models.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> No validated human protocol exists. Published research uses cell-culture concentrations and animal mg/kg dosing; any human use is unstudied.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Research-sheet range', doseLabel: '100–250 mcg', mcg: 100, mcgHigh: 250 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> No human safety data exists.'],
+  warnings: ['Preclinical anticancer research peptide — no human trials, PK, or safety data.', 'Not a treatment for any disease.']
+});
+
+files['mgf.html'] = page({
+  title: 'MGF',
+  format: 'Lyophilized Powder (Mechano Growth Factor, IGF-1Ec splice variant)',
+  sizes: [2], defaultSize: 2, bacMl: 1, calcDose: 200, calcUnit: 'mcg', route: 'subq',
+  storageKey: 'vial.mgf',
+  mechanism: 'A splice variant of IGF-1 (IGF-1Ec) released by muscle in response to mechanical overload. It is studied for activating muscle satellite (stem) cells and supporting local tissue repair after training-induced damage.',
+  bullets: [
+    'Investigated for satellite-cell activation and localized muscle repair.',
+    'Short-acting — often injected locally post-workout in research protocols.',
+    'The pegylated form (PEG-MGF) extends its very short half-life for systemic use.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Research-sheet patterns use post-workout dosing on training days, often injected near the worked muscle. Half-life is very short.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Standard', doseLabel: '200 mcg', mcg: 200 },
+      { tier: 'Research range', doseLabel: '100–200 mcg', mcg: 100, mcgHigh: 200 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Injection-site irritation; generally well tolerated at these doses.'],
+  warnings: ['Growth-factor peptides are avoided with active malignancy.', 'Very short half-life — timing matters in research protocols.']
+});
+
+files['peg-mgf.html'] = page({
+  title: 'PEG-MGF',
+  format: 'Lyophilized Powder (Pegylated Mechano Growth Factor)',
+  sizes: [2], defaultSize: 2, bacMl: 1, calcDose: 200, calcUnit: 'mcg', route: 'subq',
+  storageKey: 'vial.peg-mgf',
+  mechanism: 'Mechano Growth Factor with a polyethylene-glycol (PEG) tag that greatly extends its half-life, allowing a systemic rather than purely local effect. Studied for satellite-cell activation and muscle repair.',
+  bullets: [
+    'Pegylation extends MGF’s half-life from minutes to a much longer window.',
+    'Typically dosed a few times per week rather than every session.',
+    'Investigated for recovery and muscle repair support.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Research-sheet patterns use ~2–3× weekly Sub-Q, taking advantage of the extended half-life.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Standard', doseLabel: '200 mcg', mcg: 200 },
+      { tier: 'Research range', doseLabel: '150–250 mcg', mcg: 150, mcgHigh: 250 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Injection-site irritation; generally well tolerated at research doses.'],
+  warnings: ['Growth-factor peptides are avoided with active malignancy.']
+});
+
+files['cagrisema.html'] = page({
+  title: 'CagriSema (Cagrilintide + Semaglutide)',
+  format: 'Lyophilized Powder (amylin analog + GLP-1 blend)',
+  sizes: [5, 10], defaultSize: 5, bacMl: 1, calcDose: 0.25, calcUnit: 'mg', route: 'subq',
+  storageKey: 'vial.cagrisema',
+  mechanism: 'A once-weekly blend of the amylin analog cagrilintide and the GLP-1 agonist semaglutide. The two hormones target complementary appetite pathways, producing greater appetite suppression and weight loss than either alone in trials.',
+  bullets: [
+    'Combines amylin (cagrilintide) and GLP-1 (semaglutide) mechanisms in one weekly shot.',
+    'Titrated slowly to limit nausea, like other GLP-1 protocols.',
+    'Doses below refer to the combined blend as labeled on the vial.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Once weekly Sub-Q. Start low and titrate every ~4 weeks based on tolerance.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Start (wk 1–4)', doseLabel: '0.25 mg', mg: 0.25 },
+      { tier: 'Titration', doseLabel: '0.5–1.7 mg', mg: 0.5, mgHigh: 1.7 },
+      { tier: 'Higher range', doseLabel: '1.7–2.4 mg', mg: 1.7, mgHigh: 2.4 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Nausea, reduced appetite, constipation or diarrhea, early fullness — usually worst right after a dose increase.'],
+  warnings: ['Contraindicated with personal/family history of medullary thyroid carcinoma or MEN2.', 'Escalate slowly; stacking two appetite pathways increases GI side effects.']
+});
+
+files['survodutide.html'] = page({
+  title: 'Survodutide',
+  format: 'Lyophilized Powder (GLP-1 / glucagon dual agonist)',
+  sizes: [10], defaultSize: 10, bacMl: 1, calcDose: 0.3, calcUnit: 'mg', route: 'subq',
+  storageKey: 'vial.survodutide',
+  mechanism: 'A once-weekly dual agonist of the GLP-1 and glucagon receptors. The GLP-1 arm suppresses appetite and improves glucose handling, while the glucagon arm raises energy expenditure and drives liver-fat breakdown — of particular interest for obesity and fatty-liver disease (MASH).',
+  bullets: [
+    'Dual GLP-1 + glucagon action combines appetite suppression with higher energy burn.',
+    'Investigated for obesity and MASH.',
+    'Requires slow titration over several weeks to limit nausea.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Once weekly Sub-Q with gradual escalation, stepping up roughly every 2–4 weeks toward a maintenance dose.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Start', doseLabel: '0.3 mg', mg: 0.3 },
+      { tier: 'Titration', doseLabel: '0.9–3.6 mg', mg: 0.9, mgHigh: 3.6 },
+      { tier: 'Maintenance range', doseLabel: '3.6–6.0 mg', mg: 3.6, mgHigh: 6 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Nausea, vomiting, diarrhea, constipation, and decreased appetite, especially during escalation.'],
+  warnings: ['Investigational — not FDA-approved.', 'Contraindicated with personal/family history of medullary thyroid carcinoma or MEN2.']
+});
+
+files['mazdutide.html'] = page({
+  title: 'Mazdutide',
+  format: 'Lyophilized Powder (GLP-1 / glucagon dual agonist)',
+  sizes: [5, 10], defaultSize: 5, bacMl: 1, calcDose: 1.5, calcUnit: 'mg', route: 'subq',
+  storageKey: 'vial.mazdutide',
+  mechanism: 'A once-weekly GLP-1 and glucagon receptor dual agonist built on the oxyntomodulin backbone. It pairs appetite suppression and glucose control with increased energy expenditure, and was the first glucagon/GLP-1 dual agonist approved for weight management (in China).',
+  bullets: [
+    'Dual GLP-1 + glucagon agonist for weight management and glycemic control.',
+    'Reaches maintenance with a short 2-step titration in trials.',
+    'Studied doses range from ~3 mg up to 9 mg once weekly.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Once weekly Sub-Q with a short step-up titration. Maintenance doses in trials were commonly 4–9 mg.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Start', doseLabel: '1.5 mg', mg: 1.5 },
+      { tier: 'Titration', doseLabel: '3–6 mg', mg: 3, mgHigh: 6 },
+      { tier: 'Higher range', doseLabel: '6–9 mg', mg: 6, mgHigh: 9 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Nausea, diarrhea, vomiting, decreased appetite; worst during dose increases.'],
+  warnings: ['Not FDA-approved (approved in China only).', 'Contraindicated with personal/family history of medullary thyroid carcinoma or MEN2.']
+});
+
+files['retatrutide-cagrilintide.html'] = page({
+  title: 'Retatrutide + Cagrilintide',
+  format: 'Lyophilized Powder (triple agonist + amylin analog stack)',
+  sizes: [10], defaultSize: 10, bacMl: 1, calcDose: 0.5, calcUnit: 'mg', route: 'subq',
+  storageKey: 'vial.reta-cagri',
+  mechanism: 'A weekly research stack pairing retatrutide (a GIP/GLP-1/glucagon triple agonist) with cagrilintide (an amylin analog). It layers a third appetite pathway (amylin) on top of retatrutide’s already broad receptor coverage.',
+  bullets: [
+    'Combines a triple incretin agonist with an amylin analog for maximal appetite effect.',
+    'Aggressive combination — titrate very conservatively.',
+    'Doses below refer to the combined blend as labeled on the vial.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Once weekly Sub-Q. Given the potency of the stack, start low and increase slowly every ~4 weeks.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Start', doseLabel: '0.5 mg', mg: 0.5 },
+      { tier: 'Titration', doseLabel: '1–2 mg', mg: 1, mgHigh: 2 },
+      { tier: 'Higher range', doseLabel: '2–3.3 mg', mg: 2, mgHigh: 3.3 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Pronounced nausea, appetite loss, and GI upset — combining multiple pathways amplifies these.'],
+  warnings: ['Contraindicated with personal/family history of medullary thyroid carcinoma or MEN2.', 'Highly potent stack — conservative titration is important.']
+});
+
+files['mt-1.html'] = page({
+  title: 'Melanotan-1 (MT-1)',
+  format: 'Lyophilized Powder (α-MSH analog, afamelanotide)',
+  sizes: [10], defaultSize: 10, bacMl: 2, calcDose: 500, calcUnit: 'mcg', route: 'subq',
+  storageKey: 'vial.mt-1',
+  mechanism: 'A linear α-melanocyte-stimulating-hormone (α-MSH) analog that activates the MC1 receptor to increase eumelanin production. Compared with Melanotan-2 it is more selective for pigmentation and has little effect on libido or appetite.',
+  bullets: [
+    'MC1R-selective — tans with fewer of MT-2’s libido/appetite/nausea effects.',
+    'Shorter-acting than MT-2, so daily dosing is common during a loading phase.',
+    'Sun/UV exposure still drives the actual tanning response.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> A daily loading phase (~1–2 weeks) followed by less frequent maintenance is a common research-sheet pattern.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Loading', doseLabel: '500 mcg', mcg: 500 },
+      { tier: 'Range', doseLabel: '500–1000 mcg', mcg: 500, mcgHigh: 1000 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Facial flushing, mild nausea, and darkening of existing moles/freckles.'],
+  warnings: ['Have any changing or atypical moles checked before and during use.', 'Does not protect against UV damage — burning is still possible.']
+});
+
+files['thymalin.html'] = page({
+  title: 'Thymalin',
+  format: 'Lyophilized Powder (thymic polypeptide bioregulator)',
+  sizes: [10], defaultSize: 10, bacMl: 2, calcDose: 5, calcUnit: 'mg', route: 'subq',
+  storageKey: 'vial.thymalin',
+  mechanism: 'A thymus-derived polypeptide bioregulator studied for normalizing immune function — supporting T-cell maturation and rebalancing cytokine profiles. Part of the Khavinson bioregulator research alongside Epitalon.',
+  bullets: [
+    'Investigated as an immunomodulator that helps normalize (not just stimulate) immune signaling.',
+    'Typically run as short courses of daily dosing, repeated periodically.',
+    'Distinct from Thymosin Alpha-1 though both are thymic peptides.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Research-sheet patterns use a short course (~10 days) of daily Sub-Q, sometimes repeated seasonally.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Standard course', doseLabel: '5 mg', mg: 5 },
+      { tier: 'Range', doseLabel: '5–10 mg', mg: 5, mgHigh: 10 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Injection-site irritation; generally well tolerated in reports.'],
+  warnings: ['Immune-active peptide — use caution with autoimmune conditions unless guided clinically.', 'No standardized human dosing established.']
+});
+
+files['ss-31.html'] = page({
+  title: 'SS-31 (Elamipretide)',
+  format: 'Lyophilized Powder (mitochondria-targeted tetrapeptide)',
+  sizes: [10, 50], defaultSize: 10, bacMl: 2, calcDose: 5, calcUnit: 'mg', route: 'subq',
+  storageKey: 'vial.ss-31',
+  mechanism: 'A cell-permeable tetrapeptide that concentrates in the inner mitochondrial membrane and binds cardiolipin. By stabilizing cristae structure and the electron-transport chain it improves ATP output and reduces reactive-oxygen-species leak — the first mitochondria-targeted peptide to reach FDA approval (for Barth syndrome).',
+  bullets: [
+    'Binds cardiolipin to stabilize mitochondrial structure and energy production.',
+    'Studied for mitochondrial myopathy, heart failure, and age-related decline.',
+    'Clinical trials used 40 mg/day; community research protocols use much lower Sub-Q doses.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Once daily Sub-Q is a common research-sheet pattern. Note published clinical dosing is 40 mg/day; the ranges below reflect lower community amounts.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Community range', doseLabel: '5 mg', mg: 5 },
+      { tier: 'Range', doseLabel: '5–10 mg', mg: 5, mgHigh: 10 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Injection-site reactions were the main finding in trials; otherwise a clean profile at studied doses.'],
+  warnings: ['Approved dosing (40 mg/day) is specific to Barth syndrome; other uses are investigational.']
+});
+
+files['ll-37.html'] = page({
+  title: 'LL-37',
+  format: 'Lyophilized Powder (human cathelicidin antimicrobial peptide)',
+  sizes: [5, 10], defaultSize: 5, bacMl: 2, calcDose: 100, calcUnit: 'mcg', route: 'subq',
+  storageKey: 'vial.ll-37',
+  mechanism: 'The only human cathelicidin — a 37–amino-acid host-defense peptide with broad antimicrobial, biofilm-disrupting, and immunomodulatory activity. Human clinical data exists only for topical wound application; injectable use is community-derived.',
+  bullets: [
+    'Broad antimicrobial and biofilm-disrupting activity; also modulates inflammation.',
+    'Dose-sensitive: immunomodulatory at low levels, cytotoxic/pro-inflammatory when high.',
+    'Only topical wound-healing trials exist in humans — subcutaneous use is unvalidated.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Community research-sheet patterns use small once-daily Sub-Q doses, often 5 days on / 2 off in 2–4 week blocks. There is no validated human injection dose.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Conservative start', doseLabel: '100 mcg', mcg: 100 },
+      { tier: 'Common range', doseLabel: '100–250 mcg', mcg: 100, mcgHigh: 250 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Injection-site redness, induration, and mild pain; possible autoimmune-flare reports at higher doses.'],
+  warnings: ['No human clinical data supports injectable LL-37 — only topical wound trials exist.', 'Higher concentrations can be cytotoxic and pro-inflammatory; start low.']
+});
+
+files['vip.html'] = page({
+  title: 'VIP (Vasoactive Intestinal Peptide)',
+  format: 'Lyophilized Powder (28-aa neuropeptide) — nasal spray',
+  sizes: [5, 10], defaultSize: 5, sprayMl: 4, calcDose: 50, calcUnit: 'mcg', route: 'nasal', mode: 'nasal',
+  storageKey: 'vial.vip',
+  mechanism: 'A 28–amino-acid regulatory neuropeptide with broad anti-inflammatory, pulmonary-vasodilatory, and immune-balancing roles. It is best known as the final ("capstone") step of the Shoemaker CIRS protocol, delivered intranasally after upstream inflammatory markers are corrected.',
+  bullets: [
+    'Master regulatory neuropeptide studied for chronic inflammatory response syndrome (CIRS).',
+    'Delivered intranasally in the published protocols; very short half-life systemically.',
+    'Most effective only after upstream CIRS steps (exposure, binders, markers) are handled.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> The clinical protocol uses 50 mcg per spray, 4× daily (one spray per nostril). Titrate under guidance.</p>',
+  tables: {
+    recon: nasalRecon(),
+    dose: doseTable([
+      { tier: 'Per spray', doseLabel: '50 mcg', mcg: 50 },
+      { tier: 'Daily protocol', doseLabel: '50–100 mcg', mcg: 50, mcgHigh: 100 }
+    ], 'Nasal dosing', 'nasal', 'Sprays')
+  },
+  safety: ['<strong>Common:</strong> Flushing, lightheadedness, or brief blood-pressure changes; generally well tolerated in studies.'],
+  warnings: ['Should follow (not precede) the upstream CIRS treatment steps to be effective.', 'Check lipase before use in the published protocol; avoid with pancreatic concerns unless guided.']
+});
+
+// --- Ready-to-use / non-mg-dosed products (no vial calculator) ---
+
+files['hcg.html'] = simplePage({
+  title: 'HCG',
+  format: 'Lyophilized Powder (human chorionic gonadotropin) · 5,000 / 10,000 IU vials',
+  mechanism: 'Human chorionic gonadotropin mimics luteinizing hormone (LH), signaling the testes to produce testosterone and maintain size and sperm production. It is used to preserve fertility and testicular function during or after suppressive hormone protocols.',
+  bullets: [
+    'Acts like LH to stimulate natural testosterone and sperm production.',
+    'Used to prevent or reverse testicular atrophy on TRT, and to support fertility.',
+    'Dosed in international units (IU), typically 2–3× per week.'
+  ],
+  usageHeading: '📅 Reconstitution & Dosing',
+  usage: [
+    '<strong>Reconstitution:</strong> Add bacteriostatic water to the vial (e.g. 5,000 IU + 5 mL BAC ≈ 1,000 IU per 0.1 mL / 10 units on a U-100 syringe). Choose the water volume that makes your dose land on an easy unit mark.',
+    '<strong>Typical range:</strong> 250–500 IU two to three times per week for fertility/testicular support; higher short courses are sometimes used.',
+    '<strong>Storage:</strong> Refrigerate after reconstitution (36–46°F / 2–8°C); use within a few weeks.'
+  ],
+  safety: ['<strong>Common:</strong> Injection-site irritation, mild water retention, acne, or mood changes from the rise in testosterone/estrogen.'],
+  warnings: ['Can raise estrogen — monitor if prone to estrogen-related side effects.', 'Not for use with hormone-sensitive cancers unless clinically directed.']
+});
+
+files['igf-1-lr3.html'] = simplePage({
+  title: 'IGF-1 LR3',
+  format: 'Lyophilized Powder (Long R3 Insulin-like Growth Factor-1) · 100 / 1000 mcg vials',
+  mechanism: 'A modified, long-acting version of IGF-1. The "Long R3" changes greatly extend its half-life and reduce binding to inhibitory proteins, so more active IGF-1 reaches receptors that drive cell growth, muscle hypertrophy, and nutrient partitioning.',
+  bullets: [
+    'Long-acting IGF-1 analog studied for muscle growth and recovery.',
+    'Dosed in micrograms (mcg) — potent, so precision matters.',
+    'Can lower blood sugar; keep fast-acting carbs available in research settings.'
+  ],
+  usageHeading: '📅 Reconstitution & Dosing',
+  usage: [
+    '<strong>Reconstitution:</strong> Reconstitute with bacteriostatic water. Example: a 1,000 mcg vial + 1 mL BAC = 100 mcg per 0.1 mL (10 units on a U-100 syringe).',
+    '<strong>Typical range:</strong> 20–50 mcg per day is a common research-sheet range, often run in short blocks.',
+    '<strong>Storage:</strong> Refrigerate after reconstitution; protect from light.'
+  ],
+  safety: ['<strong>Common:</strong> Hypoglycemia (shakiness, sweating, hunger), injection-site irritation, and water retention.'],
+  warnings: ['Growth-factor peptides are avoided with active or prior malignancy.', 'Can cause low blood sugar — do not dose and skip meals; keep carbs on hand.']
+});
+
+files['lipo-b.html'] = simplePage({
+  title: 'Lipo-B',
+  format: 'Premixed Injectable Solution (MIC + B12 lipotropic blend) · 10 mL vial',
+  mechanism: 'A ready-to-use lipotropic ("fat-metabolizing") blend — typically methionine, inositol, choline (MIC) plus vitamin B12. These compounds support the liver’s processing of fat and provide an energy/metabolism nudge alongside diet and activity.',
+  bullets: [
+    'Lipotropic MIC + B12 blend marketed to support fat metabolism and energy.',
+    'Comes premixed — no reconstitution needed.',
+    'One 10 mL vial commonly lasts ~2–3 months at typical weekly dosing.'
+  ],
+  usageHeading: '📅 Usage & Handling',
+  usage: [
+    '<strong>Ready to use:</strong> The solution is premixed — draw directly from the vial; do not add BAC water.',
+    '<strong>Typical dosing:</strong> Commonly ~1 injection per week (often 0.5–1 mL) Sub-Q or IM, alongside diet and exercise.',
+    '<strong>Storage:</strong> Refrigerate; protect from light. Discard if discolored or cloudy.'
+  ],
+  safety: ['<strong>Common:</strong> Mild injection-site stinging, temporary flushing, or a metallic taste from the B vitamins.'],
+  warnings: ['A metabolism aid, not a standalone weight-loss treatment — results depend on diet and activity.', 'Avoid if allergic to any component (e.g. B12/cobalt).']
+});
+
+files['lipo-c.html'] = simplePage({
+  title: 'Lipo-C',
+  format: 'Premixed Injectable Solution (MIC + L-carnitine lipotropic blend) · 10 mL vial',
+  mechanism: 'A ready-to-use lipotropic blend similar to Lipo-B but with L-carnitine added. L-carnitine helps shuttle fatty acids into mitochondria to be burned for energy, complementing the methionine/inositol/choline and B-vitamin components.',
+  bullets: [
+    'Lipotropic MIC blend plus L-carnitine for fat metabolism and energy support.',
+    'Premixed and ready to inject — no reconstitution.',
+    'One 10 mL vial commonly lasts ~2–3 months at typical weekly dosing.'
+  ],
+  usageHeading: '📅 Usage & Handling',
+  usage: [
+    '<strong>Ready to use:</strong> Premixed solution — draw directly; do not add BAC water.',
+    '<strong>Typical dosing:</strong> Commonly 1–2 injections per week (often 0.5–1 mL) Sub-Q or IM, alongside diet and exercise.',
+    '<strong>Storage:</strong> Refrigerate; protect from light. Discard if discolored or cloudy.'
+  ],
+  safety: ['<strong>Common:</strong> Injection-site stinging, flushing, or a fishy body odor from L-carnitine at higher intakes.'],
+  warnings: ['A metabolism aid, not a standalone weight-loss treatment.', 'Avoid if allergic to any component.']
+});
+
+files['lemon-bottle.html'] = simplePage({
+  title: 'Lemon Bottle',
+  format: 'Premixed Fat-Dissolving Solution (riboflavin / bromelain / lecithin) · 10 mL vial',
+  mechanism: 'A cosmetic fat-dissolving ("lipolysis") cocktail injected directly into a localized fat pocket — not a normal Sub-Q metabolic shot. Typical ingredients include riboflavin (B2), bromelain, and lecithin, marketed to break down fat cells in the treated area.',
+  bullets: [
+    'Localized fat-dissolving injection for small, stubborn fat pockets.',
+    'Injected into the target area only — this is not a whole-body Sub-Q protocol.',
+    'Premixed and ready to use.'
+  ],
+  usageHeading: '📅 Usage & Handling',
+  usage: [
+    '<strong>Local use only:</strong> Administered into a specific fat deposit via multiple small deposits — a technique best performed by a trained provider.',
+    '<strong>Ready to use:</strong> Premixed — do not add BAC water.',
+    '<strong>Storage:</strong> Refrigerate; protect from light. Discard if discolored.'
+  ],
+  safety: ['<strong>Common:</strong> Swelling, redness, bruising, warmth, and tenderness in the treated area for several days.'],
+  warnings: ['Not a Sub-Q metabolic shot — improper placement can damage tissue.', 'Avoid over infection, near the eyes, or if allergic to any component (e.g. bromelain/pineapple).']
+});
+
+files['l-carnitine.html'] = simplePage({
+  title: 'L-Carnitine',
+  format: 'Injectable Solution (levocarnitine) · 5000 mg / 10 mL vial (500 mg/mL)',
+  mechanism: 'An amino-acid derivative that transports long-chain fatty acids into the mitochondria where they are burned for energy. Supplemental L-carnitine is used to support fat metabolism, exercise recovery, and energy.',
+  bullets: [
+    'Shuttles fatty acids into mitochondria for energy production.',
+    'Researched for fat metabolism, endurance, and recovery.',
+    'Supplied as a ready-to-use 500 mg/mL solution.'
+  ],
+  usageHeading: '📅 Usage & Handling',
+  usage: [
+    '<strong>Ready to use:</strong> 500 mg per mL — draw the volume for your dose; do not add BAC water.',
+    '<strong>Typical range:</strong> ~200–500 mg per dose, a few times weekly (often pre-workout) Sub-Q or IM. Split larger amounts across sites.',
+    '<strong>Storage:</strong> Refrigerate; protect from light.'
+  ],
+  safety: ['<strong>Common:</strong> Injection-site stinging, and a fishy body odor at higher intakes.'],
+  warnings: ['Large single Sub-Q volumes can sting — split doses across sites.', 'Consult a clinician if you have thyroid, kidney, or seizure history.']
+});
+
+files['acetic-acid-water.html'] = simplePage({
+  title: 'Acetic Acid Water',
+  format: 'Sterile Diluent (0.6% acetic acid solution) · 3 mL vial',
+  mechanism: 'A mildly acidic sterile diluent used to reconstitute peptides that dissolve poorly in plain or bacteriostatic water. The low acetic-acid concentration helps fully dissolve "sticky" peptides before they are diluted for use.',
+  bullets: [
+    'Specialty diluent for peptides that won’t fully dissolve in BAC or sterile water.',
+    'Contains ~0.6% acetic acid — used in small amounts to solubilize, then topped with BAC/sterile water.',
+    'Not an active compound; it is a reconstitution aid only.'
+  ],
+  usageHeading: '📅 Usage & Handling',
+  usage: [
+    '<strong>How it’s used:</strong> Add a small amount to dissolve a stubborn peptide, then bring the vial to final volume with bacteriostatic or sterile water.',
+    '<strong>Sanitation:</strong> Wipe the stopper with 70% isopropyl alcohol before each draw.',
+    '<strong>Storage:</strong> Store per label; keep sterile and discard if cloudy or discolored.'
+  ],
+  safety: ['<strong>Common:</strong> Can cause more injection-site stinging than plain BAC water because of the acidity.'],
+  warnings: ['Use only the minimum needed to dissolve, then dilute — do not inject large volumes of acidic diluent.', 'For reconstitution use only.']
+});
+
+files['snap-8.html'] = simplePage({
+  title: 'SNAP-8',
+  format: 'Lyophilized Powder (Acetyl Octapeptide-3) · 10 mg · topical cosmetic',
+  mechanism: 'A cosmetic octapeptide (an extension of Argireline) that mimics the N-terminal end of the SNAP-25 protein. By competing for a spot in the SNARE complex it is designed to soften the muscle micro-contractions behind expression lines — a gentle, reversible, topical "Botox-like" concept.',
+  bullets: [
+    'Topical anti-wrinkle peptide aimed at expression lines (forehead, crow’s feet).',
+    'Reversible and far milder than injectable neurotoxins; effects are gradual.',
+    'Used in serums/creams, not injected — skin penetration is the limiting factor.'
+  ],
+  usageHeading: '📅 Usage & Handling',
+  usage: [
+    '<strong>Topical formulation:</strong> Dissolve in sterile/distilled water and blend into a serum base (commonly a ~3–10% peptide solution in the finished product).',
+    '<strong>Application:</strong> Apply to clean skin once or twice daily; results build over several weeks of consistent use.',
+    '<strong>Storage:</strong> Keep lyophilized powder cold; refrigerate the finished serum and use within its stability window.'
+  ],
+  safety: ['<strong>Common:</strong> Generally well tolerated topically; occasional mild irritation or redness.'],
+  warnings: ['Cosmetic topical use — not intended for injection.', 'Patch-test before regular use if you have sensitive skin.']
+});
 
 Object.entries(files).forEach(([name, html]) => write(name, html));
 console.log('done', Object.keys(files).length);

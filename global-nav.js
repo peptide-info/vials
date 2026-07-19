@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { filename: 'tirzepatide',                         mg: 30,  ml: 3,   dose: 2.5,   unit: 'mg',  route: 'subq' },
         { filename: 'semaglutide',                         mg: 10,  ml: 2,   dose: 0.25,  unit: 'mg',  route: 'subq' },
         { filename: 'cagrilintide',                        mg: 5,   ml: 2,   dose: 0.6,   unit: 'mg',  route: 'subq' },
+        { filename: 'retatrutide-cagrilintide',            mg: 10,  ml: 1,   dose: 0.5,   unit: 'mg',  route: 'subq' },
         { filename: 'retatrutide',                         mg: 30,  ml: 3,   dose: 2,     unit: 'mg',  route: 'subq' },
         { filename: 'tesamorelin',                         mg: 10,  ml: 2,   dose: 2,     unit: 'mg',  route: 'subq' },
         { filename: 'ipamorelin',                          mg: 5,   ml: 2,   dose: 200,   unit: 'mcg', route: 'subq' },
@@ -48,7 +49,22 @@ document.addEventListener("DOMContentLoaded", () => {
         { filename: 'epitalon',                            mg: 10,  ml: 2,   dose: 5,     unit: 'mg',  route: 'subq' },
         { filename: 'mots-c',                              mg: 10,  ml: 1,   dose: 5,     unit: 'mg',  route: 'subq' },
         { filename: 'nad',                                 mg: 500, ml: 5,   dose: 50,    unit: 'mg',  route: 'subq' },
-        { filename: 'dsip',                                mg: 5,   ml: 2,   dose: 100,   unit: 'mcg', route: 'subq' }
+        { filename: 'dsip',                                mg: 5,   ml: 2,   dose: 100,   unit: 'mcg', route: 'subq' },
+        { filename: 'ghrp-2',                              mg: 5,   ml: 2,   dose: 100,   unit: 'mcg', route: 'subq' },
+        { filename: 'ghrp-6',                              mg: 5,   ml: 2,   dose: 100,   unit: 'mcg', route: 'subq' },
+        { filename: 'pe-22-28',                            mg: 10,  ml: 2,   dose: 250,   unit: 'mcg', route: 'subq' },
+        { filename: 'pinealon',                            mg: 10,  ml: 2,   dose: 100,   unit: 'mcg', route: 'subq' },
+        { filename: 'pnc-27',                              mg: 5,   ml: 2,   dose: 250,   unit: 'mcg', route: 'subq' },
+        { filename: 'peg-mgf',                             mg: 2,   ml: 1,   dose: 200,   unit: 'mcg', route: 'subq' },
+        { filename: 'mgf',                                 mg: 2,   ml: 1,   dose: 200,   unit: 'mcg', route: 'subq' },
+        { filename: 'cagrisema',                           mg: 5,   ml: 1,   dose: 0.25,  unit: 'mg',  route: 'subq' },
+        { filename: 'survodutide',                         mg: 10,  ml: 1,   dose: 0.3,   unit: 'mg',  route: 'subq' },
+        { filename: 'mazdutide',                           mg: 5,   ml: 1,   dose: 1.5,   unit: 'mg',  route: 'subq' },
+        { filename: 'mt-1',                                mg: 10,  ml: 2,   dose: 500,   unit: 'mcg', route: 'subq' },
+        { filename: 'thymalin',                            mg: 10,  ml: 2,   dose: 5,     unit: 'mg',  route: 'subq' },
+        { filename: 'ss-31',                               mg: 10,  ml: 2,   dose: 5,     unit: 'mg',  route: 'subq' },
+        { filename: 'll-37',                               mg: 5,   ml: 2,   dose: 100,   unit: 'mcg', route: 'subq' },
+        { filename: 'vip',                                 mg: 5,   ml: 4,   dose: 50,    unit: 'mcg', route: 'nasal' }
     ];
 
     // ABSOLUTE SYSTEM FALLBACKS (If a page isn't in the list above)

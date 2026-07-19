@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../global-nav.js?v=21"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP (Vasoactive Intestinal Peptide) Protocol</title>
+</head>
+<body>
+
+    <h1>VIP (Vasoactive Intestinal Peptide)</h1>
+    <p><strong>Format:</strong> Lyophilized Powder (28-aa neuropeptide) — nasal spray · Vial <span data-vial-mg>5 mg</span></p>
+
+    <hr>
+
+    <h3>🧬 Mechanism of Action</h3>
+    <p>A 28–amino-acid regulatory neuropeptide with broad anti-inflammatory, pulmonary-vasodilatory, and immune-balancing roles. It is best known as the final ("capstone") step of the Shoemaker CIRS protocol, delivered intranasally after upstream inflammatory markers are corrected.</p>
+    <ul>
+        <li>Master regulatory neuropeptide studied for chronic inflammatory response syndrome (CIRS).</li>
+        <li>Delivered intranasally in the published protocols; very short half-life systemically.</li>
+        <li>Most effective only after upstream CIRS steps (exposure, binders, markers) are handled.</li>
+    </ul>
+
+    <hr>
+
+    <h3>🧪 Reconstitution Guide</h3>
+    <div id="vial-picker"
+         data-storage-key="vial.vip"
+         data-sizes="5,10"
+         data-default="5"
+         data-spray-ml="4"
+         data-calc-dose="50"
+         data-calc-unit="mcg"
+         data-route="nasal"
+         data-mode="nasal"></div>
+    <div class="route-stack">
+        <section class="route-panel route-nasal">
+            <p class="route-label">Nasal</p>
+            <h4>Nasal spray reconstitution</h4>
+            <p>Use <em>sterile water</em> or <em>normal saline</em> — not BAC. Metered pump ≈ 0.1 mL/spray. Finished spray volume <strong>4.0 mL</strong>.</p>
+            <ol>
+                <li>Reconstitute the vial with ~half the water; swirl gently.</li>
+                <li>Transfer into a spray bottle and bring total finished volume to <strong>4.0 mL</strong>.</li>
+                <li><strong>Final:</strong> <span data-vial-conc></span>.</li>
+                <li>Refrigerate; discard if cloudy or after ~30 days.</li>
+            </ol>
+            
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>📅 Protocol &amp; Dosing</h3>
+<p><strong>Frequency:</strong> The clinical protocol uses 50 mcg per spray, 4× daily (one spray per nostril). Titrate under guidance.</p>
+    <div class="route-stack">
+        <section class="route-panel route-nasal">
+            <p class="route-label">Nasal</p>
+            <h4>Nasal dosing</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th>Target Dose</th>
+                        <th>Sprays</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Per spray</strong></td><td>50 mcg</td><td data-units data-dose-mcg="50"></td></tr>
+                    <tr><td><strong>Daily protocol</strong></td><td>50–100 mcg</td><td data-units data-dose-mcg="50" data-dose-mcg-high="100"></td></tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <hr>
+
+    <h3>⚠️ Safety &amp; Side Effects</h3>
+    <ul>
+        <li><strong>Common:</strong> Flushing, lightheadedness, or brief blood-pressure changes; generally well tolerated in studies.</li>
+    </ul>
+
+    <blockquote>
+        <p><strong>CRITICAL WARNINGS:</strong></p>
+        <ul>
+            <li>Should follow (not precede) the upstream CIRS treatment steps to be effective.</li>
+            <li>Check lipase before use in the published protocol; avoid with pancreatic concerns unless guided.</li>
+            <li><strong>For laboratory research use only.</strong></li>
+        </ul>
+    </blockquote>
+
+    <script src="../js/vial-size.js?v=6"></script>
+</body>
+</html>
