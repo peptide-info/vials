@@ -889,6 +889,46 @@
             white-space: normal;
         }
 
+        .pricing-group-desc {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 5px;
+            justify-content: flex-end;
+        }
+
+        /* Pop-out to the protocol page — only surfaced once the group is expanded. */
+        .pricing-open {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            border-radius: 5px;
+            color: var(--muted);
+            cursor: pointer;
+            transform: translateY(2px);
+            transition: color 0.12s ease, background 0.12s ease;
+        }
+
+        .pricing-group-row.is-open .pricing-open {
+            display: inline-flex;
+        }
+
+        .pricing-open svg {
+            width: 13px;
+            height: 13px;
+            fill: currentColor;
+        }
+
+        .pricing-open:hover,
+        .pricing-open:focus-visible {
+            color: var(--accent);
+            background: rgba(15, 122, 95, 0.12);
+            outline: none;
+        }
+
         .pricing-group-row.is-open .pricing-group-cost {
             display: none;
         }
@@ -1535,7 +1575,7 @@
     </div>
 
     <script src="js/schedule-planner.js?v=28"></script>
-    <script src="js/pricing-inquiry.js?v=25"></script>
+    <script src="js/pricing-inquiry.js?v=26"></script>
     <script>
         const GITHUB_USER = 'peptide-info';
         const GITHUB_REPO = 'vials';
@@ -1691,6 +1731,10 @@
             'acetic-acid-water.html': { title: 'Acetic Acid Water', meta: '3 mL · acidic diluent for tricky peptides', group: 'supplies', tags: ['Supply'] },
             'bac-water-3ml.html': { title: 'Bacteriostatic Water', meta: '3 mL · standard diluent reference', group: 'supplies', tags: ['Supply'] }
         }
+
+        // Expose to other scripts (e.g. pricing inquiry) so they can link line items to protocol pages.
+        window.PROTOCOL_CATALOG = CATALOG;
+        window.PROTOCOL_FOLDER = FOLDER_PATH;
 
         function tagClass(tag) {
             const t = tag.toLowerCase();

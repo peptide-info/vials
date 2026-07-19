@@ -823,6 +823,44 @@
         return { costLine, noteLine };
     }
 
+    let _protocolIndex = null;
+
+    function normalizeName(s) {
+        return String(s || '')
+            .toLowerCase()
+            .replace(/\(.*?\)/g, '')      // drop parentheticals e.g. "(Elamipretide)"
+            .replace(/&/g, 'and')
+            .replace(/\biii\b/g, '3')
+            .replace(/\bii\b/g, '2')
+            .replace(/[^a-z0-9]+/g, '');
+    }
+
+    /** Build (once) a normalized name/slug → protocol page URL lookup from the shared catalog. */
+    function protocolIndex() {
+        if (_protocolIndex) return _protocolIndex;
+        const cat = window.PROTOCOL_CATALOG;
+        const folder = window.PROTOCOL_FOLDER || 'peptides';
+        const map = new Map();
+        if (cat && typeof cat === 'object') {
+            Object.keys(cat).forEach((file) => {
+                const url = `${folder}/${file}`;
+                const slug = file.replace(/\.html$/i, '');
+                map.set(normalizeName(slug), url);
+                const title = cat[file] && cat[file].title;
+                if (title) map.set(normalizeName(title), url);
+            });
+        }
+        _protocolIndex = map;
+        return _protocolIndex;
+    }
+
+    /** Resolve a sheet product name to its protocol page URL, or '' if none. */
+    function protocolUrlForName(name) {
+        const key = normalizeName(name);
+        if (!key) return '';
+        return protocolIndex().get(key) || '';
+    }
+
     function renderProductRow(p, { hideName } = {}) {
         const q = Number(state.qty[p.catNo]) || 0;
         const dpm = perMg(p);
@@ -876,10 +914,19 @@
             const summary = groupCollapsedSummary(g.items);
             const showCost = !open && summary.costLine;
             const showNote = Boolean(summary.noteLine);
-            const summaryHtml = (showCost || showNote)
+            const protocolUrl = protocolUrlForName(g.name);
+            const openHtml = protocolUrl
+                ? `<span class="pricing-open" role="link" tabindex="0"
+                        data-open-url="${escapeAttr(protocolUrl)}"
+                        title="Open ${escapeAttr(g.name)} protocol page" aria-label="Open ${escapeAttr(g.name)} protocol page (new tab)">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"/><path d="M19 19H5V5h6V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6h-2v6z"/></svg>
+                   </span>`
+                : '';
+            const showDesc = openHtml || showNote;
+            const summaryHtml = (showCost || showDesc)
                 ? `<span class="pricing-group-summary">
                         ${showCost ? `<span class="pricing-group-cost">${escapeHtml(summary.costLine)}</span>` : ''}
-                        ${showNote ? `<span class="pricing-group-note">${escapeHtml(summary.noteLine)}</span>` : ''}
+                        ${showDesc ? `<span class="pricing-group-desc">${openHtml}${showNote ? `<span class="pricing-group-note">${escapeHtml(summary.noteLine)}</span>` : ''}</span>` : ''}
                    </span>`
                 : '';
 
@@ -913,6 +960,18 @@
                 if (state.expandedGroups.has(key)) state.expandedGroups.delete(key);
                 else state.expandedGroups.add(key);
                 renderTable();
+            });
+        });
+
+        tbody.querySelectorAll('[data-open-url]').forEach((el) => {
+            const openPage = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(el.dataset.openUrl, '_blank', 'noopener');
+            };
+            el.addEventListener('click', openPage);
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') openPage(e);
             });
         });
 
