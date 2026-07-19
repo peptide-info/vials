@@ -26,7 +26,7 @@ function page(opts) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="../global-nav.js?v=19"></script>
+    <script src="../global-nav.js?v=20"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title} Protocol</title>
@@ -722,6 +722,32 @@ files['thymosin-alpha-1.html'] = page({
   safety: ['<strong>Common:</strong> Redness at injection site, transient fatigue or flu-like feelings.'],
   warnings: ['Immune-active peptide — use caution with autoimmune conditions unless guided clinically.', 'Not interchangeable with TB-500.']
 });
+
+files['5-amino-1mq.html'] = page({
+  title: '5-Amino-1MQ',
+  format: 'Lyophilized Powder (NNMT inhibitor, small molecule)',
+  sizes: [5, 50], defaultSize: 50, bacMl: 2, calcDose: 2, calcUnit: 'mg', route: 'subq',
+  storageKey: 'vial.5-amino-1mq',
+  mechanism: 'A small-molecule inhibitor of nicotinamide N-methyltransferase (NNMT) studied for metabolic and fat-loss research. By slowing NNMT activity in adipose tissue it is investigated for effects on cellular NAD+/energy metabolism.',
+  bullets: [
+    'Researched for adipocyte metabolism, energy expenditure, and body-composition themes.',
+    'Frequently studied as an oral compound; this sheet covers Sub-Q reconstitution like the other vials.',
+    'Effects are gradual — evaluated over multi-week research runs rather than acutely.'
+  ],
+  dosingIntro: '<p><strong>Frequency:</strong> Daily is a common research-sheet pattern; some protocols use several days per week. Timing relative to meals is flexible.</p>',
+  tables: {
+    recon: subqRecon(),
+    dose: doseTable([
+      { tier: 'Conservative', doseLabel: '1.0 mg', mg: 1 },
+      { tier: 'Standard', doseLabel: '2.0 mg', mg: 2 },
+      { tier: 'Higher research range', doseLabel: '2.0–3.5 mg', mg: 2, mgHigh: 3.5 }
+    ])
+  },
+  safety: ['<strong>Common:</strong> Generally well tolerated in reports; occasional mild GI upset, headache, or injection-site irritation.'],
+  warnings: ['Research compound — long-term human safety data is limited.', 'Introduce at a low dose and assess tolerance before increasing.']
+});
+files['5-amino-1mq-5mg.html'] = redirect('5-amino-1mq.html', 5);
+files['5-amino-1mq-50mg.html'] = redirect('5-amino-1mq.html', 50);
 
 Object.entries(files).forEach(([name, html]) => write(name, html));
 console.log('done', Object.keys(files).length);
